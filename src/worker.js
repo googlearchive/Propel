@@ -14,6 +14,10 @@
 
 'use strict';
 
+self.addEventListener('install', function(event) {
+  self.skipWaiting();
+});
+
 self.addEventListener('notificationclick', function(event) {
   event.waitUntil(event.notification.close());
 });
