@@ -148,6 +148,20 @@ let pushClient = {
     navigator.serviceWorker.removeEventListener('message', messageHandler);
   },
 
+  async getSubscription() {
+    if (!this.supported()) {
+      return;
+    }
+
+    let registration = await getRegistration();
+
+    if (!registration) {
+      return;
+    }
+
+    return await registration.pushManager.getSubscription();
+  },
+
   supported() {
     return SUPPORTED;
   },
