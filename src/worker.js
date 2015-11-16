@@ -11,3 +11,38 @@
   limitations under the License.
 */
 /* eslint-env serviceworker */
+
+'use strict';
+
+self.addEventListener('notificationclick', function(event) {
+  event.waitUntil(event.notification.close());
+});
+
+let pushWorker = {
+  async getClientWindows({visibleOnly=false, url=null} = {}) {
+    try {
+      let windows = clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true
+      });
+
+      if (url) {
+        windows = windows.filter((c) => c.url === url);
+      }
+
+      if (visibleOnly) {
+        windows =
+            windows.filter((c) => c.focused && c.visibilityState === 'visible');
+      }
+
+      return windows;
+    } catch (error) {
+      // Couldn't get client list, possibly not yet implemented in the browser
+      return [];
+    }
+  }
+};
+
+self.goog = self.goog || {};
+self.goog.push = self.goog.push || {};
+self.goog.push.worker = pushWorker;
