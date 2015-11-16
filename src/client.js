@@ -99,7 +99,10 @@ let pushClient = {
       // POST subscription details
       await fetch(endpoint, {
         method: 'post',
-        body: JSON.stringify(sub),
+        body: JSON.stringify({
+          action: 'subscribe',
+          subscription: sub
+        }),
         headers: {
           'Content-Type': 'application/json'
         }
@@ -109,7 +112,7 @@ let pushClient = {
     return sub;
   },
 
-  async unsubscribe() {
+  async unsubscribe({endpoint=null} = {}) {
     if (!this.supported()) {
       return;
     }
@@ -124,6 +127,20 @@ let pushClient = {
 
     if (subscription) {
       await subscription.unsubscribe();
+
+      if (endpoint) {
+        // POST subscription details
+        await fetch(endpoint, {
+          method: 'post',
+          body: JSON.stringify({
+            action: 'unsubscribe',
+            subscription: subscription
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
     }
 
     await registration.unregister();
