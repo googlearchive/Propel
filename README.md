@@ -1,12 +1,12 @@
-Push client helpers
-===================
+Propel
+======
 
 > A library to support developers implementing Web Push notifications
 
 Support
 -------
 
-If you’ve found an error in this library, please file an issue: https://github.com/GoogleChrome/push-client-helper/issues
+If you’ve found an error in this library, please file an issue: https://github.com/GoogleChrome/Propel/issues
 
 Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub.
 
