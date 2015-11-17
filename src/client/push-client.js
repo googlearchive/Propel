@@ -65,14 +65,6 @@ let registrationReady = function(registration) {
   });
 };
 
-let getRegistration = async function() {
-  let reg = await navigator.serviceWorker.getRegistration(SCOPE);
-
-  if (reg.scope === SCOPE) {
-    return reg;
-  }
-};
-
 export default class PushClient {
   constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
       scope=SCOPE} = {}) {
@@ -84,6 +76,24 @@ export default class PushClient {
     this.userId = userId;
     this.workerUrl = workerUrl;
     this.scope = scope;
+
+    // It is possible for the subscription to change in between page loads. We
+    // should re-send the existing subscription when we initialise (if there is
+    // one)
+    if (this.endpoint) {
+      // TODO: use requestIdleCallback when available to defer to a time when we
+      // are less busy. Need to fallback to something else (rAF?) if rIC is not
+      // available.
+      this.getSubscription().then(subscription => {
+        if (subscription) {
+          this.endpoint.send({
+            action: 'subscribe',
+            subscription: subscription,
+            userId: this.userId
+          });
+        }
+      });
+    }
   }
 
   async subscribe() {
@@ -119,7 +129,7 @@ export default class PushClient {
   }
 
   async unsubscribe() {
-    let registration = await getRegistration();
+    let registration = await this.getRegistration();
     let subscription;
 
     if (registration) {
@@ -140,8 +150,16 @@ export default class PushClient {
     }
   }
 
+  async getRegistration() {
+    let reg = await navigator.serviceWorker.getRegistration(this.scope);
+
+    if (reg && reg.scope === this.scope) {
+      return reg;
+    }
+  }
+
   async getSubscription() {
-    let registration = await getRegistration();
+    let registration = await this.getRegistration();
 
     if (!registration) {
       return;
