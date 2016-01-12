@@ -72,13 +72,18 @@ let getRegistration = async function() {
   }
 };
 
-let pushClient = {
-  async subscribe({workerUrl=WORKER_URL, endpoint=null} = {}) {
-    // Check for support
-    if (!this.supported()) {
-      throw new SubscriptionFailedError('not supported');
+class PushClient {
+  constructor({endpointUrl=null, userId=null, workerUrl=null}) {
+    if (!PushClient.supported()) {
+      throw new Error('Your browser does not support the web push API');
     }
 
+    this.endpoint = endpointUrl ? new Endpoint(endpointUrl) : null;
+    this.userId = userId;
+    this.workerUrl = workerUrl;
+  }
+
+  async subscribe() {
     // Check for permission
     let permission = await requestPermission();
 
@@ -89,35 +94,28 @@ let pushClient = {
     }
 
     // Install service worker and subscribe for push
-    let reg = await navigator.serviceWorker.register(workerUrl, {scope: SCOPE});
+    let reg = await navigator.serviceWorker.register(this.workerUrl, {
+      scope: SCOPE
+    });
     await registrationReady(reg);
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true});
 
     // Set up message listener for SW comms
     navigator.serviceWorker.addEventListener('message', messageHandler);
 
-    if (endpoint) {
+    if (this.endpoint) {
       // POST subscription details
-      await fetch(endpoint, {
-        method: 'post',
-        body: JSON.stringify({
-          action: 'subscribe',
-          subscription: sub
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      this.endpoint.send({
+        action: 'subscribe',
+        subscription: sub,
+        userId: this.userId
       });
     }
 
     return sub;
-  },
+  }
 
-  async unsubscribe({endpoint=null} = {}) {
-    if (!this.supported()) {
-      return;
-    }
-
+  async unsubscribe() {
     let registration = await getRegistration();
 
     if (!registration) {
@@ -129,49 +127,40 @@ let pushClient = {
     if (subscription) {
       await subscription.unsubscribe();
 
-      if (endpoint) {
+      if (this.endpoint) {
         // POST subscription details
-        await fetch(endpoint, {
-          method: 'post',
-          body: JSON.stringify({
-            action: 'unsubscribe',
-            subscription: subscription
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+        this.endpoint.send({
+          action: 'unsubscribe',
+          subscription: subscription,
+          userId: this.userId
         });
       }
     }
 
-    await registration.unregister();
-
     navigator.serviceWorker.removeEventListener('message', messageHandler);
-  },
+
+    return registration.unregister();
+  }
 
   async getSubscription() {
-    if (!this.supported()) {
-      return;
-    }
-
     let registration = await getRegistration();
 
     if (!registration) {
       return;
     }
 
-    return await registration.pushManager.getSubscription();
+    return registration.pushManager.getSubscription();
   },
 
-  supported() {
+  static supported() {
     return SUPPORTED;
   },
 
-  hasPermission() {
+  static hasPermission() {
     return Notification.permission === 'granted';
   }
-};
+}
 
 window.goog = window.goog || {};
 window.goog.push = window.goog.push || {};
-window.goog.push.client = pushClient;
+window.goog.push.client = PushClient;
