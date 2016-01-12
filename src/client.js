@@ -13,6 +13,7 @@
 /* eslint-env browser */
 
 import SubscriptionFailedError from './client/subscription-failed-error';
+import Endpoint from './client/endpoint';
 
 // document.currentScript is not supported in all browsers, but it IS supported
 // in all browsers that support Push.
@@ -73,7 +74,8 @@ let getRegistration = async function() {
 };
 
 class PushClient {
-  constructor({endpointUrl=null, userId=null, workerUrl=null}) {
+  constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
+      scope=SCOPE}) {
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
@@ -81,6 +83,7 @@ class PushClient {
     this.endpoint = endpointUrl ? new Endpoint(endpointUrl) : null;
     this.userId = userId;
     this.workerUrl = workerUrl;
+    this.scope = scope;
   }
 
   async subscribe() {
@@ -93,9 +96,9 @@ class PushClient {
       throw new SubscriptionFailedError('dismissed');
     }
 
-    // Install service worker and subscribe for push
+    // Make sure we have a service worker and subscribe for push
     let reg = await navigator.serviceWorker.register(this.workerUrl, {
-      scope: SCOPE
+      scope: this.scope
     });
     await registrationReady(reg);
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true});
@@ -117,29 +120,24 @@ class PushClient {
 
   async unsubscribe() {
     let registration = await getRegistration();
+    let subscription;
 
-    if (!registration) {
-      return;
-    }
+    if (registration) {
+      subscription = await registration.pushManager.getSubscription();
 
-    let subscription = await registration.pushManager.getSubscription();
-
-    if (subscription) {
-      await subscription.unsubscribe();
-
-      if (this.endpoint) {
-        // POST subscription details
-        this.endpoint.send({
-          action: 'unsubscribe',
-          subscription: subscription,
-          userId: this.userId
-        });
+      if (subscription) {
+        await subscription.unsubscribe();
       }
     }
 
-    navigator.serviceWorker.removeEventListener('message', messageHandler);
-
-    return registration.unregister();
+    if (this.endpoint) {
+      // POST subscription details
+      this.endpoint.send({
+        action: 'unsubscribe',
+        subscription: subscription,
+        userId: this.userId
+      });
+    }
   }
 
   async getSubscription() {
@@ -150,11 +148,11 @@ class PushClient {
     }
 
     return registration.pushManager.getSubscription();
-  },
+  }
 
   static supported() {
     return SUPPORTED;
-  },
+  }
 
   static hasPermission() {
     return Notification.permission === 'granted';
