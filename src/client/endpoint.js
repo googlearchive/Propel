@@ -10,4 +10,20 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-/* eslint-env serviceworker */
+/* eslint-env browser */
+
+export default class Endpoint {
+  constructor(url) {
+    this.url = url;
+  }
+
+  send(message) {
+    return fetch(this.url, {
+      method: 'post',
+      body: JSON.stringify(message),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+}
