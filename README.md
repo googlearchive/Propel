@@ -1,5 +1,5 @@
-Push client helpers
-===================
+Propel
+======
 
 [![Build Status](https://travis-ci.org/GoogleChrome/Propel.svg?branch=master)](https://travis-ci.org/GoogleChrome/Propel)
 
@@ -8,7 +8,7 @@ Push client helpers
 Support
 -------
 
-If you’ve found an error in this library, please file an issue: https://github.com/GoogleChrome/push-client-helper/issues
+If you’ve found an error in this library, please file an issue: https://github.com/GoogleChrome/Propel/issues
 
 Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub.
 

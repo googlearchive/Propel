@@ -75,7 +75,7 @@ let getRegistration = async function() {
 
 class PushClient {
   constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
-      scope=SCOPE}) {
+      scope=SCOPE} = {}) {
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
@@ -160,5 +160,5 @@ class PushClient {
 }
 
 window.goog = window.goog || {};
-window.goog.push = window.goog.push || {};
-window.goog.push.client = PushClient;
+window.goog.propel = window.goog.propel || {};
+window.goog.propel.Client = PushClient;

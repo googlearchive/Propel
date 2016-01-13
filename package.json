@@ -1,5 +1,5 @@
 {
-  "name": "push-client-helper",
+  "name": "propel",
   "version": "1.0.0",
   "description": "A library to support developers implementing Web Push notifications",
   "devDependencies": {
