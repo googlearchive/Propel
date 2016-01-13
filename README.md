@@ -1,6 +1,8 @@
 Push client helpers
 ===================
 
+[![Build Status](https://travis-ci.org/GoogleChrome/Propel.svg?branch=master)](https://travis-ci.org/GoogleChrome/Propel)
+
 > A library to support developers implementing Web Push notifications
 
 Support
