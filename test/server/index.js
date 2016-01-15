@@ -19,15 +19,12 @@
 
 /* eslint-env node */
 
-// This server is needed most importantly to add the Service-Worker-Allowed
-// header to any service worker loaded in the tests. This allows the scope
-// to be manipulated any way we want / need during testing.
-
 var path = require('path');
 var express = require('express');
 var app = express();
 
-// Set up static assets
+// Set up static assets and add service worker allowed header in case it's
+// needed for registering SW during tests
 app.use('/test/browser-tests/',
   express.static(path.join(__dirname, '..', 'browser-tests/'), {
     setHeaders: function(res) {
@@ -36,7 +33,8 @@ app.use('/test/browser-tests/',
   })
 );
 
-// Allow all assets in the project to be served (This includes sw-toolbox.js)
+// Allow all assets in the project to be served, including any
+// required js code from the project
 app.use('/', express.static(path.join(__dirname, '..', '..')));
 
 // If the user tries to go to the root of the test server, redirect them

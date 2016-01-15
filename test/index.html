@@ -38,14 +38,9 @@
 
   <!-- Push Client Code We Will Test -->
   <script src="/dist/client.js"></script>
-
-  <!--
-    Timeout is extended to ensure tests for max-cache-age
-    have enough time to complete
-  -->
+  
   <script>mocha.setup({
-    ui: 'bdd',
-    timeout: 5000
+    ui: 'bdd'
   })</script>
 
   <!-- In browser test scripts should be added to the page here-->
@@ -56,7 +51,7 @@
       // To automate the tests with selenium, we need a way
       // to inform selenium when the tests are completed and
       // pass results back.
-      // This is done by waiting for window.swtoolbox to be defined.
+      // This is done by waiting for window.testsuite to be defined.
       // This is done in publishTestResults();
       var passedTests = [];
       var failedTests = [];
@@ -71,24 +66,14 @@
       };
 
       // Once this is called, automated tests should be
-      // able to read sw.toolbox and get test results.
+      // able to read window.testsuite and get test results.
       function publishTestResults() {
-        window.swtoolbox = {
+        window.testsuite = {
           testResults: {
             passed: passedTests,
             failed: failedTests
           }
         };
-      }
-
-      // This make browsers without a service worker pass tests by
-      // bypassing the tests altogether.
-      // This is desirable to allow travis to run tests in all browsers
-      // regardless of support or not and perform tests when the browser
-      // starts to support service workers.
-      if (!('serviceWorker' in navigator)) {
-        publishTestResults();
-        return;
       }
 
       // should adds objects to primitives which requires this call to be made
