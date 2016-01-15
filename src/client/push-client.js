@@ -76,7 +76,7 @@ let getRegistration = async function() {
 export default class PushClient {
   constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
       scope=SCOPE} = {}) {
-    if (!PushClient.supported()) {
+    if (!this.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
@@ -150,11 +150,11 @@ export default class PushClient {
     return registration.pushManager.getSubscription();
   }
 
-  static supported() {
+  supported() {
     return SUPPORTED;
   }
 
-  static hasPermission() {
+  hasPermission() {
     return Notification.permission === 'granted';
   }
 }
