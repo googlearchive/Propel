@@ -91,8 +91,6 @@ describe('Test PushClient', () => {
       var pushClient = new window.goog.propel.Client();
       window.chai.expect(pushClient).to.have.property('subscribe');
       window.chai.expect(pushClient).to.have.property('unsubscribe');
-      window.chai.expect(pushClient).to.have.property('supported');
-      window.chai.expect(pushClient).to.have.property('hasPermission');
     });
   });
 });
