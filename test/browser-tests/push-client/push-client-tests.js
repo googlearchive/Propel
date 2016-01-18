@@ -85,12 +85,4 @@ describe('Test PushClient', () => {
       window.chai.expect(pushClient.workerUrl).to.contain('/sw.js');
     });
   });
-
-  describe('Test PushClient API Surface', () => {
-    it('should be able to call supported on a push client', () => {
-      var pushClient = new window.goog.propel.Client();
-      window.chai.expect(pushClient).to.have.property('subscribe');
-      window.chai.expect(pushClient).to.have.property('unsubscribe');
-    });
-  });
 });
