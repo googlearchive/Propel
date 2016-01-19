@@ -21,6 +21,7 @@
     "no-trailing-spaces": 2,
     "no-unused-expressions": 2,
     "no-unused-vars": [2, {"args": "none"}],
+    "no-var": 2,
     "object-curly-spacing": [2, "never"],
     "padded-blocks": [2, "never"],
     "quotes": [2, "single"],
