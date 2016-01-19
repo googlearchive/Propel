@@ -65,7 +65,27 @@ let registrationReady = function(registration) {
   });
 };
 
+/**
+ * PushClient is a front end library that simplifies adding push to your
+ * site.
+ */
 export default class PushClient {
+  /**
+   * Constructs a new PushClient.
+   *
+   * If the current browser has a push scription then it will be
+   * obtained in the constructor and sent to the endpointUrl if supplied
+   * and a subscriptionChange event will be dispatched.
+   *
+   * @param {Object} [options] - Options object should be included if you
+   *  want to define any of the following.
+   * @param {String} [options.endpointUrl] - If supplied this endpoint will be
+   *  sent a POST request containing the users PushSubscription object.
+   * @param {String} [options.userId] - If an endpointUrl is defined the
+   *  userId will be passed with the request to that endpoint.
+   * @param {String} [options.workerUrl] - Service worker URL to be
+   *  registered that will receive push events.
+   */
   constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
       scope=SCOPE} = {}) {
     if (!PushClient.supported()) {
@@ -96,6 +116,18 @@ export default class PushClient {
     }
   }
 
+  /**
+   * This method will subscribe a use for push messaging.
+   *
+   * If permission isn't granted for push, this method will show the
+   * permissions dialog before attempting to subscribe the user to push.
+   *
+   * If an endpointUrl is supplied to the constructor, this will recieve
+   * a subscribe event.
+   *
+   * @return {Promise<PushSubscription>} Returns a Promise that
+   *  resolves with a PushSubscription if successful.
+   */
   async subscribe() {
     // Check for permission
     let permission = await requestPermission();
@@ -138,6 +170,16 @@ export default class PushClient {
     return sub;
   }
 
+  /**
+   * This method will unsubscribe the user from push on the client side.
+   *
+   * If you supplied an endpoint, this method will call it with an
+   * unsubscribe event, including the origin subscription object as well
+   * as the userId if supplied.
+   *
+   * @return {Promise} Returns a Promise that
+   *  resolves once the user is unsubscribed.
+   */
   async unsubscribe() {
     let registration = await this.getRegistration();
     let subscription;
@@ -160,6 +202,15 @@ export default class PushClient {
     }
   }
 
+  /**
+   * If a service worker is registered for push, this method will return a
+   * promise that will resolve with the registration for that service worker.
+   *
+   * If there is no registration null will be the resolved reponse.
+   *
+   * @return {Promise<ServiceWorkerRegistration>} Returns a Promise that
+   *  resolves with a ServiceWorkerRegistration or null.
+   */
   async getRegistration() {
     let reg = await navigator.serviceWorker.getRegistration(this.scope);
 
@@ -168,6 +219,15 @@ export default class PushClient {
     }
   }
 
+  /**
+   * If the user is currently subscribed for push then the returned promise will
+   * resolve with a PushSubscription object, otherwise it will resolve to null.
+   *
+   * This will not display the permission dialog.
+   *
+   * @return {Promise<PushSubscription>} Returns a Promise that resolves with
+   *  a PushSubscription or null.
+   */
   async getSubscription() {
     let registration = await this.getRegistration();
 
@@ -178,10 +238,21 @@ export default class PushClient {
     return registration.pushManager.getSubscription();
   }
 
+  /**
+   * You can use this to decide whether to construct a new PushClient or not.
+   * @return {Boolean} Whether the current browser has everything needed
+   *  to use push messaging.
+   */
   static supported() {
     return SUPPORTED;
   }
 
+  /**
+   * This method can be used to check if subscribing the user will display
+   * the permission dialog or not.
+   * @return {Boolean} Returns true if you have permission to subscribe
+   *  the user for push messages.
+   */
   static hasPermission() {
     return Notification.permission === 'granted';
   }
