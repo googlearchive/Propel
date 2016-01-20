@@ -17,7 +17,7 @@ const MESSAGES = {
   'dismissed': 'The user dismissed the notification permission dialog.',
   'endpoint': 'No endpoint URL specified.',
   'nogcmid': 'Please ensure you have a Web App Manifest with ' +
-    'a \"gcm_sender_id\" defined.'
+    'a "gcm_sender_id" defined.'
 };
 
 export default class SubscriptionFailedError extends Error {

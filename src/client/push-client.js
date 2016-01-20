@@ -114,7 +114,7 @@ export default class PushClient {
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
       .catch((err) => {
         // This is provide a more helpful message when work with Chrome + GCM
-        var errorToThrow = err;
+        let errorToThrow = err;
         if (err.message === 'Registration failed - no sender id provided') {
           errorToThrow = new SubscriptionFailedError('nogcmid');
         }
