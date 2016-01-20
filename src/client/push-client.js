@@ -111,7 +111,15 @@ export default class PushClient {
       scope: this.scope
     });
     await registrationReady(reg);
-    let sub = await reg.pushManager.subscribe({userVisibleOnly: true});
+    let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
+      .catch((err) => {
+        // This is provide a more helpful message when work with Chrome + GCM
+        let errorToThrow = err;
+        if (err.message === 'Registration failed - no sender id provided') {
+          errorToThrow = new SubscriptionFailedError('nogcmid');
+        }
+        throw errorToThrow;
+      });
 
     // Set up message listener for SW comms
     navigator.serviceWorker.addEventListener('message', messageHandler);
