@@ -148,11 +148,9 @@ export default class PushClient extends EventDispatch {
         }));
 
         // This is provide a more helpful message when work with Chrome + GCM
-        var errorToThrow = err;
+        let errorToThrow = err;
         if (err.message === 'Registration failed - no sender id provided') {
-          errorToThrow = new Error('Registration failed - Please ensure ' +
-            'that you have a Web App Manifest and you\'ve included ' +
-            'a \"gcm_sender_id\".');
+          errorToThrow = new SubscriptionFailedError('nogcmid');
         }
         throw errorToThrow;
       });
