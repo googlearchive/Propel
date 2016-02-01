@@ -16,36 +16,30 @@
 
 export default class EventDispatch {
   constructor() {
-    this._eventTypes = {};
+    this._eventTypes = new Map();
   }
 
   addEventListener(eventType, listener) {
-    if (!this._eventTypes[eventType]) {
-      this._eventTypes[eventType] = [];
+    if (!this._eventTypes.has(eventType)) {
+      // Create a new set for this event type
+      this._eventTypes.set(eventType, new Set());
     }
 
-    if (this._eventTypes[eventType].indexOf(listener) === -1) {
-      // Need to add listener to the array
-      this._eventTypes[eventType].push(listener);
-    }
+    this._eventTypes.get(eventType).add(listener);
   }
 
   removeEventListener(eventType, listener) {
-    if (!this._eventTypes[eventType]) {
+    if (!this._eventTypes.has(eventType)) {
       // No events of this type so nothing to do.
       return;
     }
 
-    var indexOfListener = this._eventTypes[eventType].indexOf(listener);
-    if (indexOfListener !== -1) {
-      // Need to add listener to the array
-      this._eventTypes[eventType].splice(indexOfListener, 1);
-    }
+    this._eventTypes.get(eventType).delete(listener);
   }
 
   dispatchEvent(event) {
-    var eventListeners = this._eventTypes[event.type];
-    eventListeners.map(eventListener => {
+    let eventListeners = this._eventTypes.get(event.type);
+    eventListeners.forEach(eventListener => {
       eventListener(event);
     });
   }
