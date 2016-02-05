@@ -32,10 +32,6 @@ const SUPPORTED = 'serviceWorker' in navigator &&
 const SCOPE = new URL('./goog.push.scope/', currentScript).href;
 const WORKER_URL = new URL('./worker.js', currentScript).href;
 
-let requestPermission = function() {
-  return new Promise(resolve => Notification.requestPermission(resolve));
-};
-
 let messageHandler = (event) => {};
 
 let registrationReady = function(registration) {
@@ -98,7 +94,7 @@ export default class PushClient {
 
   async subscribe() {
     // Check for permission
-    let permission = await requestPermission();
+    let permission = await this.requestPermission();
 
     if (permission === 'denied') {
       throw new SubscriptionFailedError('denied');
@@ -178,6 +174,10 @@ export default class PushClient {
 
   static supported() {
     return SUPPORTED;
+  }
+
+  async requestPermission() {
+    return new Promise(resolve => Notification.requestPermission(resolve));
   }
 
   static hasPermission() {
