@@ -38,7 +38,7 @@ export default class EventDispatch {
   }
 
   dispatchEvent(event) {
-    let eventListeners = this._eventTypes.get(event.type);
+    const eventListeners = this._eventTypes.get(event.type);
     eventListeners.forEach(eventListener => {
       eventListener(event);
     });
