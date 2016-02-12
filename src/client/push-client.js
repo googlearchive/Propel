@@ -14,6 +14,8 @@
 
 import SubscriptionFailedError from './subscription-failed-error';
 import Endpoint from './endpoint';
+import PushClientEvent from './push-client-event';
+import EventDispatch from './event-dispatch';
 
 // document.currentScript is not supported in all browsers, but it IS supported
 // in all browsers that support Push.
@@ -65,9 +67,11 @@ let registrationReady = function(registration) {
   });
 };
 
-export default class PushClient {
+export default class PushClient extends EventDispatch {
   constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
       scope=SCOPE} = {}) {
+    super();
+
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
@@ -80,20 +84,38 @@ export default class PushClient {
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
     // one)
+
+    // TODO: use requestIdleCallback when available to defer to a time when we
+    // are less busy. Need to fallback to something else (rAF?) if rIC is not
+    // available.
+    this.getSubscription().then(subscription => {
+      if (!subscription) {
+        this.dispatchEvent(new PushClientEvent('stateChange', {
+          'state': PushClient.STATE_UNSUBSCRIBED
+        }));
+        return;
+      }
+
+      this.onSubscriptionUpdate(subscription);
+    });
+  }
+
+  onSubscriptionUpdate(subscription) {
     if (this.endpoint) {
-      // TODO: use requestIdleCallback when available to defer to a time when we
-      // are less busy. Need to fallback to something else (rAF?) if rIC is not
-      // available.
-      this.getSubscription().then(subscription => {
-        if (subscription) {
-          this.endpoint.send({
-            action: 'subscribe',
-            subscription: subscription,
-            userId: this.userId
-          });
-        }
+      this.endpoint.send({
+        action: 'subscribe',
+        subscription: subscription,
+        userId: this.userId
       });
     }
+
+    this.dispatchEvent(new PushClientEvent('subscriptionUpdate', {
+      'subscription': subscription
+    }));
+
+    this.dispatchEvent(new PushClientEvent('stateChange', {
+      'state': PushClient.STATE_SUBSCRIBED
+    }));
   }
 
   async subscribe() {
@@ -101,8 +123,16 @@ export default class PushClient {
     let permission = await requestPermission();
 
     if (permission === 'denied') {
+      this.dispatchEvent(new PushClientEvent('stateChange', {
+        'state': PushClient.STATE_PERMISSION_BLOCKED
+      }));
+
       throw new SubscriptionFailedError('denied');
     } else if (permission === 'default') {
+      this.dispatchEvent(new PushClientEvent('stateChange', {
+        'state': PushClient.STATE_UNSUBSCRIBED
+      }));
+
       throw new SubscriptionFailedError('dismissed');
     }
 
@@ -113,6 +143,10 @@ export default class PushClient {
     await registrationReady(reg);
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
       .catch((err) => {
+        this.dispatchEvent(new PushClientEvent('stateChange', {
+          'state': PushClient.STATE_UNSUBSCRIBED
+        }));
+
         // This is provide a more helpful message when work with Chrome + GCM
         let errorToThrow = err;
         if (err.message === 'Registration failed - no sender id provided') {
@@ -124,14 +158,7 @@ export default class PushClient {
     // Set up message listener for SW comms
     navigator.serviceWorker.addEventListener('message', messageHandler);
 
-    if (this.endpoint) {
-      // POST subscription details
-      this.endpoint.send({
-        action: 'subscribe',
-        subscription: sub,
-        userId: this.userId
-      });
-    }
+    this.onSubscriptionUpdate(sub);
 
     return sub;
   }
@@ -182,5 +209,17 @@ export default class PushClient {
 
   static hasPermission() {
     return Notification.permission === 'granted';
+  }
+
+  static get STATE_PERMISSION_BLOCKED() {
+    return 'STATE_PERMISSION_BLOCKED';
+  }
+
+  static get STATE_UNSUBSCRIBED() {
+    return 'STATE_UNSUBSCRIBED';
+  }
+
+  static get STATE_SUBSCRIBED() {
+    return 'STATE_SUBSCRIBED';
   }
 }
