@@ -228,13 +228,10 @@ export default class PushClient extends EventDispatch {
   }
 
   /**
-   * If a service worker is registered for push, this method will return a
-   * promise that will resolve with the registration for that service worker.
-   *
-   * If there is no registration null will be the resolved reponse.
+   * Get the registration of the service worker being used for push.
    *
    * @return {Promise<ServiceWorkerRegistration>} A Promise that
-   *  resolves with a ServiceWorkerRegistration or null.
+   *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   async getRegistration() {
     let reg = await navigator.serviceWorker.getRegistration(this._scope);
