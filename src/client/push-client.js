@@ -14,6 +14,8 @@
 
 import SubscriptionFailedError from './subscription-failed-error';
 import Endpoint from './endpoint';
+import PushClientEvent from './push-client-event';
+import EventDispatch from './event-dispatch';
 
 // document.currentScript is not supported in all browsers, but it IS supported
 // in all browsers that support Push.
@@ -69,51 +71,71 @@ let registrationReady = function(registration) {
  * PushClient is a front end library that simplifies adding push to your
  * site.
  */
-export default class PushClient {
+export default class PushClient extends EventDispatch {
   /**
    * Constructs a new PushClient.
    *
-   * If the current browser has a push scription then it will be
+   * If the current browser has a push subscription then it will be
    * obtained in the constructor and sent to the endpointUrl if supplied
    * and a subscriptionChange event will be dispatched.
    *
-   * @param {Object} [options] - Options object should be included if you
+   * @param {Object} options - Options object should be included if you
    *  want to define any of the following.
-   * @param {String} [options.endpointUrl] - If supplied this endpoint will be
+   * @param {String} options.endpointUrl - If supplied this endpoint will be
    *  sent a POST request containing the users PushSubscription object.
-   * @param {String} [options.userId] - If an endpointUrl is defined the
+   * @param {String} options.userId - If an endpointUrl is defined the
    *  userId will be passed with the request to that endpoint.
-   * @param {String} [options.workerUrl] - Service worker URL to be
+   * @param {String} options.workerUrl - Service worker URL to be
    *  registered that will receive push events.
    */
   constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
       scope=SCOPE} = {}) {
+    super();
+
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    this.endpoint = endpointUrl ? new Endpoint(endpointUrl) : null;
-    this.userId = userId;
-    this.workerUrl = workerUrl;
-    this.scope = scope;
+    this._endpoint = endpointUrl ? new Endpoint(endpointUrl) : null;
+    this._userId = userId;
+    this._workerUrl = workerUrl;
+    this._scope = scope;
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
     // one)
-    if (this.endpoint) {
-      // TODO: use requestIdleCallback when available to defer to a time when we
-      // are less busy. Need to fallback to something else (rAF?) if rIC is not
-      // available.
-      this.getSubscription().then(subscription => {
-        if (subscription) {
-          this.endpoint.send({
-            action: 'subscribe',
-            subscription: subscription,
-            userId: this.userId
-          });
-        }
+
+    // TODO: use requestIdleCallback when available to defer to a time when we
+    // are less busy. Need to fallback to something else (rAF?) if rIC is not
+    // available.
+    this.getSubscription().then(subscription => {
+      if (!subscription) {
+        this.dispatchEvent(new PushClientEvent('stateChange', {
+          'state': PushClient.STATE_UNSUBSCRIBED
+        }));
+        return;
+      }
+
+      this.onSubscriptionUpdate(subscription);
+    });
+  }
+
+  onSubscriptionUpdate(subscription) {
+    if (this._endpoint) {
+      this._endpoint.send({
+        action: 'subscribe',
+        subscription: subscription,
+        userId: this._userId
       });
     }
+
+    this.dispatchEvent(new PushClientEvent('subscriptionUpdate', {
+      'subscription': subscription
+    }));
+
+    this.dispatchEvent(new PushClientEvent('stateChange', {
+      'state': PushClient.STATE_SUBSCRIBED
+    }));
   }
 
   /**
@@ -125,7 +147,7 @@ export default class PushClient {
    * If an endpointUrl is supplied to the constructor, this will recieve
    * a subscribe event.
    *
-   * @return {Promise<PushSubscription>} Returns a Promise that
+   * @return {Promise<PushSubscription>} A Promise that
    *  resolves with a PushSubscription if successful.
    */
   async subscribe() {
@@ -133,24 +155,34 @@ export default class PushClient {
     let permission = await requestPermission();
 
     if (permission === 'denied') {
+      this.dispatchEvent(new PushClientEvent('stateChange', {
+        'state': PushClient.STATE_PERMISSION_BLOCKED
+      }));
+
       throw new SubscriptionFailedError('denied');
     } else if (permission === 'default') {
+      this.dispatchEvent(new PushClientEvent('stateChange', {
+        'state': PushClient.STATE_UNSUBSCRIBED
+      }));
+
       throw new SubscriptionFailedError('dismissed');
     }
 
     // Make sure we have a service worker and subscribe for push
-    let reg = await navigator.serviceWorker.register(this.workerUrl, {
-      scope: this.scope
+    let reg = await navigator.serviceWorker.register(this._workerUrl, {
+      scope: this._scope
     });
     await registrationReady(reg);
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
       .catch((err) => {
+        this.dispatchEvent(new PushClientEvent('stateChange', {
+          'state': PushClient.STATE_UNSUBSCRIBED
+        }));
+
         // This is provide a more helpful message when work with Chrome + GCM
-        var errorToThrow = err;
+        let errorToThrow = err;
         if (err.message === 'Registration failed - no sender id provided') {
-          errorToThrow = new Error('Registration failed - Please ensure ' +
-            'that you have a Web App Manifest and you\'ve included ' +
-            'a \"gcm_sender_id\".');
+          errorToThrow = new SubscriptionFailedError('nogcmid');
         }
         throw errorToThrow;
       });
@@ -158,14 +190,7 @@ export default class PushClient {
     // Set up message listener for SW comms
     navigator.serviceWorker.addEventListener('message', messageHandler);
 
-    if (this.endpoint) {
-      // POST subscription details
-      this.endpoint.send({
-        action: 'subscribe',
-        subscription: sub,
-        userId: this.userId
-      });
-    }
+    this.onSubscriptionUpdate(sub);
 
     return sub;
   }
@@ -177,7 +202,7 @@ export default class PushClient {
    * unsubscribe event, including the origin subscription object as well
    * as the userId if supplied.
    *
-   * @return {Promise} Returns a Promise that
+   * @return {Promise} A Promise that
    *  resolves once the user is unsubscribed.
    */
   async unsubscribe() {
@@ -192,12 +217,12 @@ export default class PushClient {
       }
     }
 
-    if (this.endpoint) {
+    if (this._endpoint) {
       // POST subscription details
-      this.endpoint.send({
+      this._endpoint.send({
         action: 'unsubscribe',
         subscription: subscription,
-        userId: this.userId
+        userId: this._userId
       });
     }
   }
@@ -208,13 +233,13 @@ export default class PushClient {
    *
    * If there is no registration null will be the resolved reponse.
    *
-   * @return {Promise<ServiceWorkerRegistration>} Returns a Promise that
+   * @return {Promise<ServiceWorkerRegistration>} A Promise that
    *  resolves with a ServiceWorkerRegistration or null.
    */
   async getRegistration() {
-    let reg = await navigator.serviceWorker.getRegistration(this.scope);
+    let reg = await navigator.serviceWorker.getRegistration(this._scope);
 
-    if (reg && reg.scope === this.scope) {
+    if (reg && reg.scope === this._scope) {
       return reg;
     }
   }
@@ -225,7 +250,7 @@ export default class PushClient {
    *
    * This will not display the permission dialog.
    *
-   * @return {Promise<PushSubscription>} Returns a Promise that resolves with
+   * @return {Promise<PushSubscription>} A Promise that resolves with
    *  a PushSubscription or null.
    */
   async getSubscription() {
@@ -250,10 +275,22 @@ export default class PushClient {
   /**
    * This method can be used to check if subscribing the user will display
    * the permission dialog or not.
-   * @return {Boolean} Returns true if you have permission to subscribe
+   * @return {Boolean} 'true' if you have permission to subscribe
    *  the user for push messages.
    */
   static hasPermission() {
     return Notification.permission === 'granted';
+  }
+
+  static get STATE_PERMISSION_BLOCKED() {
+    return 'STATE_PERMISSION_BLOCKED';
+  }
+
+  static get STATE_UNSUBSCRIBED() {
+    return 'STATE_UNSUBSCRIBED';
+  }
+
+  static get STATE_SUBSCRIBED() {
+    return 'STATE_SUBSCRIBED';
   }
 }

@@ -10,20 +10,17 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+/* eslint-env browser */
 
-const MESSAGES = {
-  'not supported': 'Your browser doesn\'t support push messaging.',
-  'denied': 'The user denied permission to show notifications.',
-  'dismissed': 'The user dismissed the notification permission dialog.',
-  'endpoint': 'No endpoint URL specified.',
-  'nogcmid': 'Please ensure you have a Web App Manifest with ' +
-    'a "gcm_sender_id" defined.'
-};
+'use strict';
 
-export default class SubscriptionFailedError extends Error {
-  constructor(type) {
-    super();
-    this.message = 'Subscription failed. ' + MESSAGES[type];
+export default class PushClientEvent {
+  constructor(type, data) {
     this.type = type;
+
+    const dataKeys = Object.keys(data);
+    dataKeys.map(key => {
+      this[key] = data[key];
+    });
   }
 }
