@@ -23,18 +23,17 @@ import EventDispatch from './event-dispatch';
 // browsers.
 let currentScript = document.currentScript.src;
 
-const SUPPORTED = 'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window &&
-    'showNotification' in ServiceWorkerRegistration.prototype;
 // Make the dummy service worker scope be relative to the library script. This
 // means that you can have multiple projects hosted on the same origin without
 // them interfering with each other, as long as they each use a different URL
 // for the script.
 const SCOPE = new URL('./goog.push.scope/', currentScript).href;
 const WORKER_URL = new URL('./worker.js', currentScript).href;
-
-let messageHandler = (event) => {};
+const SUPPORTED = 'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'permissions' in navigator &&
+    'showNotification' in ServiceWorkerRegistration.prototype;
 
 let registrationReady = function(registration) {
   if (registration.active) {
@@ -48,7 +47,9 @@ let registrationReady = function(registration) {
     // small chance that the worker became active already.
     if (serviceWorker.state === 'activated') {
       resolve(serviceWorker);
+      return;
     }
+
     let stateChangeListener = function(event) {
       if (serviceWorker.state === 'activated') {
         resolve(serviceWorker);
@@ -100,38 +101,40 @@ export default class PushClient extends EventDispatch {
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
     // one)
-
-    // TODO: use requestIdleCallback when available to defer to a time when we
-    // are less busy. Need to fallback to something else (rAF?) if rIC is not
-    // available.
-    this.getSubscription().then(subscription => {
-      if (!subscription) {
-        this.dispatchEvent(new PushClientEvent('stateChange', {
-          'state': PushClient.STATE_UNSUBSCRIBED
-        }));
-        return;
-      }
-
+    this.getSubscription()
+    .then(subscription => {
       this.onSubscriptionUpdate(subscription);
+    });
+  }
+
+  _dispatchStatusUpdate() {
+    return Promise.all([
+      this.getSubscription(),
+      PushClient.getPermissionState()
+    ])
+    .then((results) => {
+      return {
+        isSubscribed: (results[0] !== null),
+        currentSubscription: results[0],
+        permissionStatus: results[1].state
+      };
+    })
+    .then(status => {
+      this.dispatchEvent(new PushClientEvent('statuschange', status));
     });
   }
 
   onSubscriptionUpdate(subscription) {
     if (this._endpoint) {
+      const action = (subscription ? 'subscribe' : 'unsubscribe');
       this._endpoint.send({
-        action: 'subscribe',
+        action: action,
         subscription: subscription,
         userId: this._userId
       });
     }
 
-    this.dispatchEvent(new PushClientEvent('subscriptionUpdate', {
-      'subscription': subscription
-    }));
-
-    this.dispatchEvent(new PushClientEvent('stateChange', {
-      'state': PushClient.STATE_SUBSCRIBED
-    }));
+    this._dispatchStatusUpdate();
   }
 
   /**
@@ -148,43 +151,36 @@ export default class PushClient extends EventDispatch {
    */
   async subscribe() {
     // Check for permission
-    let permission = await this.requestPermission();
+    const permissionStatus = await this.requestPermission();
 
-    if (permission === 'denied') {
-      this.dispatchEvent(new PushClientEvent('stateChange', {
-        'state': PushClient.STATE_PERMISSION_BLOCKED
-      }));
+    if (permissionStatus !== 'granted') {
+      this._dispatchStatusUpdate();
 
-      throw new SubscriptionFailedError('denied');
-    } else if (permission === 'default') {
-      this.dispatchEvent(new PushClientEvent('stateChange', {
-        'state': PushClient.STATE_UNSUBSCRIBED
-      }));
-
-      throw new SubscriptionFailedError('dismissed');
+      throw new SubscriptionFailedError(permissionStatus);
     }
+
+    this.dispatchEvent(new PushClientEvent('requestingsubscription'));
 
     // Make sure we have a service worker and subscribe for push
     let reg = await navigator.serviceWorker.register(this._workerUrl, {
       scope: this._scope
     });
+
     await registrationReady(reg);
+
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
-      .catch((err) => {
-        this.dispatchEvent(new PushClientEvent('stateChange', {
-          'state': PushClient.STATE_UNSUBSCRIBED
-        }));
-
+    .catch((err) => {
+      this._dispatchStatusUpdate()
+      .then(() => {
+        console.log('Event dispatched');
         // This is provide a more helpful message when work with Chrome + GCM
-        let errorToThrow = err;
         if (err.message === 'Registration failed - no sender id provided') {
-          errorToThrow = new SubscriptionFailedError('nogcmid');
+          throw new SubscriptionFailedError('nogcmid');
+        } else {
+          throw err;
         }
-        throw errorToThrow;
       });
-
-    // Set up message listener for SW comms
-    navigator.serviceWorker.addEventListener('message', messageHandler);
+    });
 
     this.onSubscriptionUpdate(sub);
 
@@ -221,6 +217,8 @@ export default class PushClient extends EventDispatch {
         userId: this._userId
       });
     }
+
+    this.onSubscriptionUpdate(null);
   }
 
   /**
@@ -250,7 +248,7 @@ export default class PushClient extends EventDispatch {
     let registration = await this.getRegistration();
 
     if (!registration) {
-      return;
+      return null;
     }
 
     return registration.pushManager.getSubscription();
@@ -262,7 +260,16 @@ export default class PushClient extends EventDispatch {
    * @return {Promise<String>} Permission status of granted, default or denied
    */
   async requestPermission() {
-    return new Promise(resolve => Notification.requestPermission(resolve));
+    console.log('requestPermission');
+    return navigator.permissions.query({name: 'push', userVisibleOnly: true})
+    .then(permissionState => {
+      // Check if requesting permission will show a prompt
+      if (permissionState.state === 'prompt') {
+        this.dispatchEvent(new PushClientEvent('requestingpermission'));
+      }
+
+      return new Promise(resolve => Notification.requestPermission(resolve));
+    });
   }
 
   /**
@@ -280,19 +287,7 @@ export default class PushClient extends EventDispatch {
    * @return {Boolean} 'true' if you have permission to subscribe
    *  the user for push messages.
    */
-  static hasPermission() {
-    return Notification.permission === 'granted';
-  }
-
-  static get STATE_PERMISSION_BLOCKED() {
-    return 'STATE_PERMISSION_BLOCKED';
-  }
-
-  static get STATE_UNSUBSCRIBED() {
-    return 'STATE_UNSUBSCRIBED';
-  }
-
-  static get STATE_SUBSCRIBED() {
-    return 'STATE_SUBSCRIBED';
+  static getPermissionState() {
+    return navigator.permissions.query({name: 'push', userVisibleOnly: true});
   }
 }
