@@ -21,6 +21,27 @@
   <script>
     var PushClient = window.goog.propel.Client;
     var pushClient = new PushClient();
+    pushClient.addEventListener('stateChange', function(event) {
+      switch(event.state) {
+        case PushClient.STATE_SUBSCRIBED:
+          console.log('Show UI as enabled and push subscribed');
+          break;
+        case PushClient.STATE_UNSUBSCRIBED:
+          console.log('Show UI as enabled but push not subscribed');
+          break;
+        case PushClient.STATE_PERMISSION_BLOCKED:
+          console.log('Show UI as disabled');
+          break;
+        default:
+          'Unknown push state: ' + event.state;
+          break;
+      }
+    });
+    pushClient.addEventListener('subscriptionUpdate', function(event) {
+      console.log('New Subscription to send to server: ', event.subscription);
+    });
+
+    console.log('Calling pushClient.subscribe()');
     pushClient.subscribe();
   </script>
 </body>

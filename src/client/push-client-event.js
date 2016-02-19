@@ -12,18 +12,15 @@
 */
 /* eslint-env browser */
 
-export default class Endpoint {
-  constructor(url) {
-    this.url = url;
-  }
+'use strict';
 
-  send(message) {
-    return fetch(this.url, {
-      method: 'post',
-      body: JSON.stringify(message),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+export default class PushClientEvent {
+  constructor(type, data) {
+    this.type = type;
+
+    const dataKeys = Object.keys(data);
+    dataKeys.map(key => {
+      this[key] = data[key];
     });
   }
 }

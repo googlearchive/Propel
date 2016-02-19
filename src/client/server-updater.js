@@ -12,11 +12,25 @@
 */
 /* eslint-env browser */
 
-import PushClient from './client/push-client';
-import serverUpdater from './client/server-updater';
+export default function serverUpdater(url, user) {
+  return function(event) {
+    // We only really care about subscription changes
+    if (event.type === 'subscriptionUpdate') {
+      send(url, {
+        action: event.subscription ? 'subscribe' : 'unsubscribe'
+        subscription: event.subscription,
+        user: user
+      });
+    }
+  };
+}
 
-window.goog = window.goog || {};
-window.goog.propel = window.goog.propel || {
-  Client: PushClient,
-  serverUpdater: serverUpdater
-};
+function send(url, message) {
+  return fetch(url, {
+    method: 'post',
+    body: JSON.stringify(message),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+}
