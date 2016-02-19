@@ -13,7 +13,10 @@
 /* eslint-env browser */
 
 import PushClient from './client/push-client';
+import serverUpdater from './client/server-updater';
 
 window.goog = window.goog || {};
-window.goog.propel = window.goog.propel || {};
-window.goog.propel.Client = PushClient;
+window.goog.propel = window.goog.propel || {
+  Client: PushClient,
+  serverUpdater: serverUpdater
+};
