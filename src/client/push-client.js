@@ -33,10 +33,6 @@ const SUPPORTED = 'serviceWorker' in navigator &&
 const SCOPE = new URL('./goog.push.scope/', currentScript).href;
 const WORKER_URL = new URL('./worker.js', currentScript).href;
 
-let requestPermission = function() {
-  return new Promise(resolve => Notification.requestPermission(resolve));
-};
-
 let messageHandler = (event) => {};
 
 let registrationReady = function(registration) {
@@ -135,7 +131,7 @@ export default class PushClient extends EventDispatch {
    */
   async subscribe() {
     // Check for permission
-    let permission = await requestPermission();
+    let permission = await this.requestPermission();
 
     if (permission === 'denied') {
       this.dispatchEvent(new PushClientEvent('stateChange', {
@@ -236,6 +232,15 @@ export default class PushClient extends EventDispatch {
     }
 
     return registration.pushManager.getSubscription();
+  }
+
+  /**
+   * Will manage requesting permission for push messages, resolving
+   * with the final permission status.
+   * @return {Promise<String>} Permission status of granted, default or denied
+   */
+  async requestPermission() {
+    return new Promise(resolve => Notification.requestPermission(resolve));
   }
 
   /**
