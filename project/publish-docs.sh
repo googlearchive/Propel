@@ -1,13 +1,7 @@
-if [ "$TRAVIS_BRANCH" -ne "master" ]
+if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]
 then
-  echo "Not on master branch, not deploying"
-  exit 0
+   echo "Not a test of the master branch, not deploying"
+   exit 0
+else
+   echo "Lets deploy"
 fi
-
-if [ "$TRAVIS_PULL_REQUEST" = "true" ]
-then
-  echo "This is a pull request, not deploying"
-  exit 0
-fi
-
-echo "Let's Deploy :)"
