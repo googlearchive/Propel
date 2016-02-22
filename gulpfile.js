@@ -20,8 +20,9 @@ const eslint = require('gulp-eslint');
 const source = require('vinyl-source-stream');
 const browserify = require('browserify');
 const babelify = require('babelify');
+const minimist = require('minimist');
 
-const commandLineArgs = require('minimist')(process.argv.slice(2));
+const commandLineArgs = minimist(process.argv.slice(2));
 
 const build = function(entry) {
   const bundler = browserify({
