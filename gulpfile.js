@@ -21,8 +21,10 @@ const source = require('vinyl-source-stream');
 const browserify = require('browserify');
 const babelify = require('babelify');
 
+const commandLineArgs = require('minimist')(process.argv.slice(2));
+
 const build = function(entry) {
-  let bundler = browserify({
+  const bundler = browserify({
     entries: ['src/' + entry]
     // Disable source maps until we can get them into a separate file again.
     // debug: true
@@ -52,21 +54,18 @@ gulp.task('build-worker', function() {
   return build('worker.js');
 });
 
-const lint = function(failOnError) {
+gulp.task('lint', function() {
   let stream = gulp.src(['src/**/*.js', 'demo/**/*.js'])
     .pipe(eslint())
     .pipe(eslint.format());
 
+  const failOnError = commandLineArgs['throw-error'] ? true : false;
   if (failOnError) {
     stream = stream.pipe(eslint.failAfterError());
   }
 
   return stream;
-};
-
-gulp.task('lint', () => lint(false));
-
-gulp.task('lint-fail-on-error', () => lint(true));
+});
 
 gulp.task('default', ['lint', 'build-client', 'build-worker']);
 
