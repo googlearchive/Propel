@@ -17,7 +17,7 @@ export default function serverUpdater(url, user) {
     // We only really care about subscription changes
     if (event.type === 'subscriptionUpdate') {
       send(url, {
-        action: event.subscription ? 'subscribe' : 'unsubscribe'
+        action: event.subscription ? 'subscribe' : 'unsubscribe',
         subscription: event.subscription,
         user: user
       });
