@@ -12,18 +12,27 @@
 */
 /* eslint-env browser */
 
-export default class Endpoint {
-  constructor(url) {
-    this.url = url;
-  }
+export default function serverUpdater(url, data) {
+  return function(event) {
+    // We only really care about subscription changes
+    if (event.type !== 'statuschange') {
+      return;
+    }
 
-  send(message) {
-    return fetch(this.url, {
-      method: 'post',
-      body: JSON.stringify(message),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    send(url, {
+      action: event.isSubscribed ? 'subscribe' : 'unsubscribe',
+      subscription: event.currentSubscription,
+      data: data
     });
-  }
+  };
+}
+
+function send(url, message) {
+  return fetch(url, {
+    method: 'post',
+    body: JSON.stringify(message),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 }

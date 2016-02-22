@@ -13,7 +13,6 @@
 /* eslint-env browser */
 
 import SubscriptionFailedError from './subscription-failed-error';
-import Endpoint from './endpoint';
 import PushClientEvent from './push-client-event';
 import EventDispatch from './event-dispatch';
 
@@ -35,7 +34,7 @@ const SUPPORTED = 'serviceWorker' in navigator &&
     'permissions' in navigator &&
     'showNotification' in ServiceWorkerRegistration.prototype;
 
-let registrationReady = function(registration) {
+const registrationReady = function(registration) {
   if (registration.active) {
     return Promise.resolve(registration.active);
   }
@@ -73,38 +72,30 @@ export default class PushClient extends EventDispatch {
    * Constructs a new PushClient.
    *
    * If the current browser has a push subscription then it will be
-   * obtained in the constructor and sent to the endpointUrl if supplied
-   * and a subscriptionChange event will be dispatched.
+   * obtained in the constructor and a subscriptionChange event will be
+   * dispatched.
    *
    * @param {Object} options - Options object should be included if you
    *  want to define any of the following.
-   * @param {String} options.endpointUrl - If supplied this endpoint will be
-   *  sent a POST request containing the users PushSubscription object.
-   * @param {String} options.userId - If an endpointUrl is defined the
-   *  userId will be passed with the request to that endpoint.
    * @param {String} options.workerUrl - Service worker URL to be
    *  registered that will receive push events.
+   * @param {String} options.scope - The scope that the Service worker should be
+   *  registered with.
    */
-  constructor({endpointUrl=null, userId=null, workerUrl=WORKER_URL,
-      scope=SCOPE} = {}) {
+  constructor({workerUrl=WORKER_URL, scope=SCOPE} = {}) {
     super();
 
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    this._endpoint = endpointUrl ? new Endpoint(endpointUrl) : null;
-    this._userId = userId;
     this._workerUrl = workerUrl;
     this._scope = scope;
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
     // one)
-    this.getSubscription()
-    .then(subscription => {
-      this.onSubscriptionUpdate(subscription);
-    });
+    this._dispatchStatusUpdate();
   }
 
   _dispatchStatusUpdate() {
@@ -124,27 +115,11 @@ export default class PushClient extends EventDispatch {
     });
   }
 
-  onSubscriptionUpdate(subscription) {
-    if (this._endpoint) {
-      const action = (subscription ? 'subscribe' : 'unsubscribe');
-      this._endpoint.send({
-        action: action,
-        subscription: subscription,
-        userId: this._userId
-      });
-    }
-
-    this._dispatchStatusUpdate();
-  }
-
   /**
    * This method will subscribe a use for push messaging.
    *
    * If permission isn't granted for push, this method will show the
    * permissions dialog before attempting to subscribe the user to push.
-   *
-   * If an endpointUrl is supplied to the constructor, this will recieve
-   * a subscribe event.
    *
    * @return {Promise<PushSubscription>} A Promise that
    *  resolves with a PushSubscription if successful.
@@ -172,7 +147,6 @@ export default class PushClient extends EventDispatch {
     .catch((err) => {
       this._dispatchStatusUpdate()
       .then(() => {
-        console.log('Event dispatched');
         // This is provide a more helpful message when work with Chrome + GCM
         if (err.message === 'Registration failed - no sender id provided') {
           throw new SubscriptionFailedError('nogcmid');
@@ -182,17 +156,13 @@ export default class PushClient extends EventDispatch {
       });
     });
 
-    this.onSubscriptionUpdate(sub);
+    this._dispatchStatusUpdate();
 
     return sub;
   }
 
   /**
    * This method will unsubscribe the user from push on the client side.
-   *
-   * If you supplied an endpoint, this method will call it with an
-   * unsubscribe event, including the origin subscription object as well
-   * as the userId if supplied.
    *
    * @return {Promise} A Promise that
    *  resolves once the user is unsubscribed.
@@ -209,16 +179,7 @@ export default class PushClient extends EventDispatch {
       }
     }
 
-    if (this._endpoint) {
-      // POST subscription details
-      this._endpoint.send({
-        action: 'unsubscribe',
-        subscription: subscription,
-        userId: this._userId
-      });
-    }
-
-    this.onSubscriptionUpdate(null);
+    this._dispatchStatusUpdate();
   }
 
   /**
@@ -260,7 +221,6 @@ export default class PushClient extends EventDispatch {
    * @return {Promise<String>} Permission status of granted, default or denied
    */
   async requestPermission() {
-    console.log('requestPermission');
     return navigator.permissions.query({name: 'push', userVisibleOnly: true})
     .then(permissionState => {
       // Check if requesting permission will show a prompt
