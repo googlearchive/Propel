@@ -3,7 +3,7 @@ then
    echo "Lets deploy"
 
 else
-   echo "Not a test of the master branch, not deploying"
+   echo "Not a travis build of the master branch, not deploying"
    # exit 0
 fi
 
