@@ -6,3 +6,13 @@ sudo: false
 language: node_js
 node_js:
   - 'stable'
+
+install:
+  - npm install
+
+script:
+  - npm test
+
+after_success:
+  - npm run build-docs
+  - sh ./project/publish-docs.sh

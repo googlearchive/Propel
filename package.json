@@ -17,6 +17,8 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "test": "gulp lint"
+    "test": "gulp lint",
+    "build-docs": "esdoc -c esdoc.json",
+    "publish-docs": "esdoc -c esdoc.json && git subtree push --prefix docs/ origin gh-pages"
   }
 }
