@@ -11,16 +11,21 @@
   limitations under the License.
 */
 
+'use strict';
+
 /* eslint-env node */
 
-var gulp = require('gulp');
-var eslint = require('gulp-eslint');
-var source = require('vinyl-source-stream');
-var browserify = require('browserify');
-var babelify = require('babelify');
+const gulp = require('gulp');
+const eslint = require('gulp-eslint');
+const source = require('vinyl-source-stream');
+const browserify = require('browserify');
+const babelify = require('babelify');
+const minimist = require('minimist');
 
-var build = function(entry) {
-  var bundler = browserify({
+const commandLineArgs = minimist(process.argv.slice(2));
+
+const build = function(entry) {
+  const bundler = browserify({
     entries: ['src/' + entry]
     // Disable source maps until we can get them into a separate file again.
     // debug: true
@@ -51,9 +56,16 @@ gulp.task('build-worker', function() {
 });
 
 gulp.task('lint', function() {
-  return gulp.src(['src/**/*.js', 'demo/**/*.js'])
+  let stream = gulp.src(['src/**/*.js', 'demo/**/*.js'])
     .pipe(eslint())
     .pipe(eslint.format());
+
+  const failOnError = commandLineArgs['throw-error'] ? true : false;
+  if (failOnError) {
+    stream = stream.pipe(eslint.failAfterError());
+  }
+
+  return stream;
 });
 
 gulp.task('default', ['lint', 'build-client', 'build-worker']);

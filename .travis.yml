@@ -4,5 +4,19 @@
 
 sudo: false
 language: node_js
+env:
+  global:
+  - GH_REF: github.com/googlechrome/propel.git
+  - secure: "Mvc4XrPkcEosPUrcSaMxTMO5y/FD4WdgekVkov5wskAvuLvxAG2xfFAVAz1oi1CWmjyXqL2zH90SEWrjdQ8z2ZZ/KDtwjdByzQwzCDTzFJ6GR0Y2uySshaBHHHTQuMjVIJmeifHFU8NPGkSaarrSjKXV/HOEgdc5eDZx5dKmId1AT5M892e0NDBcxrSpglVYh4evpxtb1Yooc0i6sNfB4+4m4IqdPpGUTTo7VgFrjGJqbvdHhbiW372dwF8tW3ums+V06p0buyQjGL9GGXXfR5Wq9vaUUchOyjJ/QGexSgM7XntOy/t/17yLgUUMHiQ6/VVHUyRU4bKMTTEjx8D7R+LlywTCD3ga5TTcGKQLBLOgdJob1WyXSPGz5OxBDLECObY4TTA3CUitfwcJhhMXl6RdVtwSl3zkdoPgcKPhQw8YM6Y8apQrZjDRuaErHOXJc5JvBRLsISqMRX4YQR8KKNJ3VesghYGnJRuB5qw6twWusyyikp7UsxKH7Fuw7Iwlpdm3scz+6SzVeHW26r9yH3t1t3xck5M8mQrMz0Cx+rH5ZgjAF1uFSYCypi4Qkph8/F24lpuVn913wa3kMhzij/TpY8OYJmBG0UC/KCqBzd4tGYQzzqOHXEYasj4ZcIuRH5N0bBre/kkjcxKVHXeInh/japnn42JW38N+Hw7C/0g="
+
 node_js:
   - 'stable'
+
+install:
+  - npm install
+  - npm install -g esdoc
+
+script:
+  - npm test
+  - npm run build-docs
+  - sh ./project/publish-docs.sh
