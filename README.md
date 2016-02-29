@@ -1,19 +1,49 @@
-Propel
-======
+# Propel
 
 [![Build Status](https://travis-ci.org/GoogleChrome/Propel.svg?branch=master)](https://travis-ci.org/GoogleChrome/Propel)
 
 > A library to support developers implementing Web Push notifications
 
-Support
--------
+## Getting Started
+
+To use the Propel library do the following:
+
+1. Add the `client.js` and `worker.js` to your server
+2. Add `client.js` to your web page
+3. Use the `Client` in your javscript or in your page.
+
+        var Client = window.goog.propel.Client;
+
+        // Check if push is supported by the current browsers
+        if (Client.supported()) {
+
+          // Initialise Push Client
+          var pushClient = new Client();
+          pushClient.addEventListener('statuschange', function(event) {
+            if (event.permissionStatus === 'denied') {
+              // Disable UI
+            } else if (event.isSubscribed){
+              // Enable UI
+              // Show that user is not subscribed
+            } else {
+              // Enable UI
+              // Show that user is subscribed
+            }
+          });
+
+          pushClient.subscribe();
+          // OR
+          pushClient.unsubscribe();
+        }
+4. Check out the [docs to learn more](http://googlechrome.github.io/Propel/).
+
+## Support
 
 If you’ve found an error in this library, please file an issue: https://github.com/GoogleChrome/Propel/issues
 
 Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub.
 
-License
--------
+## License
 
 Copyright 2015 Google, Inc.
 
