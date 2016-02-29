@@ -22,12 +22,20 @@ To use the Propel library do the following:
           pushClient.addEventListener('statuschange', function(event) {
             if (event.permissionStatus === 'denied') {
               // Disable UI
-            } else if (event.isSubscribed){
-              // Enable UI
-              // Show that user is not subscribed
-            } else {
+            } else if (event.currentSubscription){
               // Enable UI
               // Show that user is subscribed
+
+              // Send the subscription object to your server
+              fetch('/your-backend-api', {
+                method: 'post',
+                headers: new Headers()
+                  .append('Content-Type', 'application/json')
+                body: JSON.stringify(currentSubscription)
+              });
+            } else {
+              // Enable UI
+              // Show that user is not subscribed
             }
           });
 
