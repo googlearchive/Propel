@@ -12,16 +12,18 @@
 */
 /* eslint-env browser */
 
-export default function serverUpdater(url, user) {
+export default function serverUpdater(url, data) {
   return function(event) {
     // We only really care about subscription changes
-    if (event.type === 'subscriptionUpdate') {
-      send(url, {
-        action: event.subscription ? 'subscribe' : 'unsubscribe',
-        subscription: event.subscription,
-        user: user
-      });
+    if (event.type !== 'statuschange') {
+      return;
     }
+
+    send(url, {
+      action: event.isSubscribed ? 'subscribe' : 'unsubscribe',
+      subscription: event.currentSubscription,
+      data: data
+    });
   };
 }
 

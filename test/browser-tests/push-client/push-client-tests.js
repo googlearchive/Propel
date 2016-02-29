@@ -31,48 +31,12 @@ describe('Test PushClient', () => {
   describe('Test PushClient construction', () => {
     it('should be able to create a new push client', function() {
       var pushClient = new window.goog.propel.Client();
-      window.chai.expect(pushClient.endpoint).to.eql(null);
-      window.chai.expect(pushClient.userId).to.equal(null);
-      window.chai.expect(pushClient.workerUrl).to.contain('dist/worker.js');
+      window.chai.expect(pushClient._workerUrl).to.contain('dist/worker.js');
     });
 
     it('should be able to create a new push client with an empty object', function() {
       var pushClient = new window.goog.propel.Client({});
-
-      window.chai.expect(pushClient.endpoint).to.eql(null);
-      window.chai.expect(pushClient.userId).to.equal(null);
-      window.chai.expect(pushClient.workerUrl).to.contain('dist/worker.js');
-    });
-
-    it('should be able to create a new push client with additional options', function() {
-      var pushClient = new window.goog.propel.Client({
-        endpointUrl: null,
-        userId: null,
-        workerUrl: '/sw.js'
-      });
-      window.chai.expect(pushClient.endpoint).to.eql(null);
-      window.chai.expect(pushClient.userId).to.equal(null);
-      window.chai.expect(pushClient.workerUrl).to.equal('/sw.js');
-    });
-
-    it('should be able to create a new push client with just endpoint option', function() {
-      var pushClient = new window.goog.propel.Client({
-        endpointUrl: null
-      });
-
-      window.chai.expect(pushClient.endpoint).to.eql(null);
-      window.chai.expect(pushClient.userId).to.equal(null);
-      window.chai.expect(pushClient.workerUrl).to.contain('dist/worker.js');
-    });
-
-    it('should be able to create a new push client with just userId option', function() {
-      var pushClient = new window.goog.propel.Client({
-        userId: null
-      });
-
-      window.chai.expect(pushClient.endpoint).to.eql(null);
-      window.chai.expect(pushClient.userId).to.equal(null);
-      window.chai.expect(pushClient.workerUrl).to.contain('dist/worker.js');
+      window.chai.expect(pushClient._workerUrl).to.contain('dist/worker.js');
     });
 
     it('should be able to create a new push client with just workerUrl option', function() {
@@ -80,9 +44,7 @@ describe('Test PushClient', () => {
         workerUrl: '/sw.js'
       });
 
-      window.chai.expect(pushClient.endpoint).to.eql(null);
-      window.chai.expect(pushClient.userId).to.equal(null);
-      window.chai.expect(pushClient.workerUrl).to.contain('/sw.js');
+      window.chai.expect(pushClient._workerUrl).to.contain('/sw.js');
     });
   });
 });

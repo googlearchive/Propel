@@ -38,6 +38,11 @@ export default class EventDispatch {
   }
 
   dispatchEvent(event) {
+    if (!this._eventTypes.has(event.type)) {
+      // No events of this type so nothing to do.
+      return;
+    }
+
     const eventListeners = this._eventTypes.get(event.type);
     eventListeners.forEach(eventListener => {
       eventListener(event);
