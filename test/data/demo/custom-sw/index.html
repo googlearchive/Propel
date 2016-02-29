@@ -1,0 +1,74 @@
+<!--
+  Copyright 2016 Google Inc. All rights reserved.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Propel Demo</title>
+  <link rel="manifest" href="/test/data/demo/manifest.json">
+</head>
+<body>
+  <button class="js-btn" disabled>Loading Push Messages</button>
+
+  <script src="/dist/client.js"></script>
+  <script>
+    function registerPushClient(registration) {
+      var PushClient = window.goog.propel.Client;
+      if (PushClient.supported()) {
+        // Initialise Push Client
+        var pushClient = new PushClient(registration);
+        pushClient.addEventListener('statuschange', function(event) {
+          myBtn.disabled = event.permissionStatus === 'denied';
+
+          console.log(event.currentSubscription);
+
+          if (event.permissionStatus === 'denied') {
+            myBtn.textContent = 'Blocked from Using Push';
+          } else if (event.isSubscribed){
+              myBtn.textContent = 'Click to Unsubscribe';
+          } else {
+            // Handle no subscription
+            myBtn.textContent = 'Click to Subscribe';
+          }
+        });
+
+
+        myBtn.addEventListener('click', function() {
+          myBtn.disabled = true;
+
+          pushClient.getSubscription()
+          .then(function(subscription) {
+            if (subscription === null) {
+              pushClient.subscribe();
+            } else {
+              pushClient.unsubscribe();
+            }
+          })
+        });
+      } else {
+        myBtn.textContent = 'Push is not Supported';
+      }
+    }
+
+    var myBtn = document.querySelector('.js-btn');
+
+    navigator.serviceWorker.register('./custom-sw.js')
+    .then(function(registration) {
+      console.log('Custom service worker registered', registration.constructor.name);
+      registerPushClient(registration);
+    })
+    .catch(function(err) {
+      console.log('Unable to register service worker', err);
+    });
+  </script>
+</body>
+</html>

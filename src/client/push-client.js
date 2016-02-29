@@ -82,15 +82,30 @@ export default class PushClient extends EventDispatch {
    * @param {String} options.scope - The scope that the Service worker should be
    *  registered with.
    */
-  constructor({workerUrl=WORKER_URL, scope=SCOPE} = {}) {
+  constructor(options) {
     super();
 
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    this._workerUrl = workerUrl;
-    this._scope = scope;
+    if (options) {
+      if (options instanceof ServiceWorkerRegistration) {
+        const serviceWorker = options.installing ||
+          options.waiting ||
+          options.active;
+        this._workerUrl = serviceWorker.scriptURL;
+        this._scope = options.scope;
+      } else if (options instanceof Object) {
+        this._workerUrl = options.workerUrl || WORKER_URL;
+        this._scope = options.scope || SCOPE;
+      } else {
+        throw new Error('Invalid input into Client constructor.');
+      }
+    } else {
+      this._workerUrl = WORKER_URL;
+      this._scope = SCOPE;
+    }
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is

@@ -8,18 +8,17 @@
 
 To use the Propel library do the following:
 
-1. Add the `client.js` and `worker.js` to your server
-2. Add `client.js` to your web page
-3. Use the `Client` in your javscript or in your page.
+1. Put the `client.js` file on your server.
+2. Add `client.js` to your web page.
+3. Use the `Client` object in your javscript.
 
-        var Client = window.goog.propel.Client;
+        var PropelClient = window.goog.propel.Client;
 
         // Check if push is supported by the current browsers
-        if (Client.supported()) {
-
+        if (PropelClient.supported()) {
           // Initialise Push Client
-          var pushClient = new Client();
-          pushClient.addEventListener('statuschange', function(event) {
+          var propelClient = new PropelClient();
+          propelClient.addEventListener('statuschange', function(event) {
             if (event.permissionStatus === 'denied') {
               // Disable UI
             } else if (event.currentSubscription){
@@ -39,9 +38,9 @@ To use the Propel library do the following:
             }
           });
 
-          pushClient.subscribe();
+          propelClient.subscribe();
           // OR
-          pushClient.unsubscribe();
+          propelClient.unsubscribe();
         }
 4. Check out the [docs to learn more](http://googlechrome.github.io/Propel/).
 
