@@ -103,7 +103,7 @@ export default class PushClient extends EventDispatch {
       this.getSubscription(),
       PushClient.getPermissionState()
     ])
-    .then((results) => {
+    .then(results => {
       return {
         isSubscribed: (results[0] !== null),
         currentSubscription: results[0],
@@ -112,6 +112,10 @@ export default class PushClient extends EventDispatch {
     })
     .then(status => {
       this.dispatchEvent(new PushClientEvent('statuschange', status));
+    })
+    .catch(err => {
+      console.warn('Unable to dispatch a status event ' +
+        'getSubscription() failed.', err);
     });
   }
 
@@ -189,8 +193,9 @@ export default class PushClient extends EventDispatch {
    *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   async getRegistration() {
+    console.log('getRegistration 1');
     let reg = await navigator.serviceWorker.getRegistration(this._scope);
-
+    console.log('getRegistration 2', reg);
     if (reg && reg.scope === this._scope) {
       return reg;
     }
@@ -206,8 +211,9 @@ export default class PushClient extends EventDispatch {
    *  a PushSubscription or null.
    */
   async getSubscription() {
+    console.log('getSubscription 1');
     let registration = await this.getRegistration();
-
+    console.log('getSubscription 2', registration);
     if (!registration) {
       return null;
     }
