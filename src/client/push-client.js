@@ -143,20 +143,15 @@ export default class PushClient extends EventDispatch {
     let reg = await navigator.serviceWorker.register(this._workerUrl, {
       scope: this._scope
     });
-
     await registrationReady(reg);
-
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
     .catch((err) => {
-      this._dispatchStatusUpdate()
-      .then(() => {
-        // This is provide a more helpful message when work with Chrome + GCM
-        if (err.message === 'Registration failed - no sender id provided') {
-          throw new SubscriptionFailedError('nogcmid');
-        } else {
-          throw err;
-        }
-      });
+      // This is provide a more helpful message when work with Chrome + GCM
+      if (err.message === 'Registration failed - no sender id provided') {
+        throw new SubscriptionFailedError('nogcmid');
+      } else {
+        throw err;
+      }
     });
 
     this._dispatchStatusUpdate();
@@ -196,6 +191,8 @@ export default class PushClient extends EventDispatch {
     if (reg && reg.scope === this._scope) {
       return reg;
     }
+
+    return null;
   }
 
   /**
@@ -231,7 +228,9 @@ export default class PushClient extends EventDispatch {
 
       return new Promise(resolve => Notification.requestPermission(resolve))
       .then(resolvedState => {
-        this._dispatchStatusUpdate();
+        if (dispatchStatusChange) {
+          this._dispatchStatusUpdate();
+        }
         return resolvedState;
       });
     });
@@ -249,8 +248,8 @@ export default class PushClient extends EventDispatch {
   /**
    * This method can be used to check if subscribing the user will display
    * the permission dialog or not.
-   * @return {Boolean} 'true' if you have permission to subscribe
-   *  the user for push messages.
+   * @return {Promise<PermissionStatus>} PermistionStatus.state will be
+   * 'granted', 'denied' or 'prompt' to reflect the current permission state
    */
   static getPermissionState() {
     return navigator.permissions.query({name: 'push', userVisibleOnly: true});
