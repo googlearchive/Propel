@@ -107,7 +107,7 @@ export default class PushClient extends EventDispatch {
       return {
         isSubscribed: (results[0] !== null),
         currentSubscription: results[0],
-        permissionStatus: results[1].state
+        permissionState: results[1].state
       };
     })
     .then(status => {
@@ -130,11 +130,10 @@ export default class PushClient extends EventDispatch {
    */
   async subscribe() {
     // Check for permission
-    const permissionStatus = await this.requestPermission();
+    const permissionStatus = await this.requestPermission(false);
 
     if (permissionStatus !== 'granted') {
       this._dispatchStatusUpdate();
-
       throw new SubscriptionFailedError(permissionStatus);
     }
 
@@ -193,9 +192,7 @@ export default class PushClient extends EventDispatch {
    *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   async getRegistration() {
-    console.log('getRegistration 1');
     let reg = await navigator.serviceWorker.getRegistration(this._scope);
-    console.log('getRegistration 2', reg);
     if (reg && reg.scope === this._scope) {
       return reg;
     }
@@ -211,9 +208,7 @@ export default class PushClient extends EventDispatch {
    *  a PushSubscription or null.
    */
   async getSubscription() {
-    console.log('getSubscription 1');
     let registration = await this.getRegistration();
-    console.log('getSubscription 2', registration);
     if (!registration) {
       return null;
     }
@@ -226,7 +221,7 @@ export default class PushClient extends EventDispatch {
    * with the final permission status.
    * @return {Promise<String>} Permission status of granted, default or denied
    */
-  async requestPermission() {
+  async requestPermission(dispatchStatusChange=true) {
     return navigator.permissions.query({name: 'push', userVisibleOnly: true})
     .then(permissionState => {
       // Check if requesting permission will show a prompt
@@ -234,7 +229,11 @@ export default class PushClient extends EventDispatch {
         this.dispatchEvent(new PushClientEvent('requestingpermission'));
       }
 
-      return new Promise(resolve => Notification.requestPermission(resolve));
+      return new Promise(resolve => Notification.requestPermission(resolve))
+      .then(resolvedState => {
+        this._dispatchStatusUpdate();
+        return resolvedState;
+      });
     });
   }
 
