@@ -8,6 +8,7 @@
     "browserify": "^11.2.0",
     "browserify-header": "^0.9.2",
     "chai": "^3.4.1",
+    "chromedriver": "^2.21.2",
     "esdoc-es7-plugin": "0.0.3",
     "express": "^4.13.3",
     "gulp": "^3.9.0",
