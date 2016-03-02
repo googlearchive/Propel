@@ -61,7 +61,7 @@ describe('Test Propel', () => {
     });
   });
 
-  let checkFileExists = path => {
+  const checkFileExists = path => {
     return new Promise((resolve, reject) => {
       fs.stat(path, err => {
         if (err) {
@@ -72,7 +72,7 @@ describe('Test Propel', () => {
     });
   };
 
-  let performTests = (browserName, driver) => {
+  const performTests = (browserName, driver) => {
     // The driver methods are wrapped in a new promise because the
     // selenium-webdriver API seems to using some custom promise
     // implementation that has slight behaviour differences.
@@ -117,68 +117,46 @@ describe('Test Propel', () => {
     });
   };
 
-  if (CHROME_PATH) {
-    it('should pass all tests in Chrome Stable', () => {
-      // This will only work on linux. It's here
-      // to primarily work with Travis. Would be good to enable support
-      // on other platforms at a later stage.
-      const options = new chromeOptions.Options();
-      options.setChromeBinaryPath(CHROME_PATH);
-
+  const queueUnitTest = (browserName, browserPath, seleniumBrowserID, options) => {
+    if (!browserPath) {
+      console.warn(`${browserName} path wasn\'t found so skipping`);
+      return;
+    }
+    it(`should pass all tests in ${browserName}`, () => {
       globalDriverReference = new webdriver
         .Builder()
-        .forBrowser('chrome')
+        .forBrowser(seleniumBrowserID)
         .setChromeOptions(options)
-        .build();
-
-      return performTests('chrome-stable', globalDriverReference);
-    });
-  } else {
-    console.warn('Chrome Stable path wasn\'t found so skipping');
-  }
-
-  if (CHROME_BETA_PATH) {
-    it('should pass all tests in Chrome Beta', () => {
-      // This will only work on linux. It's here
-      // to primarily work with Travis. Would be good to enable support
-      // on other platforms at a later stage.
-      const options = new chromeOptions.Options();
-      options.setChromeBinaryPath(CHROME_BETA_PATH);
-
-      globalDriverReference = new webdriver
-        .Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(options)
-        .build();
-
-      return performTests('chrome-beta', globalDriverReference);
-    });
-  } else {
-    console.warn('Chrome Beta path wasn\'t found so skipping');
-  }
-
-  if (FIREFOX_PATH) {
-    it('should pass all tests in Firefox', () => {
-      const options = new firefoxOptions.Options();
-      options.setBinary(FIREFOX_PATH);
-
-      globalDriverReference = new webdriver
-        .Builder()
-        .forBrowser('firefox')
         .setFirefoxOptions(options)
         .build();
 
-      return performTests('Firefox Stable', globalDriverReference);
+      return performTests(browserName, globalDriverReference);
     });
-  } else {
-    console.warn('Firefox path wasn\'t found so skipping');
-  }
+  };
 
-  it('should pass all tests in Firefox Beta', done => {
-    // This will only work on Travis.
-    // This is due to firefox beta have same
-    // launch name as firefox stable.
-    checkFileExists('./firefox/firefox')
+  const chromeStableOpts = new chromeOptions.Options();
+  chromeStableOpts.setChromeBinaryPath(CHROME_PATH);
+
+  queueUnitTest('Chrome Stable', CHROME_PATH, 'chrome', chromeStableOpts);
+
+
+  const chromeBetaOpts = new chromeOptions.Options();
+  chromeBetaOpts.setChromeBinaryPath(CHROME_BETA_PATH);
+
+  queueUnitTest('Chrome Beta', CHROME_BETA_PATH, 'chrome', chromeBetaOpts);
+
+
+  const ffStableOpts = new firefoxOptions.Options();
+  ffStableOpts.setBinary(FIREFOX_PATH);
+
+  queueUnitTest('Firefox Stable', FIREFOX_PATH, 'firefox', ffStableOpts);
+
+
+  // This will only work on Travis.
+  // This is due to firefox beta having the
+  // same executable name as firefox stable.
+  it('should pass all tests in Firefox Beta', () => {
+    return checkFileExists('./firefox/firefox')
     .then(() => {
       const options = new firefoxOptions.Options();
       options.setBinary('./firefox/firefox');
@@ -189,18 +167,7 @@ describe('Test Propel', () => {
         .setFirefoxOptions(options)
         .build();
 
-      return performTests('Firefox Beta', globalDriverReference)
-      .then(() => {
-        done();
-      })
-      .catch(() => {
-        // Firefox V45 is a range of issues with this test suite
-        // For now don't let this fail all of travis.
-        done();
-      });
-    })
-    .catch(() => {
-      done(new Error('Executable for Firefox Beta not found'));
+      return performTests('Firefox Beta', globalDriverReference);
     });
   });
 });
