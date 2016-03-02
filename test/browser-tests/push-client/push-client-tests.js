@@ -25,7 +25,6 @@
 const testStubs = [];
 
 const VALID_SW_URL = './valid-sw.js';
-const ERROR_SW_URL = './invalid-sw.js';
 
 const desiredSubscription = {
   endpoint: 'fake-endpoint'
@@ -47,7 +46,10 @@ const createStubsForPermission = (desiredPermissionState, requestPermissionResul
   testStubs.push(permissionRequestStub);
 };
 
-const createStubsForGetSubscription = (throwError, subscriptionResult, includeReg=true) => {
+const createStubsForGetSubscription = (throwError, subscriptionResult, includeReg) => {
+  if (typeof includeReg === 'undefined') {
+    includeReg = true;
+  }
   let sinon = window.sinon;
 
   let subscriptionIsUnregistered = false;
@@ -124,6 +126,17 @@ describe('Test PushClient', () => {
   it('should be able to find window.goog.propel.Client', function() {
     window.goog.propel.Client.should.be.defined;
   });
+
+  describe('Test supported()', () => {
+    it('should return true or false', () => {
+      (typeof window.goog.propel.Client.supported()).should.equal('boolean');
+    });
+  });
+
+  if (!window.goog.propel.Client.supported()) {
+    console.warn('This browser doesn\'t support Propel so bailing early');
+    return;
+  }
 
   describe('Test PushClient construction', () => {
     it('should be able to create a new push client', function() {
@@ -600,13 +613,7 @@ describe('Test PushClient', () => {
     });
   });
 
-  describe('Test supported()', () => {
-    it('should return true or false', () => {
-      (typeof window.goog.propel.Client.supported()).should.equal('boolean');
-    });
-  });
-
-  describe('Test supported()', () => {
+  describe('Test getPermissionState()', () => {
     it('should return permission status of granted', () => {
       createStubsForPermission('granted');
       return window.goog.propel.Client.getPermissionState()

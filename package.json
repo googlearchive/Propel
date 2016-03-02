@@ -12,15 +12,21 @@
     "express": "^4.13.3",
     "gulp": "^3.9.0",
     "gulp-eslint": "^1.0.0",
+    "gulp-mocha": "^2.2.0",
     "minimist": "^1.2.0",
     "mocha": "^2.3.4",
+    "require-dir": "^0.3.0",
     "sinon": "^1.17.3",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "which": "^1.2.4"
   },
   "license": "Apache-2.0",
   "scripts": {
     "test": "gulp lint --throw-error && gulp",
     "build-docs": "esdoc -c esdoc.json",
     "publish-docs": "esdoc -c esdoc.json && git subtree push --prefix docs/ origin gh-pages"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^2.52.0"
   }
 }
