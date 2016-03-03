@@ -32,6 +32,7 @@ const which = require('which');
 const CHROME_PATH = which.sync('google-chrome');
 const CHROME_BETA_PATH = which.sync('google-chrome-beta');
 const FIREFOX_PATH = which.sync('firefox');
+const FIREFOX_BETA_PATH_FOR_TRAVIS = './firefox/firefox';
 
 describe('Test Propel', () => {
   // Driver is initialised to null to handle scenarios
@@ -152,22 +153,10 @@ describe('Test Propel', () => {
   queueUnitTest('Firefox Stable', FIREFOX_PATH, 'firefox', ffStableOpts);
 
 
-  // This will only work on Travis.
-  // This is due to firefox beta having the
-  // same executable name as firefox stable.
-  it('should pass all tests in Firefox Beta', () => {
-    return checkFileExists('./firefox/firefox')
-    .then(() => {
-      const options = new firefoxOptions.Options();
-      options.setBinary('./firefox/firefox');
+  if (process.env.TRAVIS) {
+    const ffBetaOpts = new firefoxOptions.Options();
+    ffBetaOpts.setBinary(FIREFOX_BETA_PATH_FOR_TRAVIS);
 
-      globalDriverReference = new webdriver
-        .Builder()
-        .forBrowser('firefox')
-        .setFirefoxOptions(options)
-        .build();
-
-      return performTests('Firefox Beta', globalDriverReference);
-    });
-  });
+    queueUnitTest('Firefox Beta', FIREFOX_BETA_PATH_FOR_TRAVIS, 'firefox', ffStableOpts);
+  }
 });
