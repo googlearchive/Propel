@@ -22,45 +22,20 @@
 
 'use strict';
 
-const testStubs = [];
+let stateStub;
 
-const VALID_SW_URL = './valid-sw.js';
-
-const desiredSubscription = {
-  endpoint: 'fake-endpoint'
+const EXAMPLE_SUBSCRIPTION = {
+  endpoint: '/endpoint'
 };
 
-const createStubsForPermission = (desiredPermissionState, requestPermissionResult) => {
-  let sinon = window.sinon;
-  let permissionQueryStub = sinon.stub(navigator.permissions, 'query');
-  permissionQueryStub.withArgs({name: 'push', userVisibleOnly: true})
-    .returns(Promise.resolve({
-      state: desiredPermissionState
-    }));
-  testStubs.push(permissionQueryStub);
-
-  const permissionRequestResult = requestPermissionResult ? requestPermissionResult : desiredPermissionState;
-
-  let permissionRequestStub = sinon.stub(Notification, 'requestPermission');
-  permissionRequestStub.callsArgWithAsync(0, permissionRequestResult);
-  testStubs.push(permissionRequestStub);
-};
-
-const createStubsForGetSubscription = (throwError, subscriptionResult, includeReg) => {
-  if (typeof includeReg === 'undefined') {
-    includeReg = true;
-  }
-  let sinon = window.sinon;
-
-  let subscriptionIsUnregistered = false;
-  if (subscriptionResult) {
-    subscriptionResult.unsubscribe = () => {
-      subscriptionIsUnregistered = true;
-      return Promise.resolve();
+const buildSWRegistration = subscription => {
+  let innerSubscription = subscription;
+  if (innerSubscription) {
+    innerSubscription.unsubscribe = () => {
+      innerSubscription = null;
     };
   }
-
-  const swRegistration = {
+  return {
     scope: './',
     active: {
       // This is to skip handling of SW lifecycle.
@@ -71,56 +46,30 @@ const createStubsForGetSubscription = (throwError, subscriptionResult, includeRe
           throw new Error('Test Stub Error: User Visible Required');
         }
 
-        return Promise.resolve(subscriptionResult);
+        return Promise.resolve(innerSubscription);
       },
       getSubscription: () => {
-        if (throwError) {
+        if (typeof subscription === 'undefined') {
           return Promise.reject(new Error('Test Generated Error'));
         }
 
-        if (subscriptionIsUnregistered) {
-          return Promise.resolve(null);
-        }
-
-        return Promise.resolve(subscriptionResult);
+        return Promise.resolve(innerSubscription);
       }
     }
   };
-
-  let registerStub = sinon.stub(navigator.serviceWorker, 'register', (swurl, options) => {
-    if (swurl === VALID_SW_URL || swurl === 'http://localhost:8888/dist/worker.js') {
-      swRegistration.scope = options.scope;
-      return Promise.resolve(swRegistration);
-    }
-
-    return Promise.reject();
-  });
-  testStubs.push(registerStub);
-
-  let getRegistrationStub = sinon.stub(navigator.serviceWorker, 'getRegistration', scope => {
-    if (includeReg) {
-      swRegistration.scope = scope;
-      return Promise.resolve(swRegistration);
-    }
-
-    return Promise.resolve(null);
-  });
-  testStubs.push(getRegistrationStub);
 };
 
 describe('Test PushClient', () => {
-  const restoreStubs = () => {
-    testStubs.forEach(stub => {
-      stub.restore();
-    });
-  };
-
   beforeEach(() => {
-    restoreStubs();
+    if (stateStub) {
+      stateStub.restore();
+    }
   });
 
   after(() => {
-    restoreStubs();
+    if (stateStub) {
+      stateStub.restore();
+    }
   });
 
   it('should be able to find window.goog.propel.Client', function() {
@@ -133,10 +82,12 @@ describe('Test PushClient', () => {
     });
   });
 
+
   if (!window.goog.propel.Client.supported()) {
-    console.warn('This browser doesn\'t support Propel so bailing early');
+    console.warn('This browser doesn\'t support Propel so bail early');
     return;
   }
+
 
   describe('Test PushClient construction', () => {
     it('should be able to create a new push client', function() {
@@ -160,8 +111,9 @@ describe('Test PushClient', () => {
 
   describe('Test \'statuschange\' event', () => {
     it('should dispatch a \'statuschange\' event when the constructor is created (permission: prompt, subscription: null)', done => {
-      createStubsForGetSubscription(false, null);
-      createStubsForPermission('prompt');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = null;
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('statuschange', event => {
@@ -175,8 +127,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a \'statuschange\' event when the constructor is created (permission: granted, subscription: null)', done => {
-      createStubsForGetSubscription(false, null);
-      createStubsForPermission('granted');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
+      stateStub.registration = null;
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('statuschange', event => {
@@ -190,14 +143,15 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a \'statuschange\' event when the constructor is created (permission: granted, subscription: {FAKE})', done => {
-      createStubsForGetSubscription(false, desiredSubscription);
-      createStubsForPermission('granted');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('statuschange', event => {
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('granted');
-        window.chai.expect(event.currentSubscription).to.equal(desiredSubscription);
+        window.chai.expect(event.currentSubscription).to.equal(EXAMPLE_SUBSCRIPTION);
         window.chai.expect(event.isSubscribed).to.equal(true);
 
         done();
@@ -205,8 +159,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a \'statuschange\' event when the constructor is created (permission: blocked, subscription: null)', done => {
-      createStubsForGetSubscription(false, null);
-      createStubsForPermission('blocked');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'blocked';
+      stateStub.registration = null;
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('statuschange', event => {
@@ -221,8 +176,9 @@ describe('Test PushClient', () => {
   });
 
   describe('Test getRegistration()', () => {
-    it('should return a registration', () => {
-      createStubsForGetSubscription(false, null);
+    it('should resolve with a registration', () => {
+      stateStub = new window.StateStub();
+      stateStub.registration = buildSWRegistration();
 
       const pushClient = new window.goog.propel.Client();
       return pushClient.getRegistration()
@@ -231,8 +187,9 @@ describe('Test PushClient', () => {
       });
     });
 
-    it('should return null', () => {
-      createStubsForGetSubscription(false, null, false);
+    it('should resolve with null due to no registration', () => {
+      stateStub = new window.StateStub();
+      stateStub.registration = null;
 
       const pushClient = new window.goog.propel.Client();
       return pushClient.getRegistration()
@@ -243,8 +200,9 @@ describe('Test PushClient', () => {
   });
 
   describe('Test requestPermission()', () => {
-    it('requestPermission() should dispatch a \'requestingpermission\' event when state is prompt', function(done) {
-      createStubsForPermission('prompt');
+    it('should dispatch a \'requestingpermission\' event when the permission state is prompt', function(done) {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('requestingpermission', () => {
@@ -253,8 +211,9 @@ describe('Test PushClient', () => {
       pushClient.requestPermission();
     });
 
-    it('requestPermission() should resolve to prompt', function() {
-      createStubsForPermission('prompt');
+    it('should resolve to prompt', function() {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
 
       const pushClient = new window.goog.propel.Client();
       return pushClient.requestPermission()
@@ -263,8 +222,9 @@ describe('Test PushClient', () => {
       });
     });
 
-    it('requestPermission() should not dispatch a \'requestingpermission\' event because permission is granted', function(done) {
-      createStubsForPermission('granted');
+    it('should not dispatch a \'requestingpermission\' event because permission is granted', function(done) {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('requestingpermission', () => {
@@ -274,8 +234,9 @@ describe('Test PushClient', () => {
       .then(() => done());
     });
 
-    it('requestPermission() should resolve to permission state of granted', function() {
-      createStubsForPermission('granted');
+    it('should resolve to permission state of granted', function() {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
 
       const pushClient = new window.goog.propel.Client();
       return pushClient.requestPermission()
@@ -284,8 +245,9 @@ describe('Test PushClient', () => {
       });
     });
 
-    it('requestPermission() should not dispatch a \'requestingpermission\' event because permission is blocked', function(done) {
-      createStubsForPermission('blocked');
+    it('should not dispatch a \'requestingpermission\' event because permission is blocked', function(done) {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'blocked';
 
       const pushClient = new window.goog.propel.Client();
       pushClient.addEventListener('requestingpermission', () => {
@@ -295,8 +257,9 @@ describe('Test PushClient', () => {
       .then(() => done());
     });
 
-    it('requestPermission() should resolve to blocked', function() {
-      createStubsForPermission('blocked');
+    it('should resolve to blocked', function() {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'blocked';
 
       const pushClient = new window.goog.propel.Client();
       pushClient.requestPermission()
@@ -305,9 +268,10 @@ describe('Test PushClient', () => {
       });
     });
 
-    it('requestPermission() should dispatch a statuschange event when called directly', function(done) {
-      createStubsForPermission('granted');
-      createStubsForGetSubscription(false, null);
+    it('should dispatch a \'statuschange\' event when called directly', function(done) {
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
+      stateStub.registration = null;
 
       let counter = 0;
 
@@ -331,7 +295,10 @@ describe('Test PushClient', () => {
   });
 
   describe('Test getSubscription()', () => {
-    it('getSubscription() should return null when the user isn\'t subscribed yet', function() {
+    it('should return null when the user isn\'t subscribed', function() {
+      stateStub = new window.StateStub();
+      stateStub.registration = null;
+
       const pushClient = new window.goog.propel.Client();
       return pushClient.getSubscription()
       .then(subscription => {
@@ -339,18 +306,21 @@ describe('Test PushClient', () => {
       });
     });
 
-    it('getSubscription() should return a subscription when the user is subscribed', function() {
-      createStubsForGetSubscription(false, desiredSubscription);
+    it('should return a subscription when the user is subscribed', function() {
+      stateStub = new window.StateStub();
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       const pushClient = new window.goog.propel.Client();
       return pushClient.getSubscription()
       .then(subscription => {
-        window.chai.expect(subscription).to.equal(desiredSubscription);
+        window.chai.expect(subscription).to.equal(EXAMPLE_SUBSCRIPTION);
       });
     });
 
-    it('getSubscription() should manage a failing pushManager.getSubscription() call', function(done) {
-      createStubsForGetSubscription(true);
+    it('should manage a failing pushManager.getSubscription() call', function(done) {
+      stateStub = new window.StateStub();
+      // Empty function will caused an error to be throw
+      stateStub.registration = buildSWRegistration();
 
       const pushClient = new window.goog.propel.Client();
       pushClient.getSubscription()
@@ -366,8 +336,9 @@ describe('Test PushClient', () => {
 
   describe('Test subscribe()', () => {
     it('should dispatch a statuschange event with no subscription', (done) => {
-      createStubsForPermission('prompt');
-      createStubsForGetSubscription(false, null);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = buildSWRegistration(null);
 
       let eventCounter = 0;
 
@@ -390,8 +361,9 @@ describe('Test PushClient', () => {
     });
 
     it('should return an error that the user dismissed the notification', (done) => {
-      createStubsForPermission('prompt');
-      createStubsForGetSubscription(false, null);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = buildSWRegistration(null);
 
       const pushClient = new window.goog.propel.Client();
       pushClient.subscribe()
@@ -405,8 +377,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a status event if the notification permission is blocked', (done) => {
-      createStubsForPermission('blocked');
-      createStubsForGetSubscription(false, null);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'blocked';
+      stateStub.registration = buildSWRegistration(null);
 
       let eventCounter = 0;
 
@@ -429,8 +402,9 @@ describe('Test PushClient', () => {
     });
 
     it('should reject the promise with an error that the user has blocked notifications', (done) => {
-      createStubsForPermission('blocked');
-      createStubsForGetSubscription(false, null);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'blocked';
+      stateStub.registration = buildSWRegistration(null);
 
       const pushClient = new window.goog.propel.Client();
       pushClient.subscribe()
@@ -444,8 +418,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a status event with the subscription when the permission is granted', (done) => {
-      createStubsForPermission('granted');
-      createStubsForGetSubscription(false, desiredSubscription);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       let eventCounter = 0;
 
@@ -459,7 +434,7 @@ describe('Test PushClient', () => {
 
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('granted');
-        window.chai.expect(event.currentSubscription).to.equal(desiredSubscription);
+        window.chai.expect(event.currentSubscription).to.equal(EXAMPLE_SUBSCRIPTION);
         window.chai.expect(event.isSubscribed).to.equal(true);
 
         done();
@@ -468,14 +443,15 @@ describe('Test PushClient', () => {
     });
 
     it('should resolve the promise with a subscription when notifications are granted', (done) => {
-      createStubsForPermission('granted');
-      createStubsForGetSubscription(false, desiredSubscription);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       const pushClient = new window.goog.propel.Client();
       pushClient.subscribe()
       .then(subscriptionObject => {
         window.chai.expect(subscriptionObject).to.not.equal(null);
-        window.chai.expect(subscriptionObject).to.equal(desiredSubscription);
+        window.chai.expect(subscriptionObject).to.equal(EXAMPLE_SUBSCRIPTION);
 
         done();
       })
@@ -485,8 +461,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispath events in order, requestingpermission, requestingsubscription and statuschange', (done) => {
-      createStubsForPermission('prompt', 'granted');
-      createStubsForGetSubscription(false, desiredSubscription);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       let statuschangeCounter = 0;
       let eventTypes = [];
@@ -504,7 +481,7 @@ describe('Test PushClient', () => {
         }
 
         window.chai.expect(event).to.not.equal(null);
-        window.chai.expect(event.currentSubscription).to.equal(desiredSubscription);
+        window.chai.expect(event.currentSubscription).to.equal(EXAMPLE_SUBSCRIPTION);
         window.chai.expect(event.isSubscribed).to.equal(true);
 
         eventTypes.length.should.equal(4);
@@ -516,6 +493,8 @@ describe('Test PushClient', () => {
         done();
       });
       pushClient.addEventListener('requestingpermission', event => {
+        stateStub.permissionState = 'granted';
+
         eventTypes.push(event.type);
       });
       pushClient.addEventListener('requestingsubscription', event => {
@@ -526,7 +505,8 @@ describe('Test PushClient', () => {
 
   describe('Test unsubscribe()', () => {
     it('should unsubscribe the current subscription', (done) => {
-      createStubsForGetSubscription(false, desiredSubscription);
+      stateStub = new window.StateStub();
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       const pushClient = new window.goog.propel.Client();
       pushClient.unsubscribe()
@@ -534,7 +514,9 @@ describe('Test PushClient', () => {
     });
 
     it('should unsubscribe the current subscription and dispatch a statuschange event', (done) => {
-      createStubsForGetSubscription(false, desiredSubscription);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
       let statuschangeCounter = 0;
 
@@ -555,7 +537,9 @@ describe('Test PushClient', () => {
     });
 
     it('should resolve promise when no registration is available', (done) => {
-      createStubsForGetSubscription(false, desiredSubscription, false);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = null;
 
       const pushClient = new window.goog.propel.Client();
       pushClient.unsubscribe()
@@ -563,7 +547,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a status event when no registration is available', (done) => {
-      createStubsForGetSubscription(false, desiredSubscription, false);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = null;
 
       let statuschangeCounter = 0;
 
@@ -584,7 +570,9 @@ describe('Test PushClient', () => {
     });
 
     it('should resolve promise when no subscription is available', (done) => {
-      createStubsForGetSubscription(false, null);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = buildSWRegistration(null);
 
       const pushClient = new window.goog.propel.Client();
       pushClient.unsubscribe()
@@ -592,7 +580,9 @@ describe('Test PushClient', () => {
     });
 
     it('should dispatch a status event when no subscription is available', (done) => {
-      createStubsForGetSubscription(false, null);
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+      stateStub.registration = buildSWRegistration(null);
 
       let statuschangeCounter = 0;
 
@@ -615,7 +605,9 @@ describe('Test PushClient', () => {
 
   describe('Test getPermissionState()', () => {
     it('should return permission status of granted', () => {
-      createStubsForPermission('granted');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'granted';
+
       return window.goog.propel.Client.getPermissionState()
       .then(permissionState => {
         permissionState.state.should.equal('granted');
@@ -623,7 +615,9 @@ describe('Test PushClient', () => {
     });
 
     it('should return permission status of prompt', () => {
-      createStubsForPermission('prompt');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'prompt';
+
       return window.goog.propel.Client.getPermissionState()
       .then(permissionState => {
         permissionState.state.should.equal('prompt');
@@ -631,10 +625,12 @@ describe('Test PushClient', () => {
     });
 
     it('should return permission status of denied', () => {
-      createStubsForPermission('denied');
+      stateStub = new window.StateStub();
+      stateStub.permissionState = 'blocked';
+
       return window.goog.propel.Client.getPermissionState()
       .then(permissionState => {
-        permissionState.state.should.equal('denied');
+        permissionState.state.should.equal('blocked');
       });
     });
   });
