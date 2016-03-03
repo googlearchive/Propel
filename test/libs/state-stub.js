@@ -35,19 +35,19 @@ class StateStub {
     // navigator.serviceWorker.register
     const registerStub = sinon.stub(
       navigator.serviceWorker, 'register', (swurl, options) => {
-        if (this._currentRegistration) {
-          this._currentRegistration.scope = options.scope;
+        if (this.registration) {
+          this.registration.scope = options.scope;
         }
-        return Promise.resolve(this._currentRegistration);
+        return Promise.resolve(this.registration);
       });
 
     // navigator.serviceWorker.getRegistration
     const getRegistrationStub = sinon.stub(
       navigator.serviceWorker, 'getRegistration', scope => {
-        if (this._currentRegistration) {
-          this._currentRegistration.scope = scope;
+        if (this.registration) {
+          this.registration.scope = scope;
         }
-        return Promise.resolve(this._currentRegistration);
+        return Promise.resolve(this.registration);
       });
 
     this.allStubs.push(permissionQueryStub);
