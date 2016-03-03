@@ -62,17 +62,6 @@ describe('Test Propel', () => {
     });
   });
 
-  const checkFileExists = path => {
-    return new Promise((resolve, reject) => {
-      fs.stat(path, err => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
-  };
-
   const performTests = (browserName, driver) => {
     // The driver methods are wrapped in a new promise because the
     // selenium-webdriver API seems to using some custom promise
