@@ -63,13 +63,11 @@ class StateStub {
   }
 
   get permissionState() {
-    console.log('get permissionState: ', this._currentPermission);
     return this._currentPermission;
   }
 
   set permissionState(newState) {
     this._currentPermission = newState;
-    console.log('set permissionState: ', this._currentPermission);
   }
 
   get registration() {
