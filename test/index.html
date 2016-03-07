@@ -32,13 +32,15 @@
 
   <script src="/node_modules/chai/chai.js"></script>
   <script src="/node_modules/mocha/mocha.js"></script>
+  <script src="/node_modules/sinon/pkg/sinon.js"></script>
 
   <!-- Helper functions will be under window.testHelper -->
   <script src="/test/libs/helper-functions.js"></script>
+  <script src="/test/libs/state-stub.js"></script>
 
   <!-- Push Client Code We Will Test -->
   <script src="/dist/client.js"></script>
-  
+
   <script>mocha.setup({
     ui: 'bdd'
   })</script>

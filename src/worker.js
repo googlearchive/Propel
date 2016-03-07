@@ -11,3 +11,9 @@
   limitations under the License.
 */
 /* eslint-env serviceworker */
+
+import notificationHandler from './worker/notification-handler';
+
+self.goog = self.goog || {};
+self.goog.propel = self.goog.propel || {};
+self.goog.propel.worker = {notificationHandler};
