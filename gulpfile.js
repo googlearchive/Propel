@@ -60,7 +60,7 @@ gulp.task('lint', function() {
     .pipe(eslint())
     .pipe(eslint.format());
 
-  const failOnError = commandLineArgs['throw-error'] ? true : false;
+  const failOnError = (typeof commandLineArgs['throw-error'] !== 'undefined');
   if (failOnError) {
     stream = stream.pipe(eslint.failAfterError());
   }
