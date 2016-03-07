@@ -28,8 +28,7 @@ To use the Propel library do the following:
               // Send the subscription object to your server
               fetch('/your-backend-api', {
                 method: 'post',
-                headers: new Headers()
-                  .append('Content-Type', 'application/json')
+                headers: new Headers().append('Content-Type', 'application/json'),
                 body: JSON.stringify(currentSubscription)
               });
             } else {
