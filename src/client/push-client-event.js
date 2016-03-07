@@ -20,7 +20,7 @@ export default class PushClientEvent {
 
     if (data) {
       const dataKeys = Object.keys(data);
-      dataKeys.map(key => {
+      dataKeys.forEach(key => {
         this[key] = data[key];
       });
     }

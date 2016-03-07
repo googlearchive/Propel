@@ -49,7 +49,7 @@ const registrationReady = function(registration) {
       return;
     }
 
-    let stateChangeListener = function(event) {
+    let stateChangeListener = function() {
       if (serviceWorker.state === 'activated') {
         resolve(serviceWorker);
       } else if (serviceWorker.state === 'redundant') {
@@ -118,7 +118,7 @@ export default class PushClient extends EventDispatch {
       this.getSubscription(),
       PushClient.getPermissionState()
     ])
-    .then((results) => {
+    .then(results => {
       return {
         isSubscribed: (results[0] !== null),
         currentSubscription: results[0],
@@ -159,7 +159,7 @@ export default class PushClient extends EventDispatch {
     await registrationReady(reg);
 
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
-    .catch((err) => {
+    .catch(err => {
       this._dispatchStatusUpdate()
       .then(() => {
         // This is provide a more helpful message when work with Chrome + GCM
@@ -185,16 +185,19 @@ export default class PushClient extends EventDispatch {
   async unsubscribe() {
     let registration = await this.getRegistration();
     let subscription;
+    let unsubscribePromise = Promise.resolve();
 
     if (registration) {
       subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        await subscription.unsubscribe();
+        unsubscribePromise = await subscription.unsubscribe();
       }
     }
 
     this._dispatchStatusUpdate();
+
+    return unsubscribePromise;
   }
 
   /**
