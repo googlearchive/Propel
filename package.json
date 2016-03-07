@@ -23,7 +23,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "test": "gulp lint --throw-error && gulp && gulp test:automated",
+    "test": "gulp default test:automated --throw-error",
     "build-docs": "esdoc -c esdoc.json",
     "publish-docs": "esdoc -c esdoc.json && git subtree push --prefix docs/ origin gh-pages"
   },

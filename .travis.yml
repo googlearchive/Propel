@@ -12,8 +12,7 @@ env:
 node_js:
   - 'stable'
 addons:
-  # From some tests it seems you can only have one firefox addon.
-  # Adding two results in the last one defined being the one installed.
+  # You can't install latest and beta as addons
   firefox: latest
   apt:
     sources:
