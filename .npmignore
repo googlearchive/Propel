@@ -2,3 +2,9 @@ npm-debug.log
 esdoc.json
 publish-release.sh
 node_modules/
+test/
+.gitignore
+.npmignore
+.eslintrc
+README.md
+CONTRIBUTING.md

@@ -27,12 +27,39 @@ esdoc -c esdoc.json
 
 echo ""
 echo ""
+echo "Create and Copy Files for Release"
+echo ""
+mkdir -p tagged-release
+cp -r ./docs ./tagged-release
+cp -r ./src ./tagged-release
+cp -r ./dist ./tagged-release
+
+cd ./tagged-release/
+
+echo ""
+echo ""
+echo "Git push to tagged-releases branch"
+echo ""
+
+
+echo ""
+echo ""
 echo "Update NPM Version"
 echo ""
-npm version $1
+# npm version $1
 
 echo ""
 echo ""
 echo "Publish updat to NPM"
 echo ""
-npm publish
+# npm publish
+
+
+
+
+echo ""
+echo ""
+echo "Removing Tagged Release"
+echo ""
+cd ..
+# rm -rf ./tagged-release
