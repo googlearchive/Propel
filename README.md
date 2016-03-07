@@ -11,36 +11,37 @@ To use the Propel library do the following:
 1. Put the `client.js` file on your server.
 2. Add `client.js` to your web page.
 3. Use the `Client` object in your javscript.
+    ```javascript
+    var PropelClient = window.goog.propel.Client;
 
-        var PropelClient = window.goog.propel.Client;
+    // Check if push is supported by the current browsers
+    if (PropelClient.supported()) {
+      // Initialise Push Client
+      var propelClient = new PropelClient();
+      propelClient.addEventListener('statuschange', function(event) {
+        if (event.permissionStatus === 'denied') {
+          // Disable UI
+        } else if (event.currentSubscription){
+          // Enable UI
+          // Show that user is subscribed
 
-        // Check if push is supported by the current browsers
-        if (PropelClient.supported()) {
-          // Initialise Push Client
-          var propelClient = new PropelClient();
-          propelClient.addEventListener('statuschange', function(event) {
-            if (event.permissionStatus === 'denied') {
-              // Disable UI
-            } else if (event.currentSubscription){
-              // Enable UI
-              // Show that user is subscribed
-
-              // Send the subscription object to your server
-              fetch('/your-backend-api', {
-                method: 'post',
-                headers: new Headers().append('Content-Type', 'application/json'),
-                body: JSON.stringify(currentSubscription)
-              });
-            } else {
-              // Enable UI
-              // Show that user is not subscribed
-            }
+          // Send the subscription object to your server
+          fetch('/your-backend-api', {
+            method: 'post',
+            headers: new Headers().append('Content-Type', 'application/json'),
+            body: JSON.stringify(currentSubscription)
           });
-
-          propelClient.subscribe();
-          // OR
-          propelClient.unsubscribe();
+        } else {
+          // Enable UI
+          // Show that user is not subscribed
         }
+      });
+
+      propelClient.subscribe();
+      // OR
+      propelClient.unsubscribe();
+    }
+    ```
 4. Check out the [docs to learn more](http://googlechrome.github.io/Propel/).
 
 ## Support
