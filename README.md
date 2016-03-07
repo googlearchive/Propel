@@ -3,6 +3,8 @@ Propel
 
 [![Build Status](https://travis-ci.org/GoogleChrome/Propel.svg?branch=master)](https://travis-ci.org/GoogleChrome/Propel)
 
+[![devDependency Status](https://david-dm.org/googlechrome/Propel/dev-status.svg)](https://david-dm.org/googlechrome/Propel#info=devDependencies)
+
 > A library to support developers implementing Web Push notifications
 
 Support

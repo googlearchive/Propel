@@ -103,15 +103,19 @@ export default class PushClient extends EventDispatch {
       this.getSubscription(),
       PushClient.getPermissionState()
     ])
-    .then((results) => {
+    .then(results => {
       return {
         isSubscribed: (results[0] !== null),
         currentSubscription: results[0],
-        permissionStatus: results[1].state
+        permissionState: results[1].state
       };
     })
     .then(status => {
       this.dispatchEvent(new PushClientEvent('statuschange', status));
+    })
+    .catch(err => {
+      console.warn('Unable to dispatch a status event ' +
+        'getSubscription() failed.', err);
     });
   }
 
@@ -126,11 +130,10 @@ export default class PushClient extends EventDispatch {
    */
   async subscribe() {
     // Check for permission
-    const permissionStatus = await this.requestPermission();
+    const permissionStatus = await this.requestPermission(false);
 
     if (permissionStatus !== 'granted') {
       this._dispatchStatusUpdate();
-
       throw new SubscriptionFailedError(permissionStatus);
     }
 
@@ -140,20 +143,15 @@ export default class PushClient extends EventDispatch {
     let reg = await navigator.serviceWorker.register(this._workerUrl, {
       scope: this._scope
     });
-
     await registrationReady(reg);
-
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
     .catch((err) => {
-      this._dispatchStatusUpdate()
-      .then(() => {
-        // This is provide a more helpful message when work with Chrome + GCM
-        if (err.message === 'Registration failed - no sender id provided') {
-          throw new SubscriptionFailedError('nogcmid');
-        } else {
-          throw err;
-        }
-      });
+      // This is provide a more helpful message when work with Chrome + GCM
+      if (err.message === 'Registration failed - no sender id provided') {
+        throw new SubscriptionFailedError('nogcmid');
+      } else {
+        throw err;
+      }
     });
 
     this._dispatchStatusUpdate();
@@ -190,10 +188,11 @@ export default class PushClient extends EventDispatch {
    */
   async getRegistration() {
     let reg = await navigator.serviceWorker.getRegistration(this._scope);
-
     if (reg && reg.scope === this._scope) {
       return reg;
     }
+
+    return null;
   }
 
   /**
@@ -207,7 +206,6 @@ export default class PushClient extends EventDispatch {
    */
   async getSubscription() {
     let registration = await this.getRegistration();
-
     if (!registration) {
       return null;
     }
@@ -220,7 +218,7 @@ export default class PushClient extends EventDispatch {
    * with the final permission status.
    * @return {Promise<String>} Permission status of granted, default or denied
    */
-  async requestPermission() {
+  async requestPermission(dispatchStatusChange=true) {
     return navigator.permissions.query({name: 'push', userVisibleOnly: true})
     .then(permissionState => {
       // Check if requesting permission will show a prompt
@@ -228,7 +226,13 @@ export default class PushClient extends EventDispatch {
         this.dispatchEvent(new PushClientEvent('requestingpermission'));
       }
 
-      return new Promise(resolve => Notification.requestPermission(resolve));
+      return new Promise(resolve => Notification.requestPermission(resolve))
+      .then(resolvedState => {
+        if (dispatchStatusChange) {
+          this._dispatchStatusUpdate();
+        }
+        return resolvedState;
+      });
     });
   }
 
@@ -244,8 +248,8 @@ export default class PushClient extends EventDispatch {
   /**
    * This method can be used to check if subscribing the user will display
    * the permission dialog or not.
-   * @return {Boolean} 'true' if you have permission to subscribe
-   *  the user for push messages.
+   * @return {Promise<PermissionStatus>} PermistionStatus.state will be
+   * 'granted', 'denied' or 'prompt' to reflect the current permission state
    */
   static getPermissionState() {
     return navigator.permissions.query({name: 'push', userVisibleOnly: true});

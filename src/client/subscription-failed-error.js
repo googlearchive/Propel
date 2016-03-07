@@ -13,7 +13,7 @@
 
 const MESSAGES = {
   'not supported': 'Your browser doesn\'t support push messaging.',
-  'denied': 'The user denied permission to show notifications.',
+  'blocked': 'The user denied permission to show notifications.',
   'prompt': 'The user dismissed the notification permission dialog.',
   'endpoint': 'No endpoint URL specified.',
   'nogcmid': 'Please ensure you have a Web App Manifest with ' +
@@ -23,7 +23,12 @@ const MESSAGES = {
 export default class SubscriptionFailedError extends Error {
   constructor(type) {
     super();
-    this.message = 'Subscription failed. ' + MESSAGES[type];
+
+    this.message = 'Subscription failed.';
+    if (MESSAGES[type]) {
+      this.message += ' ' + MESSAGES[type];
+    }
+
     this.type = type;
   }
 }

@@ -21,6 +21,9 @@ const source = require('vinyl-source-stream');
 const browserify = require('browserify');
 const babelify = require('babelify');
 const minimist = require('minimist');
+const requireDir = require('require-dir');
+
+requireDir('./gulp-tasks');
 
 const commandLineArgs = minimist(process.argv.slice(2));
 
