@@ -18,9 +18,11 @@ export default class PushClientEvent {
   constructor(type, data) {
     this.type = type;
 
-    const dataKeys = Object.keys(data);
-    dataKeys.map(key => {
-      this[key] = data[key];
-    });
+    if (data) {
+      const dataKeys = Object.keys(data);
+      dataKeys.map(key => {
+        this[key] = data[key];
+      });
+    }
   }
 }
