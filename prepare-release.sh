@@ -80,3 +80,12 @@ echo "Removing Tagged Release"
 echo ""
 cd ..
 rm -rf ./tagged-release
+
+echo ""
+echo ""
+echo "-------------------------------"
+echo ""
+echo "Please push the new package.json to MASTER"
+echo ""
+echo "-------------------------------"
+echo ""
