@@ -50,6 +50,9 @@ cp -r ./docs ./tagged-release
 cp -r ./src ./tagged-release
 cp -r ./dist ./tagged-release
 cp LICENSE ./tagged-release
+cp package.json ./tagged-release
+cp bower.json ./tagged-release
+cp README.md ./tagged-release
 
 cd ./tagged-release/
 
@@ -69,7 +72,7 @@ echo ""
 echo ""
 echo "Publish update to NPM"
 echo ""
-npm publish
+npm publish ./
 
 echo ""
 echo ""
