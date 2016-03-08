@@ -63,7 +63,6 @@
 
     navigator.serviceWorker.register('./custom-sw.js')
     .then(function(registration) {
-      console.log('Custom service worker registered', registration.constructor.name);
       registerPushClient(registration);
     })
     .catch(function(err) {
