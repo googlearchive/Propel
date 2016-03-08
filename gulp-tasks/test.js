@@ -1,5 +1,5 @@
 /*
-  Copyright 2014 Google Inc. All Rights Reserved.
+  Copyright 2016 Google Inc. All Rights Reserved.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ gulp.task('test:automated', ['default', 'test:manual'], function() {
   // npm install -g chromedriver
   return gulp.src('test/automated-suite.js', {read: false})
     .pipe(mocha({
-      timeout: 60000
+      timeout: 90000
     }))
     .once('error', () => {
       testServer.kill();
