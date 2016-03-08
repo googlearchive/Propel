@@ -82,12 +82,10 @@ describe('Test PushClient', () => {
     });
   });
 
-
   if (!window.goog.propel.Client.supported()) {
     console.warn('This browser doesn\'t support Propel so bail early');
     return;
   }
-
 
   describe('Test PushClient construction', () => {
     it('should be able to create a new push client', function() {
@@ -417,7 +415,7 @@ describe('Test PushClient', () => {
       });
     });
 
-    it('should dispatch a status event with the subscription when the permission is granted', (done) => {
+    it('should dispatch a status event with the subscription when the permission is granted', done => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'granted';
       stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
