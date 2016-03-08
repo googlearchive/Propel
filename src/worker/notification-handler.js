@@ -11,6 +11,7 @@
   limitations under the License.
 */
 /* eslint-env serviceworker */
+/* global PushEvent */
 
 /**
  * A handler for push events that shows notifications based on the content of
@@ -29,7 +30,7 @@
  *   the value of the same key in the defaults object will be used instead.
  * @return {boolean}         true if a notification was shown, false otherwise
  */
-export default notificationHandler = function(event, defaults={}) {
+export default function notificationHandler(event, defaults = {}) {
   if (!event || !(event instanceof PushEvent)) {
     throw new Error('notificationHandler expects argument 1 to be a PushEvent');
   }
@@ -43,7 +44,7 @@ export default notificationHandler = function(event, defaults={}) {
 
   try {
     data = JSON.parse(event.data);
-  } catch(e) {
+  } catch (e) {
     console.log('Couldn\'t parse notification data as JSON, ignoring');
     return false;
   }
@@ -63,4 +64,4 @@ export default notificationHandler = function(event, defaults={}) {
   event.waitUntil(self.registration.showNotification(options.title, options));
 
   return true;
-};
+}

@@ -22,6 +22,7 @@ const browserify = require('browserify');
 const babelify = require('babelify');
 const minimist = require('minimist');
 const requireDir = require('require-dir');
+const runSequence = require('run-sequence');
 
 requireDir('./gulp-tasks');
 
@@ -63,7 +64,7 @@ gulp.task('lint', function() {
     .pipe(eslint())
     .pipe(eslint.format());
 
-  const failOnError = commandLineArgs['throw-error'] ? true : false;
+  const failOnError = (typeof commandLineArgs['throw-error'] !== 'undefined');
   if (failOnError) {
     stream = stream.pipe(eslint.failAfterError());
   }
@@ -71,7 +72,12 @@ gulp.task('lint', function() {
   return stream;
 });
 
-gulp.task('default', ['lint', 'build-client', 'build-worker']);
+gulp.task('default', function(cb) {
+  runSequence(
+    'lint',
+    ['build-client', 'build-worker'],
+    cb);
+});
 
 gulp.task('watch', ['default'], function() {
   gulp.watch(['src/**/*.js', 'demo/**/*.js'], ['lint']);

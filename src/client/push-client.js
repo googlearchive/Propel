@@ -49,7 +49,7 @@ const registrationReady = function(registration) {
       return;
     }
 
-    let stateChangeListener = function(event) {
+    let stateChangeListener = function() {
       if (serviceWorker.state === 'activated') {
         resolve(serviceWorker);
       } else if (serviceWorker.state === 'redundant') {
@@ -82,15 +82,30 @@ export default class PushClient extends EventDispatch {
    * @param {String} options.scope - The scope that the Service worker should be
    *  registered with.
    */
-  constructor({workerUrl=WORKER_URL, scope=SCOPE} = {}) {
+  constructor(options) {
     super();
 
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    this._workerUrl = workerUrl;
-    this._scope = scope;
+    if (options) {
+      if (options instanceof ServiceWorkerRegistration) {
+        const serviceWorker = options.installing ||
+          options.waiting ||
+          options.active;
+        this._workerUrl = serviceWorker.scriptURL;
+        this._scope = options.scope;
+      } else if (options instanceof Object) {
+        this._workerUrl = options.workerUrl || WORKER_URL;
+        this._scope = options.scope || SCOPE;
+      } else {
+        throw new Error('Invalid input into Client constructor.');
+      }
+    } else {
+      this._workerUrl = WORKER_URL;
+      this._scope = SCOPE;
+    }
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
@@ -145,7 +160,7 @@ export default class PushClient extends EventDispatch {
     });
     await registrationReady(reg);
     let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
-    .catch((err) => {
+    .catch(err => {
       // This is provide a more helpful message when work with Chrome + GCM
       if (err.message === 'Registration failed - no sender id provided') {
         throw new SubscriptionFailedError('nogcmid');
@@ -168,16 +183,19 @@ export default class PushClient extends EventDispatch {
   async unsubscribe() {
     let registration = await this.getRegistration();
     let subscription;
+    let unsubscribePromise = Promise.resolve();
 
     if (registration) {
       subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        await subscription.unsubscribe();
+        unsubscribePromise = await subscription.unsubscribe();
       }
     }
 
     this._dispatchStatusUpdate();
+
+    return unsubscribePromise;
   }
 
   /**
@@ -218,7 +236,7 @@ export default class PushClient extends EventDispatch {
    * with the final permission status.
    * @return {Promise<String>} Permission status of granted, default or denied
    */
-  async requestPermission(dispatchStatusChange=true) {
+  async requestPermission(dispatchStatusChange = true) {
     return navigator.permissions.query({name: 'push', userVisibleOnly: true})
     .then(permissionState => {
       // Check if requesting permission will show a prompt

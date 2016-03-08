@@ -10,19 +10,4 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-/* eslint-env browser */
-
-'use strict';
-
-export default class PushClientEvent {
-  constructor(type, data) {
-    this.type = type;
-
-    if (data) {
-      const dataKeys = Object.keys(data);
-      dataKeys.forEach(key => {
-        this[key] = data[key];
-      });
-    }
-  }
-}
+/* eslint-env serviceworker */
