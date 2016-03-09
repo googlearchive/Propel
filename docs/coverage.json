@@ -1,0 +1,54 @@
+{
+  "coverage": "43.47%",
+  "expectCount": 23,
+  "actualCount": 10,
+  "files": {
+    "src/client/event-dispatch.js": {
+      "expectCount": 5,
+      "actualCount": 0,
+      "undocumentLines": [
+        17,
+        22,
+        18,
+        40,
+        31
+      ]
+    },
+    "src/client/push-client.js": {
+      "expectCount": 9,
+      "actualCount": 9,
+      "undocumentLines": []
+    },
+    "src/client/push-client-event.js": {
+      "expectCount": 3,
+      "actualCount": 0,
+      "undocumentLines": [
+        17,
+        18,
+        19
+      ]
+    },
+    "src/client/subscription-failed-error.js": {
+      "expectCount": 4,
+      "actualCount": 0,
+      "undocumentLines": [
+        23,
+        24,
+        27,
+        32
+      ]
+    },
+    "src/worker/notification-handler.js": {
+      "expectCount": 1,
+      "actualCount": 1,
+      "undocumentLines": []
+    },
+    "src/client/server-updater.js": {
+      "expectCount": 1,
+      "actualCount": 0,
+      "undocumentLines": [
+        15
+      ]
+    }
+  }
+}
