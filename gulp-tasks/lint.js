@@ -1,44 +1,37 @@
 /*
-  Copyright 2015 Google Inc. All Rights Reserved.
+  Copyright 2016 Google Inc. All Rights Reserved.
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
+
       http://www.apache.org/licenses/LICENSE-2.0
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+/* eslint-env node */
 
 'use strict';
 
-/* eslint-env node */
-
 const gulp = require('gulp');
-const requireDir = require('require-dir');
-const runSequence = require('run-sequence');
+const eslint = require('gulp-eslint');
+const minimist = require('minimist');
 
-requireDir('./gulp-tasks');
+const commandLineArgs = minimist(process.argv.slice(2));
 
-GLOBAL.config = {
-  env: 'prod'
-};
+gulp.task('lint', function() {
+  let stream = gulp.src(['src/**/*.js', 'demo/**/*.js'])
+    .pipe(eslint())
+    .pipe(eslint.format());
 
-gulp.task('default', function(cb) {
-  runSequence(
-    'lint',
-    'clean',
-    'build',
-    cb);
-});
+  const failOnError = (typeof commandLineArgs['throw-error'] !== 'undefined');
+  if (failOnError) {
+    stream = stream.pipe(eslint.failAfterError());
+  }
 
-gulp.task('watch', function(cb) {
-  GLOBAL.config.env = 'dev';
-
-  runSequence(
-    'default',
-    'start-watching',
-    cb
-  );
+  return stream;
 });

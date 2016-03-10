@@ -36,7 +36,7 @@ const SUPPORTED = 'serviceWorker' in navigator &&
 
 const registrationReady = function(registration) {
   if (registration.active) {
-    return Promise.resolve(registration.active);
+    return Promise.resolve(registration);
   }
 
   let serviceWorker = registration.installing || registration.waiting;
@@ -45,13 +45,13 @@ const registrationReady = function(registration) {
     // Because the Promise function is called on next tick there is a
     // small chance that the worker became active already.
     if (serviceWorker.state === 'activated') {
-      resolve(serviceWorker);
+      resolve(registration);
       return;
     }
 
     let stateChangeListener = function() {
       if (serviceWorker.state === 'activated') {
-        resolve(serviceWorker);
+        resolve(registration);
       } else if (serviceWorker.state === 'redundant') {
         reject(new Error('Worker became redundant'));
       } else {
@@ -143,35 +143,39 @@ export default class PushClient extends EventDispatch {
    * @return {Promise<PushSubscription>} A Promise that
    *  resolves with a PushSubscription if successful.
    */
-  async subscribe() {
+  subscribe() {
     // Check for permission
-    const permissionStatus = await this.requestPermission(false);
-
-    if (permissionStatus !== 'granted') {
-      this._dispatchStatusUpdate();
-      throw new SubscriptionFailedError(permissionStatus);
-    }
-
-    this.dispatchEvent(new PushClientEvent('requestingsubscription'));
-
-    // Make sure we have a service worker and subscribe for push
-    let reg = await navigator.serviceWorker.register(this._workerUrl, {
-      scope: this._scope
-    });
-    await registrationReady(reg);
-    let sub = await reg.pushManager.subscribe({userVisibleOnly: true})
-    .catch(err => {
-      // This is provide a more helpful message when work with Chrome + GCM
-      if (err.message === 'Registration failed - no sender id provided') {
-        throw new SubscriptionFailedError('nogcmid');
-      } else {
-        throw err;
+    return this.requestPermission(false)
+    .then(permissionStatus => {
+      if (permissionStatus !== 'granted') {
+        this._dispatchStatusUpdate();
+        throw new SubscriptionFailedError(permissionStatus);
       }
+
+      this.dispatchEvent(new PushClientEvent('requestingsubscription'));
+
+      // Make sure we have a service worker and subscribe for push
+      return navigator.serviceWorker.register(this._workerUrl, {
+        scope: this._scope
+      });
+    })
+    .then(registrationReady)
+    .then(registration => {
+      return registration.pushManager.subscribe({userVisibleOnly: true})
+        .catch(err => {
+          // This is provide a more helpful message when work with Chrome + GCM
+          if (err.message === 'Registration failed - no sender id provided') {
+            throw new SubscriptionFailedError('nogcmid');
+          } else {
+            throw err;
+          }
+        });
+    })
+    .then(subscription => {
+      this._dispatchStatusUpdate();
+
+      return subscription;
     });
-
-    this._dispatchStatusUpdate();
-
-    return sub;
   }
 
   /**
@@ -180,22 +184,21 @@ export default class PushClient extends EventDispatch {
    * @return {Promise} A Promise that
    *  resolves once the user is unsubscribed.
    */
-  async unsubscribe() {
-    let registration = await this.getRegistration();
-    let subscription;
-    let unsubscribePromise = Promise.resolve();
-
-    if (registration) {
-      subscription = await registration.pushManager.getSubscription();
-
-      if (subscription) {
-        unsubscribePromise = await subscription.unsubscribe();
+  unsubscribe() {
+    return this.getRegistration()
+    .then(registration => {
+      if (registration) {
+        return registration.pushManager.getSubscription();
       }
-    }
-
-    this._dispatchStatusUpdate();
-
-    return unsubscribePromise;
+    })
+    .then(subscription => {
+      if (subscription) {
+        return subscription.unsubscribe();
+      }
+    })
+    .then(() => {
+      this._dispatchStatusUpdate();
+    });
   }
 
   /**
@@ -204,13 +207,15 @@ export default class PushClient extends EventDispatch {
    * @return {Promise<ServiceWorkerRegistration>} A Promise that
    *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
-  async getRegistration() {
-    let reg = await navigator.serviceWorker.getRegistration(this._scope);
-    if (reg && reg.scope === this._scope) {
-      return reg;
-    }
+  getRegistration() {
+    return navigator.serviceWorker.getRegistration(this._scope)
+    .then(registration => {
+      if (registration && registration.scope === this._scope) {
+        return registration;
+      }
 
-    return null;
+      return null;
+    });
   }
 
   /**
@@ -222,13 +227,15 @@ export default class PushClient extends EventDispatch {
    * @return {Promise<PushSubscription>} A Promise that resolves with
    *  a PushSubscription or null.
    */
-  async getSubscription() {
-    let registration = await this.getRegistration();
-    if (!registration) {
-      return null;
-    }
+  getSubscription() {
+    return this.getRegistration()
+    .then(registration => {
+      if (!registration) {
+        return null;
+      }
 
-    return registration.pushManager.getSubscription();
+      return registration.pushManager.getSubscription();
+    });
   }
 
   /**
@@ -236,8 +243,8 @@ export default class PushClient extends EventDispatch {
    * with the final permission status.
    * @return {Promise<String>} Permission status of granted, default or denied
    */
-  async requestPermission(dispatchStatusChange = true) {
-    return navigator.permissions.query({name: 'push', userVisibleOnly: true})
+  requestPermission(dispatchStatusChange = true) {
+    return PushClient.getPermissionState()
     .then(permissionState => {
       // Check if requesting permission will show a prompt
       if (permissionState.state === 'prompt') {
