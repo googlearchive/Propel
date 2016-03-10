@@ -36,7 +36,7 @@ const SUPPORTED = 'serviceWorker' in navigator &&
 
 const registrationReady = function(registration) {
   if (registration.active) {
-    return Promise.resolve(registration.active);
+    return Promise.resolve(registration);
   }
 
   let serviceWorker = registration.installing || registration.waiting;
@@ -45,13 +45,13 @@ const registrationReady = function(registration) {
     // Because the Promise function is called on next tick there is a
     // small chance that the worker became active already.
     if (serviceWorker.state === 'activated') {
-      resolve(serviceWorker);
+      resolve(registration);
       return;
     }
 
     let stateChangeListener = function() {
       if (serviceWorker.state === 'activated') {
-        resolve(serviceWorker);
+        resolve(registration);
       } else if (serviceWorker.state === 'redundant') {
         reject(new Error('Worker became redundant'));
       } else {
@@ -159,12 +159,7 @@ export default class PushClient extends EventDispatch {
         scope: this._scope
       });
     })
-    .then(registration => {
-      return registrationReady(registration)
-        .then(() => {
-          return registration;
-        });
-    })
+    .then(registrationReady)
     .then(registration => {
       return registration.pushManager.subscribe({userVisibleOnly: true})
         .catch(err => {
