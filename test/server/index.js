@@ -20,31 +20,6 @@
 /* eslint-env node */
 
 var path = require('path');
-var express = require('express');
-var app = express();
+const testServer = require('sw-testing-helpers').testServer;
 
-// Set up static assets and add service worker allowed header in case it's
-// needed for registering SW during tests
-app.use('/test/browser-tests/',
-  express.static(path.join(__dirname, '..', 'browser-tests/'), {
-    setHeaders: function(res) {
-      res.setHeader('Service-Worker-Allowed', '/');
-    }
-  })
-);
-
-// Allow all assets in the project to be served, including any
-// required js code from the project
-app.use('/', express.static(path.join(__dirname, '..', '..')));
-
-// If the user tries to go to the root of the test server, redirect them
-// to /test/
-app.get('/', function(req, res) {
-  res.redirect('/test/');
-});
-
-// Start service on port 8888
-var server = app.listen(8888, function() {
-  console.log('Example app listening at http://localhost:%s',
-    server.address().port);
-});
+testServer.startServer(path.join(__dirname, '..', '..'), 8888);
