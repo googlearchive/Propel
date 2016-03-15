@@ -38,15 +38,13 @@
   <script src="/test/libs/helper-functions.js"></script>
   <script src="/test/libs/state-stub.js"></script>
 
-  <!-- Push Client Code We Will Test -->
-  <script src="/dist/client.js"></script>
-
   <script>mocha.setup({
     ui: 'bdd'
   })</script>
 
   <!-- In browser test scripts should be added to the page here-->
-  <script src="/test/browser-tests/push-client/push-client-tests.js"></script>
+  <script src="/test/browser-tests/push-client/push-client-lib.js"></script>
+  <script src="/test/browser-tests/push-client/push-client-methods.js"></script>
 
   <script>
     (function() {
@@ -93,6 +91,8 @@
         return testHelper.cleanState();
       });
 
+      mocha.checkLeaks();
+      mocha.globals(['goog']);
       var runResults = mocha.run();
       // pass, fail and end events allow up to capture results and
       // determine when to publish test results

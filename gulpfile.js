@@ -22,7 +22,9 @@ const runSequence = require('run-sequence');
 requireDir('./gulp-tasks');
 
 GLOBAL.config = {
-  env: 'prod'
+  env: 'prod',
+  src: 'src',
+  dest: 'dist'
 };
 
 gulp.task('default', function(cb) {

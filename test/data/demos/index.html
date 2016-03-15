@@ -43,12 +43,12 @@
   <button class="js-btn" disabled>Loading Push Messages</button>
   <div class="js-permission-overlay"></div>
 
-  <script src="/dist/client.js"></script>
+  <script src="/dist/propel-client.js"></script>
   <script>
     var myBtn = document.querySelector('.js-btn');
     var permissionOverlay = document.querySelector('.js-permission-overlay');
 
-    var PushClient = window.goog.propel.Client;
+    var PushClient = window.goog.propel.PropelClient;
     if (PushClient.supported()) {
       var pushClient = new PushClient();
       pushClient.addEventListener('statuschange', function(event) {

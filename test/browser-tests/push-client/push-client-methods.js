@@ -22,7 +22,7 @@
 
 'use strict';
 
-describe('Test PushClient', () => {
+describe('Test PushClient Methods', () => {
   let stateStub;
 
   const EXAMPLE_SUBSCRIPTION = {
@@ -81,18 +81,14 @@ describe('Test PushClient', () => {
     }
   });
 
-  it('should be able to find window.goog.propel.Client', () => {
-    window.goog.propel.Client.should.be.defined;
-  });
-
   describe('Test supported()', () => {
     it('should return true or false', () => {
-      (typeof window.goog.propel.Client.supported()).should.equal('boolean');
+      (typeof window.goog.propel.PropelClient.supported()).should.equal('boolean');
     });
   });
 
-  if (!window.goog.propel.Client.supported()) {
-    console.warn('This browser doesn\'t support Propel so bail early');
+  // Skip further tests if it's not supported
+  if (!window.goog.propel.PropelClient.supported()) {
     return;
   }
 
@@ -100,40 +96,40 @@ describe('Test PushClient', () => {
     it('should throw an error for no constructor arguments', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client();
+        var client = new window.goog.propel.PropelClient();
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for Object in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client({});
+        var client = new window.goog.propel.PropelClient({});
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for Array in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client([]);
+        var client = new window.goog.propel.PropelClient([]);
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for null in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client(null);
+        var client = new window.goog.propel.PropelClient(null);
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for an empty string in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client('');
+        var client = new window.goog.propel.PropelClient('');
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should be able to create a new push client with just a workerUrl', () => {
-      const pushClient = new window.goog.propel.Client('/sw.js');
+      const pushClient = new window.goog.propel.PropelClient('/sw.js');
 
       window.chai.expect(pushClient._workerUrl).to.contain('/sw.js');
     });
@@ -141,33 +137,33 @@ describe('Test PushClient', () => {
     it('should throw an error for an Object as the scope in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client('/sw.js', {});
+        var client = new window.goog.propel.PropelClient('/sw.js', {});
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for an Array as the scope in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client('/sw.js', []);
+        var client = new window.goog.propel.PropelClient('/sw.js', []);
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for null as the scope in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client('/sw.js', null);
+        var client = new window.goog.propel.PropelClient('/sw.js', null);
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should throw an error for an empty string as the scope in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.Client('/sw.js', '');
+        var client = new window.goog.propel.PropelClient('/sw.js', '');
       }).to.throw(ERROR_MESSAGES['bad constructor']);
     });
 
     it('should be able to create a new push client with a workerUrl and scope', () => {
-      const pushClient = new window.goog.propel.Client('/sw.js', './push-service');
+      const pushClient = new window.goog.propel.PropelClient('/sw.js', './push-service');
 
       window.chai.expect(pushClient._workerUrl).to.contain('/sw.js');
       window.chai.expect(pushClient._scope).to.equal('./push-service');
@@ -176,7 +172,7 @@ describe('Test PushClient', () => {
     it('should be able to create a new push client with a service worker registration', done => {
       navigator.serviceWorker.register(EMPTY_SW_PATH)
       .then(registration => {
-        const pushClient = new window.goog.propel.Client(registration);
+        const pushClient = new window.goog.propel.PropelClient(registration);
 
         window.chai.expect(pushClient._workerUrl).to.contain(EMPTY_SW_PATH);
         window.chai.expect(pushClient._scope).to.contain('/test/browser-tests/push-client/');
@@ -193,7 +189,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'prompt';
       stateStub.registration = null;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('prompt');
@@ -209,7 +205,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'granted';
       stateStub.registration = null;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('granted');
@@ -225,7 +221,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'granted';
       stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('granted');
@@ -241,7 +237,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'blocked';
       stateStub.registration = null;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('blocked');
@@ -258,7 +254,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.registration = buildSWRegistration();
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       return pushClient.getRegistration()
       .then(reg => {
         window.chai.expect(reg).to.not.equal(null);
@@ -269,7 +265,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.registration = null;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       return pushClient.getRegistration()
       .then(reg => {
         window.chai.expect(reg).to.equal(null);
@@ -282,7 +278,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'prompt';
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('requestingpermission', () => {
         done();
       });
@@ -293,7 +289,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'prompt';
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       return pushClient.requestPermission()
       .then(permissionState => {
         permissionState.should.equal('prompt');
@@ -304,7 +300,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'granted';
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('requestingpermission', () => {
         done(new Error('This should not be called when the state is granted'));
       });
@@ -316,7 +312,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'granted';
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       return pushClient.requestPermission()
       .then(permissionState => {
         permissionState.should.equal('granted');
@@ -327,7 +323,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'blocked';
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('requestingpermission', () => {
         done(new Error('This should not be called'));
       });
@@ -339,7 +335,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'blocked';
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.requestPermission()
       .then(permissionState => {
         permissionState.should.equal('blocked');
@@ -353,7 +349,7 @@ describe('Test PushClient', () => {
 
       let counter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         counter++;
 
@@ -377,7 +373,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.registration = null;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       return pushClient.getSubscription()
       .then(subscription => {
         window.chai.expect(subscription).to.equal(null);
@@ -388,7 +384,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       return pushClient.getSubscription()
       .then(subscription => {
         window.chai.expect(subscription).to.equal(EXAMPLE_SUBSCRIPTION);
@@ -400,7 +396,7 @@ describe('Test PushClient', () => {
       // Empty function will caused an error to be throw
       stateStub.registration = buildSWRegistration();
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.getSubscription()
       .then(() => {
         done(new Error('getSubscription should have thrown an error'));
@@ -420,7 +416,7 @@ describe('Test PushClient', () => {
 
       let eventCounter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         eventCounter++;
 
@@ -443,7 +439,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'prompt';
       stateStub.registration = buildSWRegistration(null);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.subscribe()
       .then(() => {
         done(new Error('This shouldn\'t have resolved'));
@@ -461,7 +457,7 @@ describe('Test PushClient', () => {
 
       let eventCounter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         eventCounter++;
 
@@ -484,7 +480,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'blocked';
       stateStub.registration = buildSWRegistration(null);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.subscribe()
       .then(() => {
         done(new Error('This shouldn\'t have resolved'));
@@ -502,7 +498,7 @@ describe('Test PushClient', () => {
 
       let eventCounter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         eventCounter++;
 
@@ -525,7 +521,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'granted';
       stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.subscribe()
       .then(subscriptionObject => {
         window.chai.expect(subscriptionObject).to.not.equal(null);
@@ -545,7 +541,7 @@ describe('Test PushClient', () => {
 
       let statuschangeCounter = 0;
       let eventTypes = [];
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         eventTypes.push(event.type);
 
@@ -586,7 +582,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.registration = buildSWRegistration(EXAMPLE_SUBSCRIPTION);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.unsubscribe()
       .then(() => done());
     });
@@ -598,7 +594,7 @@ describe('Test PushClient', () => {
 
       let statuschangeCounter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         statuschangeCounter++;
         if (statuschangeCounter < 2) {
@@ -619,7 +615,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'prompt';
       stateStub.registration = null;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.unsubscribe()
       .then(() => done());
     });
@@ -631,7 +627,7 @@ describe('Test PushClient', () => {
 
       let statuschangeCounter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         statuschangeCounter++;
         if (statuschangeCounter < 2) {
@@ -652,7 +648,7 @@ describe('Test PushClient', () => {
       stateStub.permissionState = 'prompt';
       stateStub.registration = buildSWRegistration(null);
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.unsubscribe()
       .then(() => done());
     });
@@ -664,7 +660,7 @@ describe('Test PushClient', () => {
 
       let statuschangeCounter = 0;
 
-      const pushClient = new window.goog.propel.Client(EMPTY_SW_PATH);
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
       pushClient.addEventListener('statuschange', event => {
         statuschangeCounter++;
         if (statuschangeCounter < 2) {
@@ -686,7 +682,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'granted';
 
-      return window.goog.propel.Client.getPermissionState()
+      return window.goog.propel.PropelClient.getPermissionState()
       .then(permissionState => {
         permissionState.state.should.equal('granted');
       });
@@ -696,7 +692,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'prompt';
 
-      return window.goog.propel.Client.getPermissionState()
+      return window.goog.propel.PropelClient.getPermissionState()
       .then(permissionState => {
         permissionState.state.should.equal('prompt');
       });
@@ -706,7 +702,7 @@ describe('Test PushClient', () => {
       stateStub = new window.StateStub();
       stateStub.permissionState = 'blocked';
 
-      return window.goog.propel.Client.getPermissionState()
+      return window.goog.propel.PropelClient.getPermissionState()
       .then(permissionState => {
         permissionState.state.should.equal('blocked');
       });
