@@ -19,10 +19,10 @@
 <body>
   <button class="js-btn" disabled>Loading Push Messages</button>
 
-  <script src="/dist/client.js"></script>
+  <script src="/dist/propel-client.js"></script>
   <script>
     function registerPushClient(registration) {
-      var PushClient = window.goog.propel.Client;
+      var PushClient = window.goog.propel.PropelClient;
       if (PushClient.supported()) {
         // Initialise Push Client
         var pushClient = new PushClient(registration);

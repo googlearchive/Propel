@@ -17,6 +17,6 @@ import serverUpdater from './client/server-updater';
 
 window.goog = window.goog || {};
 window.goog.propel = window.goog.propel || {
-  Client: PushClient,
+  PropelClient: PushClient,
   serverUpdater: serverUpdater
 };

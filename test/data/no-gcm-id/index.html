@@ -17,9 +17,9 @@
   <link rel="manifest" href="/test/data/no-gcm-id/manifest.json">
 </head>
 <body>
-  <script src="/dist/client.js"></script>
+  <script src="/dist/propel-client.js"></script>
   <script>
-    var PushClient = window.goog.propel.Client;
+    var PushClient = window.goog.propel.PropelClient;
     var pushClient = new PushClient();
     pushClient.subscribe();
   </script>

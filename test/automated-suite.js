@@ -65,7 +65,10 @@ describe('Test Propel', function() {
         `${testServerURL}/test/browser-tests/`
       )
       .then(testResults => {
-        automatedBrowserTesting.manageTestResults(testResults);
+        automatedBrowserTesting.manageTestResults(
+          browserInfo.prettyName,
+          testResults
+        );
       });
     });
   };

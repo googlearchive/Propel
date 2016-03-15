@@ -10,11 +10,11 @@
 To use the Propel library do the following:
 
 1. Build Propel with `npm install && npm install -g gulp-cli && gulp`
-1. Put the `client.js` file on your server.
-2. Add `client.js` to your web page.
-3. Use the `Client` object in your javscript.
+1. Put the `propel-client.js` file on your server.
+2. Add `propel-client.js` to your web page.
+3. Use the `PropelClient` object in your javscript.
     ```javascript
-    var PropelClient = window.goog.propel.Client;
+    var PropelClient = window.goog.propel.PropelClient;
 
     // Check if push is supported by the current browsers
     if (PropelClient.supported()) {
