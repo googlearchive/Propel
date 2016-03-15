@@ -1,6 +1,6 @@
 {
-  "name": "propel",
-  "version": "1.0.0",
+  "name": "propel-web-push",
+  "version": "0.0.17",
   "description": "A library to support developers implementing Web Push notifications",
   "devDependencies": {
     "babel-eslint": "^6.0.0-beta.1",
@@ -28,18 +28,18 @@
     "rollup-plugin-commonjs": "^2.2.1",
     "rollup-plugin-node-resolve": "^1.5.0",
     "run-sequence": "^1.1.5",
+    "selenium-webdriver": "^2.52.0",
     "sinon": "^1.17.3",
     "sw-testing-helpers": "0.0.5",
     "vinyl-source-stream": "^1.1.0",
-    "which": "^1.2.4"
+    "which": "^1.2.4",
+    "pullr": "^0.3.2",
+    "selenium-webdriver": "^2.52.0"
   },
   "license": "Apache-2.0",
   "scripts": {
     "test": "gulp test:automated --throw-error",
     "build-docs": "esdoc -c esdoc.json",
     "publish-docs": "esdoc -c esdoc.json && git subtree push --prefix docs/ origin gh-pages"
-  },
-  "dependencies": {
-    "selenium-webdriver": "^2.52.0"
   }
 }
