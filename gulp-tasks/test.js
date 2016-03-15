@@ -21,26 +21,16 @@ const gulp = require('gulp');
 const spawn = require('child_process').spawn;
 const mocha = require('gulp-mocha');
 
-let testServer = null;
-
 gulp.task('test:manual', function() {
-  testServer = spawn('node', ['test/server/index.js'], {
+  spawn('node', ['test/server/index.js'], {
     stdio: 'inherit'
   });
 });
 
-gulp.task('test:automated', ['default', 'test:manual'], function() {
+gulp.task('test:automated', ['default'], function() {
   // This task requires you to have chrome driver in your path
   // You can do this with:
   // npm install -g chromedriver
   return gulp.src('test/automated-suite.js', {read: false})
-    .pipe(mocha({
-      timeout: 90000
-    }))
-    .once('error', () => {
-      testServer.kill();
-    })
-    .once('end', () => {
-      testServer.kill();
-    });
+    .pipe(mocha());
 });
