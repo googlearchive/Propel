@@ -16,23 +16,23 @@ import SubscriptionFailedError from './subscription-failed-error';
 import PushClientEvent from './push-client-event';
 import EventDispatch from './event-dispatch';
 
-// document.currentScript is not supported in all browsers, but it IS supported
-// in all browsers that support Push.
-// TODO(mscales): Ensure that this script will not cause errors in unsupported
-// browsers.
-let currentScript = document.currentScript.src;
+// Set the default scope to be relative to the service worker
+// script with an addition string to prevent any unlikely collisions
+// This should allow multiple instances of push on the same scope to work
+const SCOPE = './goog.push.scope/';
 
-// Make the dummy service worker scope be relative to the library script. This
-// means that you can have multiple projects hosted on the same origin without
-// them interfering with each other, as long as they each use a different URL
-// for the script.
-const SCOPE = new URL('./goog.push.scope/', currentScript).href;
-const WORKER_URL = new URL('./worker.js', currentScript).href;
 const SUPPORTED = 'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
     'permissions' in navigator &&
     'showNotification' in ServiceWorkerRegistration.prototype;
+
+const ERROR_MESSAGES = {
+  'bad constructor': 'The PushClient constructor expects either service ' +
+    'worker registration or the path to a service worker file and an ' +
+    'optional scope string.',
+  'redundant worker': 'Worker became redundant'
+};
 
 const registrationReady = function(registration) {
   if (registration.active) {
@@ -53,7 +53,7 @@ const registrationReady = function(registration) {
       if (serviceWorker.state === 'activated') {
         resolve(registration);
       } else if (serviceWorker.state === 'redundant') {
-        reject(new Error('Worker became redundant'));
+        reject(new Error(ERROR_MESSAGES['redundant worker']));
       } else {
         return;
       }
@@ -82,29 +82,45 @@ export default class PushClient extends EventDispatch {
    * @param {String} options.scope - The scope that the Service worker should be
    *  registered with.
    */
-  constructor(options) {
+  constructor() {
     super();
 
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    if (options) {
-      if (options instanceof ServiceWorkerRegistration) {
-        const serviceWorker = options.installing ||
-          options.waiting ||
-          options.active;
+    // Initialise workerurl and scope from arguments
+    if (arguments.length === 1) {
+      if (arguments[0] instanceof ServiceWorkerRegistration) {
+        const serviceWorker = arguments[0].installing ||
+          arguments[0].waiting ||
+          arguments[0].active;
         this._workerUrl = serviceWorker.scriptURL;
-        this._scope = options.scope;
-      } else if (options instanceof Object) {
-        this._workerUrl = options.workerUrl || WORKER_URL;
-        this._scope = options.scope || SCOPE;
-      } else {
-        throw new Error('Invalid input into Client constructor.');
+        this._scope = arguments[0].scope;
+      } else if (typeof arguments[0] === 'string') {
+        this._workerUrl = arguments[0];
+        this._scope = SCOPE;
       }
-    } else {
-      this._workerUrl = WORKER_URL;
-      this._scope = SCOPE;
+    } else if (arguments.length === 2) {
+      this._workerUrl = arguments[0];
+      this._scope = arguments[1];
+    }
+
+    // Ensure the worker url and scope are valid
+    const validInput = [this._workerUrl, this._scope].reduce(
+      (isValid, currentValue) => {
+        if (typeof currentValue === 'undefined' ||
+          currentValue === null ||
+          typeof currentValue !== 'string' ||
+          currentValue.length === 0) {
+          return false;
+        }
+
+        return isValid;
+      }, true);
+
+    if (!validInput) {
+      throw new Error(ERROR_MESSAGES['bad constructor']);
     }
 
     // It is possible for the subscription to change in between page loads. We
