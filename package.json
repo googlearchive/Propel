@@ -37,7 +37,6 @@
   "license": "Apache-2.0",
   "scripts": {
     "test": "gulp test:automated --throw-error",
-    "build-docs": "esdoc -c esdoc.json",
-    "publish-docs": "esdoc -c esdoc.json && git subtree push --prefix docs/ origin gh-pages"
+    "build-docs": "esdoc -c esdoc.json"
   }
 }
