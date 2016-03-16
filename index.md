@@ -25,10 +25,10 @@ layout: default
 {% endif %}
   {% endif %}
 
-{% if currentTopLevelName == 'master' %}
+{% if currentTopLevelName == 'master' and pathParts[2] == 'index.html' %}
   <p><a href="{{ file.path | prepend: site.baseurl }}">View the Docs for the Master Branch</a></p>
 {% elsif currentTopLevelName == 'releases' and currentVersionName != pathParts[2] %}
-  {% assign currentVersionName = pathParts[2] %}
+  {% assign currentVersionName = pathParts[2] and pathParts[3] == 'index.html' %}
   <p><a href="{{ file.path | prepend: site.baseurl }}">View the Docs for the {{ pathParts[2] }} release</a></p>
 {% endif %}
 
