@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">src/client/push-client.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">client</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/event-dispatch.js~EventDispatch.html">EventDispatch</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/push-client-event.js~PushClientEvent.html">PushClientEvent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html">PushClient</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/subscription-failed-error.js~SubscriptionFailedError.html">SubscriptionFailedError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-serverUpdater">serverUpdater</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">worker</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-notificationHandler">notificationHandler</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/client/push-client.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/*
+  Copyright 2015 Google Inc. All Rights Reserved.
+  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+/* eslint-env browser */
+
+import SubscriptionFailedError from &apos;./subscription-failed-error&apos;;
+import PushClientEvent from &apos;./push-client-event&apos;;
+import EventDispatch from &apos;./event-dispatch&apos;;
+
+// Set the default scope to be relative to the service worker
+// script with an addition string to prevent any unlikely collisions
+// This should allow multiple instances of push on the same scope to work
+const SCOPE = &apos;./goog.push.scope/&apos;;
+
+const SUPPORTED = &apos;serviceWorker&apos; in navigator &amp;&amp;
+    &apos;PushManager&apos; in window &amp;&amp;
+    &apos;Notification&apos; in window &amp;&amp;
+    &apos;permissions&apos; in navigator &amp;&amp;
+    &apos;showNotification&apos; in ServiceWorkerRegistration.prototype;
+
+const ERROR_MESSAGES = {
+  &apos;bad constructor&apos;: &apos;The PushClient constructor expects either service &apos; +
+    &apos;worker registration or the path to a service worker file and an &apos; +
+    &apos;optional scope string.&apos;,
+  &apos;redundant worker&apos;: &apos;Worker became redundant&apos;
+};
+
+const registrationReady = function(registration) {
+  if (registration.active) {
+    return Promise.resolve(registration);
+  }
+
+  let serviceWorker = registration.installing || registration.waiting;
+
+  return new Promise(function(resolve, reject) {
+    // Because the Promise function is called on next tick there is a
+    // small chance that the worker became active already.
+    if (serviceWorker.state === &apos;activated&apos;) {
+      resolve(registration);
+      return;
+    }
+
+    let stateChangeListener = function() {
+      if (serviceWorker.state === &apos;activated&apos;) {
+        resolve(registration);
+      } else if (serviceWorker.state === &apos;redundant&apos;) {
+        reject(new Error(ERROR_MESSAGES[&apos;redundant worker&apos;]));
+      } else {
+        return;
+      }
+      serviceWorker.removeEventListener(&apos;statechange&apos;, stateChangeListener);
+    };
+    serviceWorker.addEventListener(&apos;statechange&apos;, stateChangeListener);
+  });
+};
+
+/**
+ * PushClient is a front end library that simplifies adding push to your
+ * site.
+ */
+export default class PushClient extends EventDispatch {
+  /**
+   * Constructs a new PushClient.
+   *
+   * If the current browser has a push subscription then it will be
+   * obtained in the constructor and a subscriptionChange event will be
+   * dispatched.
+   *
+   * @param {Object} options - Options object should be included if you
+   *  want to define any of the following.
+   * @param {String} options.workerUrl - Service worker URL to be
+   *  registered that will receive push events.
+   * @param {String} options.scope - The scope that the Service worker should be
+   *  registered with.
+   */
+  constructor() {
+    super();
+
+    if (!PushClient.supported()) {
+      throw new Error(&apos;Your browser does not support the web push API&apos;);
+    }
+
+    // Initialise workerurl and scope from arguments
+    if (arguments.length === 1) {
+      if (arguments[0] instanceof ServiceWorkerRegistration) {
+        const serviceWorker = arguments[0].installing ||
+          arguments[0].waiting ||
+          arguments[0].active;
+        this._workerUrl = serviceWorker.scriptURL;
+        this._scope = arguments[0].scope;
+      } else if (typeof arguments[0] === &apos;string&apos;) {
+        this._workerUrl = arguments[0];
+        this._scope = SCOPE;
+      }
+    } else if (arguments.length === 2) {
+      this._workerUrl = arguments[0];
+      this._scope = arguments[1];
+    }
+
+    // Ensure the worker url and scope are valid
+    const validInput = [this._workerUrl, this._scope].reduce(
+      (isValid, currentValue) =&gt; {
+        if (typeof currentValue === &apos;undefined&apos; ||
+          currentValue === null ||
+          typeof currentValue !== &apos;string&apos; ||
+          currentValue.length === 0) {
+          return false;
+        }
+
+        return isValid;
+      }, true);
+
+    if (!validInput) {
+      throw new Error(ERROR_MESSAGES[&apos;bad constructor&apos;]);
+    }
+
+    // It is possible for the subscription to change in between page loads. We
+    // should re-send the existing subscription when we initialise (if there is
+    // one)
+    this._dispatchStatusUpdate();
+  }
+
+  _dispatchStatusUpdate() {
+    return Promise.all([
+      this.getSubscription(),
+      PushClient.getPermissionState()
+    ])
+    .then(results =&gt; {
+      return {
+        isSubscribed: (results[0] !== null),
+        currentSubscription: results[0],
+        permissionState: results[1].state
+      };
+    })
+    .then(status =&gt; {
+      this.dispatchEvent(new PushClientEvent(&apos;statuschange&apos;, status));
+    })
+    .catch(err =&gt; {
+      console.warn(&apos;Unable to dispatch a status event &apos; +
+        &apos;getSubscription() failed.&apos;, err);
+    });
+  }
+
+  /**
+   * This method will subscribe a use for push messaging.
+   *
+   * If permission isn&apos;t granted for push, this method will show the
+   * permissions dialog before attempting to subscribe the user to push.
+   *
+   * @return {Promise&lt;PushSubscription&gt;} A Promise that
+   *  resolves with a PushSubscription if successful.
+   */
+  subscribe() {
+    // Check for permission
+    return this.requestPermission(false)
+    .then(permissionStatus =&gt; {
+      if (permissionStatus !== &apos;granted&apos;) {
+        this._dispatchStatusUpdate();
+        throw new SubscriptionFailedError(permissionStatus);
+      }
+
+      this.dispatchEvent(new PushClientEvent(&apos;requestingsubscription&apos;));
+
+      // Make sure we have a service worker and subscribe for push
+      return navigator.serviceWorker.register(this._workerUrl, {
+        scope: this._scope
+      });
+    })
+    .then(registrationReady)
+    .then(registration =&gt; {
+      return registration.pushManager.subscribe({userVisibleOnly: true})
+        .catch(err =&gt; {
+          // This is provide a more helpful message when work with Chrome + GCM
+          if (err.message === &apos;Registration failed - no sender id provided&apos;) {
+            throw new SubscriptionFailedError(&apos;nogcmid&apos;);
+          } else {
+            throw err;
+          }
+        });
+    })
+    .then(subscription =&gt; {
+      this._dispatchStatusUpdate();
+
+      return subscription;
+    });
+  }
+
+  /**
+   * This method will unsubscribe the user from push on the client side.
+   *
+   * @return {Promise} A Promise that
+   *  resolves once the user is unsubscribed.
+   */
+  unsubscribe() {
+    return this.getRegistration()
+    .then(registration =&gt; {
+      if (registration) {
+        return registration.pushManager.getSubscription();
+      }
+    })
+    .then(subscription =&gt; {
+      if (subscription) {
+        return subscription.unsubscribe();
+      }
+    })
+    .then(() =&gt; {
+      this._dispatchStatusUpdate();
+    });
+  }
+
+  /**
+   * Get the registration of the service worker being used for push.
+   *
+   * @return {Promise&lt;ServiceWorkerRegistration&gt;} A Promise that
+   *  resolves to either a ServiceWorkerRegistration or to null if none.
+   */
+  getRegistration() {
+    return navigator.serviceWorker.getRegistration(this._scope)
+    .then(registration =&gt; {
+      if (registration &amp;&amp; registration.scope === this._scope) {
+        return registration;
+      }
+
+      return null;
+    });
+  }
+
+  /**
+   * If the user is currently subscribed for push then the returned promise will
+   * resolve with a PushSubscription object, otherwise it will resolve to null.
+   *
+   * This will not display the permission dialog.
+   *
+   * @return {Promise&lt;PushSubscription&gt;} A Promise that resolves with
+   *  a PushSubscription or null.
+   */
+  getSubscription() {
+    return this.getRegistration()
+    .then(registration =&gt; {
+      if (!registration) {
+        return null;
+      }
+
+      return registration.pushManager.getSubscription();
+    });
+  }
+
+  /**
+   * Will manage requesting permission for push messages, resolving
+   * with the final permission status.
+   * @return {Promise&lt;String&gt;} Permission status of granted, default or denied
+   */
+  requestPermission(dispatchStatusChange = true) {
+    return PushClient.getPermissionState()
+    .then(permissionState =&gt; {
+      // Check if requesting permission will show a prompt
+      if (permissionState.state === &apos;prompt&apos;) {
+        this.dispatchEvent(new PushClientEvent(&apos;requestingpermission&apos;));
+      }
+
+      return new Promise(resolve =&gt; Notification.requestPermission(resolve))
+      .then(resolvedState =&gt; {
+        if (dispatchStatusChange) {
+          this._dispatchStatusUpdate();
+        }
+        return resolvedState;
+      });
+    });
+  }
+
+  /**
+   * You can use this to decide whether to construct a new PushClient or not.
+   * @return {Boolean} Whether the current browser has everything needed
+   *  to use push messaging.
+   */
+  static supported() {
+    return SUPPORTED;
+  }
+
+  /**
+   * This method can be used to check if subscribing the user will display
+   * the permission dialog or not.
+   * @return {Promise&lt;PermissionStatus&gt;} PermistionStatus.state will be
+   * &apos;granted&apos;, &apos;denied&apos; or &apos;prompt&apos; to reflect the current permission state
+   */
+  static getPermissionState() {
+    return navigator.permissions.query({name: &apos;push&apos;, userVisibleOnly: true});
+  }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.6)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
