@@ -9,10 +9,16 @@ if [[ $1 != "patch" && $1 != "minor" && $1 != "major" ]] ; then
   exit 1;
 fi
 
-echo ""
-echo "Sign into npm"
-echo ""
-npm whoami &>/dev/null || npm login
+# Get the current branch from git. Outputs something similar to: refs/heads/master
+currentBranch="$(git symbolic-ref HEAD)"
+# Helpful info on string manipulation: http://tldp.org/LDP/abs/html/string-manipulation.html
+# Double hash deletes the substring after the double hash.
+currentBranch=${currentBranch##refs/heads/}
+
+if [[ $currentBranch != "master" ]]; then
+  echo "    This script must be run from the master branch.";
+  exit 1;
+fi
 
 echo ""
 echo "Building Library"
@@ -24,6 +30,16 @@ echo ""
 echo "Building Docs"
 echo ""
 esdoc -c esdoc.json
+
+echo ""
+echo "Perform Tests"
+echo ""
+mocha
+
+echo ""
+echo "Sign into npm"
+echo ""
+npm whoami &>/dev/null || npm login
 
 echo ""
 echo ""
@@ -98,6 +114,9 @@ echo ""
 
 git add package.json
 git commit -m "Auto-generated PR to update package.json with new version - $PACKAGE_VERSION"
-git push -f origin release-pr
+git push origin -f $currentBranch:release-pr
+
+# Make sure any pending commits on master are reset (i.e. the package.json commit)
+git reset --hard origin/$currentBranch
 
 ./node_modules/pullr/bin/pullr.js --new --from release-pr --into master --title 'Auto-generated PR to update the version number' --description 'Please review this change and ensure that package.json is the ONLY file changed AND that the version matches the latest tagged release.'
