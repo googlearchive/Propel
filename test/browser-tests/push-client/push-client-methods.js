@@ -88,7 +88,12 @@ describe('Test PushClient Methods', () => {
   });
 
   // Skip further tests if it's not supported
-  if (!window.goog.propel.PropelClient.supported()) {
+  const SUPPORTED = 'serviceWorker' in navigator &&
+      'PushManager' in window &&
+      'Notification' in window &&
+      'permissions' in navigator &&
+      'showNotification' in ServiceWorkerRegistration.prototype;
+  if (!SUPPORTED) {
     return;
   }
 

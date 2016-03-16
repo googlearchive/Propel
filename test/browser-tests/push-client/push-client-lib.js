@@ -24,7 +24,6 @@
 
 describe('Test PushClient Library', function() {
   it('should load window.goog.propel.PropelClient without leaks', function(done) {
-    console.log('Hello 1');
     // By leaks this is referring to the only thing Propel
     // should add to the global scope (i.e. window) is goog
     const scriptElement = document.createElement('script');
