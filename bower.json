@@ -1,0 +1,11 @@
+{
+  "name": "propel-web-push",
+  "description": "A library to support developers implementing Web Push notifications",
+  "license": "Apache-2.0",
+  "keywords": [
+    "web",
+    "push",
+    "propel"
+  ],
+  "homepage": "https://github.com/GoogleChrome/Propel"
+}
