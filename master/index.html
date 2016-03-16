@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">client</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/event-dispatch.js~EventDispatch.html">EventDispatch</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/push-client-event.js~PushClientEvent.html">PushClientEvent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html">PushClient</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/subscription-failed-error.js~SubscriptionFailedError.html">SubscriptionFailedError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-serverUpdater">serverUpdater</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">worker</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-notificationHandler">notificationHandler</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="propel">Propel</h1>
+<p><a href="https://travis-ci.org/GoogleChrome/Propel"><img src="https://travis-ci.org/GoogleChrome/Propel.svg?branch=master" alt="Build Status"></a>
+<a href="https://david-dm.org/GoogleChrome/Propel#info=devDependencies"><img src="https://david-dm.org/GoogleChrome/Propel/dev-status.svg" alt="devDependency Status"></a></p>
+<blockquote>
+<p>A library to support developers implementing Web Push notifications</p>
+</blockquote>
+<h2 id="getting-started">Getting Started</h2>
+<p>To use the Propel library do the following:</p>
+<ol>
+<li>Build Propel with <code>npm install &amp;&amp; npm install -g gulp-cli &amp;&amp; gulp</code></li>
+<li>Put the <code>propel-client.js</code> file on your server.</li>
+<li>Add <code>propel-client.js</code> to your web page.</li>
+<li><p>Use the <code>PropelClient</code> object in your javscript.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint"> var PropelClient = window.goog.propel.PropelClient;
+
+ // Check if push is supported by the current browsers
+ if (PropelClient.supported()) {
+   // Initialise Push Client
+   var propelClient = new PropelClient();
+   propelClient.addEventListener(&apos;statuschange&apos;, function(event) {
+     if (event.permissionStatus === &apos;denied&apos;) {
+       // Disable UI
+     } else if (event.currentSubscription){
+       // Enable UI
+       // Show that user is subscribed
+
+       // Send the subscription object to your server
+       fetch(&apos;/your-backend-api&apos;, {
+         method: &apos;post&apos;,
+         headers: new Headers().append(&apos;Content-Type&apos;, &apos;application/json&apos;),
+         body: JSON.stringify(currentSubscription)
+       });
+     } else {
+       // Enable UI
+       // Show that user is not subscribed
+     }
+   });
+
+   propelClient.subscribe();
+   // OR
+   propelClient.unsubscribe();
+ }</code>
+</code></pre>
+</li>
+<li>Check out the <a href="http://googlechrome.github.io/Propel/">docs to learn more</a>.</li>
+</ol>
+<h2 id="support">Support</h2>
+<p>If you&#x2019;ve found an error in this library, please file an issue: <a href="https://github.com/GoogleChrome/Propel/issues">https://github.com/GoogleChrome/Propel/issues</a></p>
+<p>Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub.</p>
+<h2 id="license">License</h2>
+<p>Copyright 2015 Google, Inc.</p>
+<p>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not use this file except in compliance with the License. You may obtain a copy of the License at</p>
+<p><a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+<p>Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.6)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
