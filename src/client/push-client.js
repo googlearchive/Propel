@@ -19,7 +19,7 @@ import EventDispatch from './event-dispatch';
 // Set the default scope to be relative to the service worker
 // script with an addition string to prevent any unlikely collisions
 // This should allow multiple instances of push on the same scope to work
-const SCOPE = './goog.push.scope/';
+const DEFAULT_SCOPE = './';
 
 const SUPPORTED = 'serviceWorker' in navigator &&
     'PushManager' in window &&
@@ -99,7 +99,7 @@ export default class PushClient extends EventDispatch {
         this._scope = arguments[0].scope;
       } else if (typeof arguments[0] === 'string') {
         this._workerUrl = arguments[0];
-        this._scope = SCOPE;
+        this._scope = DEFAULT_SCOPE;
       }
     } else if (arguments.length === 2) {
       this._workerUrl = arguments[0];
