@@ -49,5 +49,4 @@ before_script:
 
 script:
   - npm test
-  - npm run build-docs
-  - sh ./project/publish-docs.sh
+  - sh ./project/publish-docs.sh master/

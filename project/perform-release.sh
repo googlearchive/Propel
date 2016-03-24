@@ -120,3 +120,9 @@ git push origin -f $currentBranch:release-pr
 git reset --hard origin/$currentBranch
 
 ./node_modules/pullr/bin/pullr.js --new --from release-pr --into master --title 'Auto-generated PR to update the version number' --description 'Please review this change and ensure that package.json is the ONLY file changed AND that the version matches the latest tagged release.'
+
+echo ""
+echo ""
+echo "Build and Publish Docs"
+echo ""
+./project/publish-docs.sh releases/$PACKAGE_VERSION/
