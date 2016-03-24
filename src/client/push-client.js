@@ -16,9 +16,6 @@ import SubscriptionFailedError from './subscription-failed-error';
 import PushClientEvent from './push-client-event';
 import EventDispatch from './event-dispatch';
 
-// Set the default scope to be relative to the service worker
-// script with an addition string to prevent any unlikely collisions
-// This should allow multiple instances of push on the same scope to work
 const DEFAULT_SCOPE = './';
 
 const SUPPORTED = 'serviceWorker' in navigator &&
@@ -122,6 +119,9 @@ export default class PushClient extends EventDispatch {
     if (!validInput) {
       throw new Error(ERROR_MESSAGES['bad constructor']);
     }
+
+    // Turn any relative scope into an absolute one, using the page URL as the base
+    this._scope = new URL(this._scope, window.location.href).href;
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
