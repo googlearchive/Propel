@@ -1,0 +1,1696 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/client/event-dispatch.js",
+    "memberof": null,
+    "longname": "src/client/event-dispatch.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\n'use strict';\n\nexport default class EventDispatch {\n  constructor() {\n    this._eventTypes = new Map();\n  }\n\n  addEventListener(eventType, listener) {\n    if (!this._eventTypes.has(eventType)) {\n      // Create a new set for this event type\n      this._eventTypes.set(eventType, new Set());\n    }\n\n    this._eventTypes.get(eventType).add(listener);\n  }\n\n  removeEventListener(eventType, listener) {\n    if (!this._eventTypes.has(eventType)) {\n      // No events of this type so nothing to do.\n      return;\n    }\n\n    this._eventTypes.get(eventType).delete(listener);\n  }\n\n  dispatchEvent(event) {\n    if (!this._eventTypes.has(event.type)) {\n      // No events of this type so nothing to do.\n      return;\n    }\n\n    const eventListeners = this._eventTypes.get(event.type);\n    eventListeners.forEach(eventListener => {\n      eventListener(event);\n    });\n  }\n}\n"
+  },
+  {
+    "__docId__": 1,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "EventDispatch",
+    "memberof": "src/client/event-dispatch.js",
+    "longname": "src/client/event-dispatch.js~EventDispatch",
+    "access": null,
+    "export": true,
+    "importPath": "propel-web-push/src/client/event-dispatch.js",
+    "importStyle": "EventDispatch",
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "interface": false
+  },
+  {
+    "__docId__": 2,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/client/event-dispatch.js~EventDispatch",
+    "longname": "src/client/event-dispatch.js~EventDispatch#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 3,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_eventTypes",
+    "memberof": "src/client/event-dispatch.js~EventDispatch",
+    "longname": "src/client/event-dispatch.js~EventDispatch#_eventTypes",
+    "access": null,
+    "description": null,
+    "lineNumber": 19,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 4,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "addEventListener",
+    "memberof": "src/client/event-dispatch.js~EventDispatch",
+    "longname": "src/client/event-dispatch.js~EventDispatch#addEventListener",
+    "access": null,
+    "description": null,
+    "lineNumber": 22,
+    "undocument": true,
+    "params": [
+      {
+        "name": "eventType",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "listener",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 5,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "removeEventListener",
+    "memberof": "src/client/event-dispatch.js~EventDispatch",
+    "longname": "src/client/event-dispatch.js~EventDispatch#removeEventListener",
+    "access": null,
+    "description": null,
+    "lineNumber": 31,
+    "undocument": true,
+    "params": [
+      {
+        "name": "eventType",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "listener",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 6,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "dispatchEvent",
+    "memberof": "src/client/event-dispatch.js~EventDispatch",
+    "longname": "src/client/event-dispatch.js~EventDispatch#dispatchEvent",
+    "access": null,
+    "description": null,
+    "lineNumber": 40,
+    "undocument": true,
+    "params": [
+      {
+        "name": "event",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 7,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/client/push-client-event.js",
+    "memberof": null,
+    "longname": "src/client/push-client-event.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\n'use strict';\n\nexport default class PushClientEvent {\n  constructor(type, data) {\n    this.type = type;\n\n    if (data) {\n      const dataKeys = Object.keys(data);\n      dataKeys.forEach(key => {\n        this[key] = data[key];\n      });\n    }\n  }\n}\n"
+  },
+  {
+    "__docId__": 8,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "PushClientEvent",
+    "memberof": "src/client/push-client-event.js",
+    "longname": "src/client/push-client-event.js~PushClientEvent",
+    "access": null,
+    "export": true,
+    "importPath": "propel-web-push/src/client/push-client-event.js",
+    "importStyle": "PushClientEvent",
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "interface": false
+  },
+  {
+    "__docId__": 9,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/client/push-client-event.js~PushClientEvent",
+    "longname": "src/client/push-client-event.js~PushClientEvent#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "params": [
+      {
+        "name": "type",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 10,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "type",
+    "memberof": "src/client/push-client-event.js~PushClientEvent",
+    "longname": "src/client/push-client-event.js~PushClientEvent#type",
+    "access": null,
+    "description": null,
+    "lineNumber": 19,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/client/push-client.js",
+    "memberof": null,
+    "longname": "src/client/push-client.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport SubscriptionFailedError from './subscription-failed-error';\nimport PushClientEvent from './push-client-event';\nimport EventDispatch from './event-dispatch';\n\n// Set the default scope to be relative to the service worker\n// script with an addition string to prevent any unlikely collisions\n// This should allow multiple instances of push on the same scope to work\nconst SCOPE = './goog.push.scope/';\n\nconst SUPPORTED = 'serviceWorker' in navigator &&\n    'PushManager' in window &&\n    'Notification' in window &&\n    'permissions' in navigator &&\n    'showNotification' in ServiceWorkerRegistration.prototype;\n\nconst ERROR_MESSAGES = {\n  'bad constructor': 'The PushClient constructor expects either service ' +\n    'worker registration or the path to a service worker file and an ' +\n    'optional scope string.',\n  'redundant worker': 'Worker became redundant'\n};\n\nconst registrationReady = function(registration) {\n  if (registration.active) {\n    return Promise.resolve(registration);\n  }\n\n  let serviceWorker = registration.installing || registration.waiting;\n\n  return new Promise(function(resolve, reject) {\n    // Because the Promise function is called on next tick there is a\n    // small chance that the worker became active already.\n    if (serviceWorker.state === 'activated') {\n      resolve(registration);\n      return;\n    }\n\n    let stateChangeListener = function() {\n      if (serviceWorker.state === 'activated') {\n        resolve(registration);\n      } else if (serviceWorker.state === 'redundant') {\n        reject(new Error(ERROR_MESSAGES['redundant worker']));\n      } else {\n        return;\n      }\n      serviceWorker.removeEventListener('statechange', stateChangeListener);\n    };\n    serviceWorker.addEventListener('statechange', stateChangeListener);\n  });\n};\n\n/**\n * PushClient is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushClient extends EventDispatch {\n  /**\n   * Constructs a new PushClient.\n   *\n   * If the current browser has a push subscription then it will be\n   * obtained in the constructor and a subscriptionChange event will be\n   * dispatched.\n   *\n   * @param {Object} options - Options object should be included if you\n   *  want to define any of the following.\n   * @param {String} options.workerUrl - Service worker URL to be\n   *  registered that will receive push events.\n   * @param {String} options.scope - The scope that the Service worker should be\n   *  registered with.\n   */\n  constructor() {\n    super();\n\n    if (!PushClient.supported()) {\n      throw new Error('Your browser does not support the web push API');\n    }\n\n    // Initialise workerurl and scope from arguments\n    if (arguments.length === 1) {\n      if (arguments[0] instanceof ServiceWorkerRegistration) {\n        const serviceWorker = arguments[0].installing ||\n          arguments[0].waiting ||\n          arguments[0].active;\n        this._workerUrl = serviceWorker.scriptURL;\n        this._scope = arguments[0].scope;\n      } else if (typeof arguments[0] === 'string') {\n        this._workerUrl = arguments[0];\n        this._scope = SCOPE;\n      }\n    } else if (arguments.length === 2) {\n      this._workerUrl = arguments[0];\n      this._scope = arguments[1];\n    }\n\n    // Ensure the worker url and scope are valid\n    const validInput = [this._workerUrl, this._scope].reduce(\n      (isValid, currentValue) => {\n        if (typeof currentValue === 'undefined' ||\n          currentValue === null ||\n          typeof currentValue !== 'string' ||\n          currentValue.length === 0) {\n          return false;\n        }\n\n        return isValid;\n      }, true);\n\n    if (!validInput) {\n      throw new Error(ERROR_MESSAGES['bad constructor']);\n    }\n\n    // It is possible for the subscription to change in between page loads. We\n    // should re-send the existing subscription when we initialise (if there is\n    // one)\n    this._dispatchStatusUpdate();\n  }\n\n  _dispatchStatusUpdate() {\n    return Promise.all([\n      this.getSubscription(),\n      PushClient.getPermissionState()\n    ])\n    .then(results => {\n      return {\n        isSubscribed: (results[0] !== null),\n        currentSubscription: results[0],\n        permissionState: results[1].state\n      };\n    })\n    .then(status => {\n      this.dispatchEvent(new PushClientEvent('statuschange', status));\n    })\n    .catch(err => {\n      console.warn('Unable to dispatch a status event ' +\n        'getSubscription() failed.', err);\n    });\n  }\n\n  /**\n   * This method will subscribe a use for push messaging.\n   *\n   * If permission isn't granted for push, this method will show the\n   * permissions dialog before attempting to subscribe the user to push.\n   *\n   * @return {Promise<PushSubscription>} A Promise that\n   *  resolves with a PushSubscription if successful.\n   */\n  subscribe() {\n    // Check for permission\n    return this.requestPermission(false)\n    .then(permissionStatus => {\n      if (permissionStatus !== 'granted') {\n        this._dispatchStatusUpdate();\n        throw new SubscriptionFailedError(permissionStatus);\n      }\n\n      this.dispatchEvent(new PushClientEvent('requestingsubscription'));\n\n      // Make sure we have a service worker and subscribe for push\n      return navigator.serviceWorker.register(this._workerUrl, {\n        scope: this._scope\n      });\n    })\n    .then(registrationReady)\n    .then(registration => {\n      return registration.pushManager.subscribe({userVisibleOnly: true})\n        .catch(err => {\n          // This is provide a more helpful message when work with Chrome + GCM\n          if (err.message === 'Registration failed - no sender id provided') {\n            throw new SubscriptionFailedError('nogcmid');\n          } else {\n            throw err;\n          }\n        });\n    })\n    .then(subscription => {\n      this._dispatchStatusUpdate();\n\n      return subscription;\n    });\n  }\n\n  /**\n   * This method will unsubscribe the user from push on the client side.\n   *\n   * @return {Promise} A Promise that\n   *  resolves once the user is unsubscribed.\n   */\n  unsubscribe() {\n    return this.getRegistration()\n    .then(registration => {\n      if (registration) {\n        return registration.pushManager.getSubscription();\n      }\n    })\n    .then(subscription => {\n      if (subscription) {\n        return subscription.unsubscribe();\n      }\n    })\n    .then(() => {\n      this._dispatchStatusUpdate();\n    });\n  }\n\n  /**\n   * Get the registration of the service worker being used for push.\n   *\n   * @return {Promise<ServiceWorkerRegistration>} A Promise that\n   *  resolves to either a ServiceWorkerRegistration or to null if none.\n   */\n  getRegistration() {\n    return navigator.serviceWorker.getRegistration(this._scope)\n    .then(registration => {\n      if (registration && registration.scope === this._scope) {\n        return registration;\n      }\n\n      return null;\n    });\n  }\n\n  /**\n   * If the user is currently subscribed for push then the returned promise will\n   * resolve with a PushSubscription object, otherwise it will resolve to null.\n   *\n   * This will not display the permission dialog.\n   *\n   * @return {Promise<PushSubscription>} A Promise that resolves with\n   *  a PushSubscription or null.\n   */\n  getSubscription() {\n    return this.getRegistration()\n    .then(registration => {\n      if (!registration) {\n        return null;\n      }\n\n      return registration.pushManager.getSubscription();\n    });\n  }\n\n  /**\n   * Will manage requesting permission for push messages, resolving\n   * with the final permission status.\n   * @return {Promise<String>} Permission status of granted, default or denied\n   */\n  requestPermission(dispatchStatusChange = true) {\n    return PushClient.getPermissionState()\n    .then(permissionState => {\n      // Check if requesting permission will show a prompt\n      if (permissionState.state === 'prompt') {\n        this.dispatchEvent(new PushClientEvent('requestingpermission'));\n      }\n\n      return new Promise(resolve => Notification.requestPermission(resolve))\n      .then(resolvedState => {\n        if (dispatchStatusChange) {\n          this._dispatchStatusUpdate();\n        }\n        return resolvedState;\n      });\n    });\n  }\n\n  /**\n   * You can use this to decide whether to construct a new PushClient or not.\n   * @return {Boolean} Whether the current browser has everything needed\n   *  to use push messaging.\n   */\n  static supported() {\n    return SUPPORTED;\n  }\n\n  /**\n   * This method can be used to check if subscribing the user will display\n   * the permission dialog or not.\n   * @return {Promise<PermissionStatus>} PermistionStatus.state will be\n   * 'granted', 'denied' or 'prompt' to reflect the current permission state\n   */\n  static getPermissionState() {\n    return navigator.permissions.query({name: 'push', userVisibleOnly: true});\n  }\n}\n"
+  },
+  {
+    "__docId__": 12,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "SCOPE",
+    "memberof": "src/client/push-client.js",
+    "longname": "src/client/push-client.js~SCOPE",
+    "access": null,
+    "export": false,
+    "importPath": "propel-web-push/src/client/push-client.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 22,
+    "undocument": true,
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 13,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "SUPPORTED",
+    "memberof": "src/client/push-client.js",
+    "longname": "src/client/push-client.js~SUPPORTED",
+    "access": null,
+    "export": false,
+    "importPath": "propel-web-push/src/client/push-client.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 24,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "ERROR_MESSAGES",
+    "memberof": "src/client/push-client.js",
+    "longname": "src/client/push-client.js~ERROR_MESSAGES",
+    "access": null,
+    "export": false,
+    "importPath": "propel-web-push/src/client/push-client.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 15,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "registrationReady",
+    "memberof": "src/client/push-client.js",
+    "longname": "src/client/push-client.js~registrationReady",
+    "access": null,
+    "export": false,
+    "importPath": "propel-web-push/src/client/push-client.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 37,
+    "undocument": true,
+    "params": [
+      {
+        "name": "registration",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 16,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "PushClient",
+    "memberof": "src/client/push-client.js",
+    "longname": "src/client/push-client.js~PushClient",
+    "access": null,
+    "export": true,
+    "importPath": "propel-web-push/src/client/push-client.js",
+    "importStyle": "PushClient",
+    "description": "PushClient is a front end library that simplifies adding push to your\nsite.",
+    "lineNumber": 70,
+    "interface": false,
+    "extends": [
+      "src/client/event-dispatch.js~EventDispatch"
+    ]
+  },
+  {
+    "__docId__": 17,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#constructor",
+    "access": null,
+    "description": "Constructs a new PushClient.\n\nIf the current browser has a push subscription then it will be\nobtained in the constructor and a subscriptionChange event will be\ndispatched.",
+    "lineNumber": 85,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options",
+        "description": "Options object should be included if you\n want to define any of the following."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options.workerUrl",
+        "description": "Service worker URL to be\n registered that will receive push events."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options.scope",
+        "description": "The scope that the Service worker should be\n registered with."
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 18,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_workerUrl",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_workerUrl",
+    "access": null,
+    "description": null,
+    "lineNumber": 98,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 19,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_scope",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_scope",
+    "access": null,
+    "description": null,
+    "lineNumber": 99,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 20,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_workerUrl",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_workerUrl",
+    "access": null,
+    "description": null,
+    "lineNumber": 101,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_scope",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_scope",
+    "access": null,
+    "description": null,
+    "lineNumber": 102,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 22,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_workerUrl",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_workerUrl",
+    "access": null,
+    "description": null,
+    "lineNumber": 105,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_scope",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_scope",
+    "access": null,
+    "description": null,
+    "lineNumber": 106,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_dispatchStatusUpdate",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_dispatchStatusUpdate",
+    "access": null,
+    "description": null,
+    "lineNumber": 132,
+    "undocument": true,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 25,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "subscribe",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#subscribe",
+    "access": null,
+    "description": "This method will subscribe a use for push messaging.\n\nIf permission isn't granted for push, this method will show the\npermissions dialog before attempting to subscribe the user to push.",
+    "lineNumber": 162,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<PushSubscription>"
+      ],
+      "spread": false,
+      "description": "A Promise that\n resolves with a PushSubscription if successful."
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 26,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "unsubscribe",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#unsubscribe",
+    "access": null,
+    "description": "This method will unsubscribe the user from push on the client side.",
+    "lineNumber": 203,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise"
+      ],
+      "spread": false,
+      "description": "A Promise that\n resolves once the user is unsubscribed."
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 27,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "getRegistration",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#getRegistration",
+    "access": null,
+    "description": "Get the registration of the service worker being used for push.",
+    "lineNumber": 226,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<ServiceWorkerRegistration>"
+      ],
+      "spread": false,
+      "description": "A Promise that\n resolves to either a ServiceWorkerRegistration or to null if none."
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 28,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "getSubscription",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#getSubscription",
+    "access": null,
+    "description": "If the user is currently subscribed for push then the returned promise will\nresolve with a PushSubscription object, otherwise it will resolve to null.\n\nThis will not display the permission dialog.",
+    "lineNumber": 246,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<PushSubscription>"
+      ],
+      "spread": false,
+      "description": "A Promise that resolves with\n a PushSubscription or null."
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 29,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "requestPermission",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#requestPermission",
+    "access": null,
+    "description": "Will manage requesting permission for push messages, resolving\nwith the final permission status.",
+    "lineNumber": 262,
+    "params": [
+      {
+        "name": "dispatchStatusChange",
+        "optional": true,
+        "types": [
+          "boolean"
+        ],
+        "defaultRaw": true,
+        "defaultValue": "true"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<String>"
+      ],
+      "spread": false,
+      "description": "Permission status of granted, default or denied"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 30,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "supported",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient.supported",
+    "access": null,
+    "description": "You can use this to decide whether to construct a new PushClient or not.",
+    "lineNumber": 285,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Boolean"
+      ],
+      "spread": false,
+      "description": "Whether the current browser has everything needed\n to use push messaging."
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 31,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "getPermissionState",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient.getPermissionState",
+    "access": null,
+    "description": "This method can be used to check if subscribing the user will display\nthe permission dialog or not.",
+    "lineNumber": 295,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<PermissionStatus>"
+      ],
+      "spread": false,
+      "description": "PermistionStatus.state will be\n'granted', 'denied' or 'prompt' to reflect the current permission state"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 32,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/client/server-updater.js",
+    "memberof": null,
+    "longname": "src/client/server-updater.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nexport default function serverUpdater(url, data) {\n  return function(event) {\n    // We only really care about subscription changes\n    if (event.type !== 'statuschange') {\n      return;\n    }\n\n    send(url, {\n      action: event.isSubscribed ? 'subscribe' : 'unsubscribe',\n      subscription: event.currentSubscription,\n      data: data\n    });\n  };\n}\n\nfunction send(url, message) {\n  return fetch(url, {\n    method: 'post',\n    body: JSON.stringify(message),\n    headers: {\n      'Content-Type': 'application/json'\n    }\n  });\n}\n"
+  },
+  {
+    "__docId__": 33,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "serverUpdater",
+    "memberof": "src/client/server-updater.js",
+    "longname": "src/client/server-updater.js~serverUpdater",
+    "access": null,
+    "export": true,
+    "importPath": "propel-web-push/src/client/server-updater.js",
+    "importStyle": "serverUpdater",
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "params": [
+      {
+        "name": "url",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 34,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "send",
+    "memberof": "src/client/server-updater.js",
+    "longname": "src/client/server-updater.js~send",
+    "access": null,
+    "export": false,
+    "importPath": "propel-web-push/src/client/server-updater.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "params": [
+      {
+        "name": "url",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "message",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 35,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/client/subscription-failed-error.js",
+    "memberof": null,
+    "longname": "src/client/subscription-failed-error.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n\nconst MESSAGES = {\n  'not supported': 'Your browser doesn\\'t support push messaging.',\n  'blocked': 'The user denied permission to show notifications.',\n  'prompt': 'The user dismissed the notification permission dialog.',\n  'endpoint': 'No endpoint URL specified.',\n  'nogcmid': 'Please ensure you have a Web App Manifest with ' +\n    'a \"gcm_sender_id\" defined.'\n};\n\nexport default class SubscriptionFailedError extends Error {\n  constructor(type) {\n    super();\n\n    this.message = 'Subscription failed.';\n    if (MESSAGES[type]) {\n      this.message += ' ' + MESSAGES[type];\n    }\n\n    this.type = type;\n  }\n}\n"
+  },
+  {
+    "__docId__": 36,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "MESSAGES",
+    "memberof": "src/client/subscription-failed-error.js",
+    "longname": "src/client/subscription-failed-error.js~MESSAGES",
+    "access": null,
+    "export": false,
+    "importPath": "propel-web-push/src/client/subscription-failed-error.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 14,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 37,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "SubscriptionFailedError",
+    "memberof": "src/client/subscription-failed-error.js",
+    "longname": "src/client/subscription-failed-error.js~SubscriptionFailedError",
+    "access": null,
+    "export": true,
+    "importPath": "propel-web-push/src/client/subscription-failed-error.js",
+    "importStyle": "SubscriptionFailedError",
+    "description": null,
+    "lineNumber": 23,
+    "undocument": true,
+    "interface": false,
+    "extends": [
+      "Error"
+    ]
+  },
+  {
+    "__docId__": 38,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/client/subscription-failed-error.js~SubscriptionFailedError",
+    "longname": "src/client/subscription-failed-error.js~SubscriptionFailedError#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 24,
+    "undocument": true,
+    "params": [
+      {
+        "name": "type",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 39,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "message",
+    "memberof": "src/client/subscription-failed-error.js~SubscriptionFailedError",
+    "longname": "src/client/subscription-failed-error.js~SubscriptionFailedError#message",
+    "access": null,
+    "description": null,
+    "lineNumber": 27,
+    "undocument": true,
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 40,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "message",
+    "memberof": "src/client/subscription-failed-error.js~SubscriptionFailedError",
+    "longname": "src/client/subscription-failed-error.js~SubscriptionFailedError#message",
+    "access": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "type",
+    "memberof": "src/client/subscription-failed-error.js~SubscriptionFailedError",
+    "longname": "src/client/subscription-failed-error.js~SubscriptionFailedError#type",
+    "access": null,
+    "description": null,
+    "lineNumber": 32,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 42,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/propel-client.js",
+    "memberof": null,
+    "longname": "src/propel-client.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport PushClient from './client/push-client';\nimport serverUpdater from './client/server-updater';\n\nwindow.goog = window.goog || {};\nwindow.goog.propel = window.goog.propel || {\n  PropelClient: PushClient,\n  serverUpdater: serverUpdater\n};\n"
+  },
+  {
+    "__docId__": 43,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/worker/notification-handler.js",
+    "memberof": null,
+    "longname": "src/worker/notification-handler.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env serviceworker */\n/* global PushEvent */\n\n/**\n * A handler for push events that shows notifications based on the content of\n * the payload.\n *\n * The payload must be a JSON-encoded Object with a `notification` key. The\n * value of the `notification` property will be used as the NotificationOptions\n * object passed to showNotification. Additionally, the `title` property of the\n * notification object will be used as the title.\n *\n * If there is no notification data in the payload, or if there is no body or\n * title specified, then no notification will be shown.\n *\n * @param  {PushEvent} event The event that we are handling\n * @param  {Object} defaults If an option is not provided in the payload then\n *   the value of the same key in the defaults object will be used instead.\n * @return {boolean}         true if a notification was shown, false otherwise\n */\nexport default function notificationHandler(event, defaults = {}) {\n  if (!event || !(event instanceof PushEvent)) {\n    throw new Error('notificationHandler expects argument 1 to be a PushEvent');\n  }\n\n  if (!event.data) {\n    // Nothing to do, no payload\n    return false;\n  }\n\n  let data;\n\n  try {\n    data = JSON.parse(event.data);\n  } catch (e) {\n    console.log('Couldn\\'t parse notification data as JSON, ignoring');\n    return false;\n  }\n\n  if (!data.notification) {\n    // Nothing to do, the payload didn't include any notification details\n    return false;\n  }\n\n  const options = Object.assign({}, defaults, data.notification);\n\n  if (!options.title || !options.body) {\n    console.log('WARN: Notification data found, but no title or body provided');\n    return false;\n  }\n\n  event.waitUntil(self.registration.showNotification(options.title, options));\n\n  return true;\n}\n"
+  },
+  {
+    "__docId__": 44,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "notificationHandler",
+    "memberof": "src/worker/notification-handler.js",
+    "longname": "src/worker/notification-handler.js~notificationHandler",
+    "access": null,
+    "export": true,
+    "importPath": "propel-web-push/src/worker/notification-handler.js",
+    "importStyle": "notificationHandler",
+    "description": "A handler for push events that shows notifications based on the content of\nthe payload.\n\nThe payload must be a JSON-encoded Object with a `notification` key. The\nvalue of the `notification` property will be used as the NotificationOptions\nobject passed to showNotification. Additionally, the `title` property of the\nnotification object will be used as the title.\n\nIf there is no notification data in the payload, or if there is no body or\ntitle specified, then no notification will be shown.",
+    "lineNumber": 33,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "PushEvent"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "event",
+        "description": "The event that we are handling"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "defaults",
+        "description": "If an option is not provided in the payload then\n  the value of the same key in the defaults object will be used instead."
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if a notification was shown, false otherwise"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 45,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/worker.js",
+    "memberof": null,
+    "longname": "src/worker.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env serviceworker */\n\nimport notificationHandler from './worker/notification-handler';\n\nself.goog = self.goog || {};\nself.goog.propel = self.goog.propel || {};\nself.goog.propel.worker = {notificationHandler};\n"
+  },
+  {
+    "__docId__": 47,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 48,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 49,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 50,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 51,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 52,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 53,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 54,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 55,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 56,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 57,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 58,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 59,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 61,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 66,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 75,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 76,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 77,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 78,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  }
+]
