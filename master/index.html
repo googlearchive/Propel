@@ -65,7 +65,7 @@
    propelClient.addEventListener(&apos;statuschange&apos;, function(event) {
      if (event.permissionStatus === &apos;denied&apos;) {
        // Disable UI
-     } else if (event.currentSubscription){
+     } else if (event.currentSubscription) {
        // Enable UI
        // Show that user is subscribed
 
@@ -73,7 +73,7 @@
        fetch(&apos;/your-backend-api&apos;, {
          method: &apos;post&apos;,
          headers: new Headers().append(&apos;Content-Type&apos;, &apos;application/json&apos;),
-         body: JSON.stringify(currentSubscription)
+         body: JSON.stringify(event.currentSubscription)
        });
      } else {
        // Enable UI
