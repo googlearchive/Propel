@@ -227,22 +227,22 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport SubscriptionFailedError from './subscription-failed-error';\nimport PushClientEvent from './push-client-event';\nimport EventDispatch from './event-dispatch';\n\n// Set the default scope to be relative to the service worker\n// script with an addition string to prevent any unlikely collisions\n// This should allow multiple instances of push on the same scope to work\nconst SCOPE = './goog.push.scope/';\n\nconst SUPPORTED = 'serviceWorker' in navigator &&\n    'PushManager' in window &&\n    'Notification' in window &&\n    'permissions' in navigator &&\n    'showNotification' in ServiceWorkerRegistration.prototype;\n\nconst ERROR_MESSAGES = {\n  'bad constructor': 'The PushClient constructor expects either service ' +\n    'worker registration or the path to a service worker file and an ' +\n    'optional scope string.',\n  'redundant worker': 'Worker became redundant'\n};\n\nconst registrationReady = function(registration) {\n  if (registration.active) {\n    return Promise.resolve(registration);\n  }\n\n  let serviceWorker = registration.installing || registration.waiting;\n\n  return new Promise(function(resolve, reject) {\n    // Because the Promise function is called on next tick there is a\n    // small chance that the worker became active already.\n    if (serviceWorker.state === 'activated') {\n      resolve(registration);\n      return;\n    }\n\n    let stateChangeListener = function() {\n      if (serviceWorker.state === 'activated') {\n        resolve(registration);\n      } else if (serviceWorker.state === 'redundant') {\n        reject(new Error(ERROR_MESSAGES['redundant worker']));\n      } else {\n        return;\n      }\n      serviceWorker.removeEventListener('statechange', stateChangeListener);\n    };\n    serviceWorker.addEventListener('statechange', stateChangeListener);\n  });\n};\n\n/**\n * PushClient is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushClient extends EventDispatch {\n  /**\n   * Constructs a new PushClient.\n   *\n   * If the current browser has a push subscription then it will be\n   * obtained in the constructor and a subscriptionChange event will be\n   * dispatched.\n   *\n   * @param {Object} options - Options object should be included if you\n   *  want to define any of the following.\n   * @param {String} options.workerUrl - Service worker URL to be\n   *  registered that will receive push events.\n   * @param {String} options.scope - The scope that the Service worker should be\n   *  registered with.\n   */\n  constructor() {\n    super();\n\n    if (!PushClient.supported()) {\n      throw new Error('Your browser does not support the web push API');\n    }\n\n    // Initialise workerurl and scope from arguments\n    if (arguments.length === 1) {\n      if (arguments[0] instanceof ServiceWorkerRegistration) {\n        const serviceWorker = arguments[0].installing ||\n          arguments[0].waiting ||\n          arguments[0].active;\n        this._workerUrl = serviceWorker.scriptURL;\n        this._scope = arguments[0].scope;\n      } else if (typeof arguments[0] === 'string') {\n        this._workerUrl = arguments[0];\n        this._scope = SCOPE;\n      }\n    } else if (arguments.length === 2) {\n      this._workerUrl = arguments[0];\n      this._scope = arguments[1];\n    }\n\n    // Ensure the worker url and scope are valid\n    const validInput = [this._workerUrl, this._scope].reduce(\n      (isValid, currentValue) => {\n        if (typeof currentValue === 'undefined' ||\n          currentValue === null ||\n          typeof currentValue !== 'string' ||\n          currentValue.length === 0) {\n          return false;\n        }\n\n        return isValid;\n      }, true);\n\n    if (!validInput) {\n      throw new Error(ERROR_MESSAGES['bad constructor']);\n    }\n\n    // It is possible for the subscription to change in between page loads. We\n    // should re-send the existing subscription when we initialise (if there is\n    // one)\n    this._dispatchStatusUpdate();\n  }\n\n  _dispatchStatusUpdate() {\n    return Promise.all([\n      this.getSubscription(),\n      PushClient.getPermissionState()\n    ])\n    .then(results => {\n      return {\n        isSubscribed: (results[0] !== null),\n        currentSubscription: results[0],\n        permissionState: results[1].state\n      };\n    })\n    .then(status => {\n      this.dispatchEvent(new PushClientEvent('statuschange', status));\n    })\n    .catch(err => {\n      console.warn('Unable to dispatch a status event ' +\n        'getSubscription() failed.', err);\n    });\n  }\n\n  /**\n   * This method will subscribe a use for push messaging.\n   *\n   * If permission isn't granted for push, this method will show the\n   * permissions dialog before attempting to subscribe the user to push.\n   *\n   * @return {Promise<PushSubscription>} A Promise that\n   *  resolves with a PushSubscription if successful.\n   */\n  subscribe() {\n    // Check for permission\n    return this.requestPermission(false)\n    .then(permissionStatus => {\n      if (permissionStatus !== 'granted') {\n        this._dispatchStatusUpdate();\n        throw new SubscriptionFailedError(permissionStatus);\n      }\n\n      this.dispatchEvent(new PushClientEvent('requestingsubscription'));\n\n      // Make sure we have a service worker and subscribe for push\n      return navigator.serviceWorker.register(this._workerUrl, {\n        scope: this._scope\n      });\n    })\n    .then(registrationReady)\n    .then(registration => {\n      return registration.pushManager.subscribe({userVisibleOnly: true})\n        .catch(err => {\n          // This is provide a more helpful message when work with Chrome + GCM\n          if (err.message === 'Registration failed - no sender id provided') {\n            throw new SubscriptionFailedError('nogcmid');\n          } else {\n            throw err;\n          }\n        });\n    })\n    .then(subscription => {\n      this._dispatchStatusUpdate();\n\n      return subscription;\n    });\n  }\n\n  /**\n   * This method will unsubscribe the user from push on the client side.\n   *\n   * @return {Promise} A Promise that\n   *  resolves once the user is unsubscribed.\n   */\n  unsubscribe() {\n    return this.getRegistration()\n    .then(registration => {\n      if (registration) {\n        return registration.pushManager.getSubscription();\n      }\n    })\n    .then(subscription => {\n      if (subscription) {\n        return subscription.unsubscribe();\n      }\n    })\n    .then(() => {\n      this._dispatchStatusUpdate();\n    });\n  }\n\n  /**\n   * Get the registration of the service worker being used for push.\n   *\n   * @return {Promise<ServiceWorkerRegistration>} A Promise that\n   *  resolves to either a ServiceWorkerRegistration or to null if none.\n   */\n  getRegistration() {\n    return navigator.serviceWorker.getRegistration(this._scope)\n    .then(registration => {\n      if (registration && registration.scope === this._scope) {\n        return registration;\n      }\n\n      return null;\n    });\n  }\n\n  /**\n   * If the user is currently subscribed for push then the returned promise will\n   * resolve with a PushSubscription object, otherwise it will resolve to null.\n   *\n   * This will not display the permission dialog.\n   *\n   * @return {Promise<PushSubscription>} A Promise that resolves with\n   *  a PushSubscription or null.\n   */\n  getSubscription() {\n    return this.getRegistration()\n    .then(registration => {\n      if (!registration) {\n        return null;\n      }\n\n      return registration.pushManager.getSubscription();\n    });\n  }\n\n  /**\n   * Will manage requesting permission for push messages, resolving\n   * with the final permission status.\n   * @return {Promise<String>} Permission status of granted, default or denied\n   */\n  requestPermission(dispatchStatusChange = true) {\n    return PushClient.getPermissionState()\n    .then(permissionState => {\n      // Check if requesting permission will show a prompt\n      if (permissionState.state === 'prompt') {\n        this.dispatchEvent(new PushClientEvent('requestingpermission'));\n      }\n\n      return new Promise(resolve => Notification.requestPermission(resolve))\n      .then(resolvedState => {\n        if (dispatchStatusChange) {\n          this._dispatchStatusUpdate();\n        }\n        return resolvedState;\n      });\n    });\n  }\n\n  /**\n   * You can use this to decide whether to construct a new PushClient or not.\n   * @return {Boolean} Whether the current browser has everything needed\n   *  to use push messaging.\n   */\n  static supported() {\n    return SUPPORTED;\n  }\n\n  /**\n   * This method can be used to check if subscribing the user will display\n   * the permission dialog or not.\n   * @return {Promise<PermissionStatus>} PermistionStatus.state will be\n   * 'granted', 'denied' or 'prompt' to reflect the current permission state\n   */\n  static getPermissionState() {\n    return navigator.permissions.query({name: 'push', userVisibleOnly: true});\n  }\n}\n"
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport SubscriptionFailedError from './subscription-failed-error';\nimport PushClientEvent from './push-client-event';\nimport EventDispatch from './event-dispatch';\n\nconst DEFAULT_SCOPE = './';\n\nconst SUPPORTED = 'serviceWorker' in navigator &&\n    'PushManager' in window &&\n    'Notification' in window &&\n    'permissions' in navigator &&\n    'showNotification' in ServiceWorkerRegistration.prototype;\n\nconst ERROR_MESSAGES = {\n  'bad constructor': 'The PushClient constructor expects either service ' +\n    'worker registration or the path to a service worker file and an ' +\n    'optional scope string.',\n  'redundant worker': 'Worker became redundant'\n};\n\nconst registrationReady = function(registration) {\n  if (registration.active) {\n    return Promise.resolve(registration);\n  }\n\n  let serviceWorker = registration.installing || registration.waiting;\n\n  return new Promise(function(resolve, reject) {\n    // Because the Promise function is called on next tick there is a\n    // small chance that the worker became active already.\n    if (serviceWorker.state === 'activated') {\n      resolve(registration);\n      return;\n    }\n\n    let stateChangeListener = function() {\n      if (serviceWorker.state === 'activated') {\n        resolve(registration);\n      } else if (serviceWorker.state === 'redundant') {\n        reject(new Error(ERROR_MESSAGES['redundant worker']));\n      } else {\n        return;\n      }\n      serviceWorker.removeEventListener('statechange', stateChangeListener);\n    };\n    serviceWorker.addEventListener('statechange', stateChangeListener);\n  });\n};\n\n/**\n * PushClient is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushClient extends EventDispatch {\n  /**\n   * Constructs a new PushClient.\n   *\n   * If the current browser has a push subscription then it will be\n   * obtained in the constructor and a subscriptionChange event will be\n   * dispatched.\n   *\n   * @param {Object} options - Options object should be included if you\n   *  want to define any of the following.\n   * @param {String} options.workerUrl - Service worker URL to be\n   *  registered that will receive push events.\n   * @param {String} options.scope - The scope that the Service worker should be\n   *  registered with.\n   */\n  constructor() {\n    super();\n\n    if (!PushClient.supported()) {\n      throw new Error('Your browser does not support the web push API');\n    }\n\n    // Initialise workerurl and scope from arguments\n    if (arguments.length === 1) {\n      if (arguments[0] instanceof ServiceWorkerRegistration) {\n        const serviceWorker = arguments[0].installing ||\n          arguments[0].waiting ||\n          arguments[0].active;\n        this._workerUrl = serviceWorker.scriptURL;\n        this._scope = arguments[0].scope;\n      } else if (typeof arguments[0] === 'string') {\n        this._workerUrl = arguments[0];\n        this._scope = DEFAULT_SCOPE;\n      }\n    } else if (arguments.length === 2) {\n      this._workerUrl = arguments[0];\n      this._scope = arguments[1];\n    }\n\n    // Ensure the worker url and scope are valid\n    const validInput = [this._workerUrl, this._scope].reduce(\n      (isValid, currentValue) => {\n        if (typeof currentValue === 'undefined' ||\n          currentValue === null ||\n          typeof currentValue !== 'string' ||\n          currentValue.length === 0) {\n          return false;\n        }\n\n        return isValid;\n      }, true);\n\n    if (!validInput) {\n      throw new Error(ERROR_MESSAGES['bad constructor']);\n    }\n\n    // Turn any relative scope into an absolute one, using the page URL as the base\n    this._scope = new URL(this._scope, window.location.href).href;\n\n    // It is possible for the subscription to change in between page loads. We\n    // should re-send the existing subscription when we initialise (if there is\n    // one)\n    this._dispatchStatusUpdate();\n  }\n\n  _dispatchStatusUpdate() {\n    return Promise.all([\n      this.getSubscription(),\n      PushClient.getPermissionState()\n    ])\n    .then(results => {\n      return {\n        isSubscribed: (results[0] !== null),\n        currentSubscription: results[0],\n        permissionState: results[1].state\n      };\n    })\n    .then(status => {\n      this.dispatchEvent(new PushClientEvent('statuschange', status));\n    })\n    .catch(err => {\n      console.warn('Unable to dispatch a status event ' +\n        'getSubscription() failed.', err);\n    });\n  }\n\n  /**\n   * This method will subscribe a use for push messaging.\n   *\n   * If permission isn't granted for push, this method will show the\n   * permissions dialog before attempting to subscribe the user to push.\n   *\n   * @return {Promise<PushSubscription>} A Promise that\n   *  resolves with a PushSubscription if successful.\n   */\n  subscribe() {\n    // Check for permission\n    return this.requestPermission(false)\n    .then(permissionStatus => {\n      if (permissionStatus !== 'granted') {\n        this._dispatchStatusUpdate();\n        throw new SubscriptionFailedError(permissionStatus);\n      }\n\n      this.dispatchEvent(new PushClientEvent('requestingsubscription'));\n\n      // Make sure we have a service worker and subscribe for push\n      return navigator.serviceWorker.register(this._workerUrl, {\n        scope: this._scope\n      });\n    })\n    .then(registrationReady)\n    .then(registration => {\n      return registration.pushManager.subscribe({userVisibleOnly: true})\n        .catch(err => {\n          // This is provide a more helpful message when work with Chrome + GCM\n          if (err.message === 'Registration failed - no sender id provided') {\n            throw new SubscriptionFailedError('nogcmid');\n          } else {\n            throw err;\n          }\n        });\n    })\n    .then(subscription => {\n      this._dispatchStatusUpdate();\n\n      return subscription;\n    });\n  }\n\n  /**\n   * This method will unsubscribe the user from push on the client side.\n   *\n   * @return {Promise} A Promise that\n   *  resolves once the user is unsubscribed.\n   */\n  unsubscribe() {\n    return this.getRegistration()\n    .then(registration => {\n      if (registration) {\n        return registration.pushManager.getSubscription();\n      }\n    })\n    .then(subscription => {\n      if (subscription) {\n        return subscription.unsubscribe();\n      }\n    })\n    .then(() => {\n      this._dispatchStatusUpdate();\n    });\n  }\n\n  /**\n   * Get the registration of the service worker being used for push.\n   *\n   * @return {Promise<ServiceWorkerRegistration>} A Promise that\n   *  resolves to either a ServiceWorkerRegistration or to null if none.\n   */\n  getRegistration() {\n    return navigator.serviceWorker.getRegistration(this._scope)\n    .then(registration => {\n      if (registration && registration.scope === this._scope) {\n        return registration;\n      }\n\n      return null;\n    });\n  }\n\n  /**\n   * If the user is currently subscribed for push then the returned promise will\n   * resolve with a PushSubscription object, otherwise it will resolve to null.\n   *\n   * This will not display the permission dialog.\n   *\n   * @return {Promise<PushSubscription>} A Promise that resolves with\n   *  a PushSubscription or null.\n   */\n  getSubscription() {\n    return this.getRegistration()\n    .then(registration => {\n      if (!registration) {\n        return null;\n      }\n\n      return registration.pushManager.getSubscription();\n    });\n  }\n\n  /**\n   * Will manage requesting permission for push messages, resolving\n   * with the final permission status.\n   * @return {Promise<String>} Permission status of granted, default or denied\n   */\n  requestPermission(dispatchStatusChange = true) {\n    return PushClient.getPermissionState()\n    .then(permissionState => {\n      // Check if requesting permission will show a prompt\n      if (permissionState.state === 'prompt') {\n        this.dispatchEvent(new PushClientEvent('requestingpermission'));\n      }\n\n      return new Promise(resolve => Notification.requestPermission(resolve))\n      .then(resolvedState => {\n        if (dispatchStatusChange) {\n          this._dispatchStatusUpdate();\n        }\n        return resolvedState;\n      });\n    });\n  }\n\n  /**\n   * You can use this to decide whether to construct a new PushClient or not.\n   * @return {Boolean} Whether the current browser has everything needed\n   *  to use push messaging.\n   */\n  static supported() {\n    return SUPPORTED;\n  }\n\n  /**\n   * This method can be used to check if subscribing the user will display\n   * the permission dialog or not.\n   * @return {Promise<PermissionStatus>} PermistionStatus.state will be\n   * 'granted', 'denied' or 'prompt' to reflect the current permission state\n   */\n  static getPermissionState() {\n    return navigator.permissions.query({name: 'push', userVisibleOnly: true});\n  }\n}\n"
   },
   {
     "__docId__": 12,
     "kind": "variable",
     "static": true,
     "variation": null,
-    "name": "SCOPE",
+    "name": "DEFAULT_SCOPE",
     "memberof": "src/client/push-client.js",
-    "longname": "src/client/push-client.js~SCOPE",
+    "longname": "src/client/push-client.js~DEFAULT_SCOPE",
     "access": null,
     "export": false,
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 22,
+    "lineNumber": 19,
     "undocument": true,
     "type": {
       "types": [
@@ -263,7 +263,7 @@
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 24,
+    "lineNumber": 21,
     "undocument": true,
     "type": {
       "types": [
@@ -284,7 +284,7 @@
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 30,
+    "lineNumber": 27,
     "undocument": true,
     "type": {
       "types": [
@@ -305,7 +305,7 @@
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 37,
+    "lineNumber": 34,
     "undocument": true,
     "params": [
       {
@@ -335,7 +335,7 @@
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": "PushClient",
     "description": "PushClient is a front end library that simplifies adding push to your\nsite.",
-    "lineNumber": 70,
+    "lineNumber": 67,
     "interface": false,
     "extends": [
       "src/client/event-dispatch.js~EventDispatch"
@@ -351,7 +351,7 @@
     "longname": "src/client/push-client.js~PushClient#constructor",
     "access": null,
     "description": "Constructs a new PushClient.\n\nIf the current browser has a push subscription then it will be\nobtained in the constructor and a subscriptionChange event will be\ndispatched.",
-    "lineNumber": 85,
+    "lineNumber": 82,
     "params": [
       {
         "nullable": null,
@@ -396,7 +396,7 @@
     "longname": "src/client/push-client.js~PushClient#_workerUrl",
     "access": null,
     "description": null,
-    "lineNumber": 98,
+    "lineNumber": 95,
     "undocument": true,
     "type": {
       "types": [
@@ -414,7 +414,7 @@
     "longname": "src/client/push-client.js~PushClient#_scope",
     "access": null,
     "description": null,
-    "lineNumber": 99,
+    "lineNumber": 96,
     "undocument": true,
     "type": {
       "types": [
@@ -432,7 +432,7 @@
     "longname": "src/client/push-client.js~PushClient#_workerUrl",
     "access": null,
     "description": null,
-    "lineNumber": 101,
+    "lineNumber": 98,
     "undocument": true,
     "type": {
       "types": [
@@ -450,7 +450,7 @@
     "longname": "src/client/push-client.js~PushClient#_scope",
     "access": null,
     "description": null,
-    "lineNumber": 102,
+    "lineNumber": 99,
     "undocument": true,
     "type": {
       "types": [
@@ -468,7 +468,7 @@
     "longname": "src/client/push-client.js~PushClient#_workerUrl",
     "access": null,
     "description": null,
-    "lineNumber": 105,
+    "lineNumber": 102,
     "undocument": true,
     "type": {
       "types": [
@@ -486,7 +486,7 @@
     "longname": "src/client/push-client.js~PushClient#_scope",
     "access": null,
     "description": null,
-    "lineNumber": 106,
+    "lineNumber": 103,
     "undocument": true,
     "type": {
       "types": [
@@ -496,6 +496,24 @@
   },
   {
     "__docId__": 24,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_scope",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient#_scope",
+    "access": null,
+    "description": null,
+    "lineNumber": 124,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 25,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -515,7 +533,7 @@
     "generator": false
   },
   {
-    "__docId__": 25,
+    "__docId__": 26,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -537,7 +555,7 @@
     "generator": false
   },
   {
-    "__docId__": 26,
+    "__docId__": 27,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -559,7 +577,7 @@
     "generator": false
   },
   {
-    "__docId__": 27,
+    "__docId__": 28,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -581,7 +599,7 @@
     "generator": false
   },
   {
-    "__docId__": 28,
+    "__docId__": 29,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -603,7 +621,7 @@
     "generator": false
   },
   {
-    "__docId__": 29,
+    "__docId__": 30,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -635,7 +653,7 @@
     "generator": false
   },
   {
-    "__docId__": 30,
+    "__docId__": 31,
     "kind": "method",
     "static": true,
     "variation": null,
@@ -657,7 +675,7 @@
     "generator": false
   },
   {
-    "__docId__": 31,
+    "__docId__": 32,
     "kind": "method",
     "static": true,
     "variation": null,
@@ -679,7 +697,7 @@
     "generator": false
   },
   {
-    "__docId__": 32,
+    "__docId__": 33,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -692,7 +710,7 @@
     "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nexport default function serverUpdater(url, data) {\n  return function(event) {\n    // We only really care about subscription changes\n    if (event.type !== 'statuschange') {\n      return;\n    }\n\n    send(url, {\n      action: event.isSubscribed ? 'subscribe' : 'unsubscribe',\n      subscription: event.currentSubscription,\n      data: data\n    });\n  };\n}\n\nfunction send(url, message) {\n  return fetch(url, {\n    method: 'post',\n    body: JSON.stringify(message),\n    headers: {\n      'Content-Type': 'application/json'\n    }\n  });\n}\n"
   },
   {
-    "__docId__": 33,
+    "__docId__": 34,
     "kind": "function",
     "static": true,
     "variation": null,
@@ -728,7 +746,7 @@
     "generator": false
   },
   {
-    "__docId__": 34,
+    "__docId__": 35,
     "kind": "function",
     "static": true,
     "variation": null,
@@ -764,7 +782,7 @@
     "generator": false
   },
   {
-    "__docId__": 35,
+    "__docId__": 36,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -777,7 +795,7 @@
     "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n\nconst MESSAGES = {\n  'not supported': 'Your browser doesn\\'t support push messaging.',\n  'blocked': 'The user denied permission to show notifications.',\n  'prompt': 'The user dismissed the notification permission dialog.',\n  'endpoint': 'No endpoint URL specified.',\n  'nogcmid': 'Please ensure you have a Web App Manifest with ' +\n    'a \"gcm_sender_id\" defined.'\n};\n\nexport default class SubscriptionFailedError extends Error {\n  constructor(type) {\n    super();\n\n    this.message = 'Subscription failed.';\n    if (MESSAGES[type]) {\n      this.message += ' ' + MESSAGES[type];\n    }\n\n    this.type = type;\n  }\n}\n"
   },
   {
-    "__docId__": 36,
+    "__docId__": 37,
     "kind": "variable",
     "static": true,
     "variation": null,
@@ -798,7 +816,7 @@
     }
   },
   {
-    "__docId__": 37,
+    "__docId__": 38,
     "kind": "class",
     "static": true,
     "variation": null,
@@ -818,7 +836,7 @@
     ]
   },
   {
-    "__docId__": 38,
+    "__docId__": 39,
     "kind": "constructor",
     "static": false,
     "variation": null,
@@ -840,7 +858,7 @@
     "generator": false
   },
   {
-    "__docId__": 39,
+    "__docId__": 40,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -858,7 +876,7 @@
     }
   },
   {
-    "__docId__": 40,
+    "__docId__": 41,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -876,7 +894,7 @@
     }
   },
   {
-    "__docId__": 41,
+    "__docId__": 42,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -894,7 +912,7 @@
     }
   },
   {
-    "__docId__": 42,
+    "__docId__": 43,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -907,7 +925,7 @@
     "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport PushClient from './client/push-client';\nimport serverUpdater from './client/server-updater';\n\nwindow.goog = window.goog || {};\nwindow.goog.propel = window.goog.propel || {\n  PropelClient: PushClient,\n  serverUpdater: serverUpdater\n};\n"
   },
   {
-    "__docId__": 43,
+    "__docId__": 44,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -920,7 +938,7 @@
     "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env serviceworker */\n/* global PushEvent */\n\n/**\n * A handler for push events that shows notifications based on the content of\n * the payload.\n *\n * The payload must be a JSON-encoded Object with a `notification` key. The\n * value of the `notification` property will be used as the NotificationOptions\n * object passed to showNotification. Additionally, the `title` property of the\n * notification object will be used as the title.\n *\n * If there is no notification data in the payload, or if there is no body or\n * title specified, then no notification will be shown.\n *\n * @param  {PushEvent} event The event that we are handling\n * @param  {Object} defaults If an option is not provided in the payload then\n *   the value of the same key in the defaults object will be used instead.\n * @return {boolean}         true if a notification was shown, false otherwise\n */\nexport default function notificationHandler(event, defaults = {}) {\n  if (!event || !(event instanceof PushEvent)) {\n    throw new Error('notificationHandler expects argument 1 to be a PushEvent');\n  }\n\n  if (!event.data) {\n    // Nothing to do, no payload\n    return false;\n  }\n\n  let data;\n\n  try {\n    data = JSON.parse(event.data);\n  } catch (e) {\n    console.log('Couldn\\'t parse notification data as JSON, ignoring');\n    return false;\n  }\n\n  if (!data.notification) {\n    // Nothing to do, the payload didn't include any notification details\n    return false;\n  }\n\n  const options = Object.assign({}, defaults, data.notification);\n\n  if (!options.title || !options.body) {\n    console.log('WARN: Notification data found, but no title or body provided');\n    return false;\n  }\n\n  event.waitUntil(self.registration.showNotification(options.title, options));\n\n  return true;\n}\n"
   },
   {
-    "__docId__": 44,
+    "__docId__": 45,
     "kind": "function",
     "static": true,
     "variation": null,
@@ -966,7 +984,7 @@
     "generator": false
   },
   {
-    "__docId__": 45,
+    "__docId__": 46,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -979,7 +997,7 @@
     "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env serviceworker */\n\nimport notificationHandler from './worker/notification-handler';\n\nself.goog = self.goog || {};\nself.goog.propel = self.goog.propel || {};\nself.goog.propel.worker = {notificationHandler};\n"
   },
   {
-    "__docId__": 47,
+    "__docId__": 48,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -992,7 +1010,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 48,
+    "__docId__": 49,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1005,7 +1023,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 49,
+    "__docId__": 50,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1018,7 +1036,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 50,
+    "__docId__": 51,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1031,7 +1049,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 51,
+    "__docId__": 52,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1044,7 +1062,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 52,
+    "__docId__": 53,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1057,7 +1075,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 53,
+    "__docId__": 54,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1070,7 +1088,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 54,
+    "__docId__": 55,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1083,7 +1101,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 55,
+    "__docId__": 56,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1096,7 +1114,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 56,
+    "__docId__": 57,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1109,7 +1127,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 57,
+    "__docId__": 58,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1122,7 +1140,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 58,
+    "__docId__": 59,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1135,7 +1153,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 59,
+    "__docId__": 60,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1148,7 +1166,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 60,
+    "__docId__": 61,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1161,7 +1179,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 61,
+    "__docId__": 62,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1174,7 +1192,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 62,
+    "__docId__": 63,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1187,7 +1205,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 63,
+    "__docId__": 64,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1200,7 +1218,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 64,
+    "__docId__": 65,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1213,7 +1231,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 65,
+    "__docId__": 66,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1226,7 +1244,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 66,
+    "__docId__": 67,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1239,7 +1257,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 67,
+    "__docId__": 68,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1252,7 +1270,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 68,
+    "__docId__": 69,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1265,7 +1283,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 69,
+    "__docId__": 70,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1278,7 +1296,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 70,
+    "__docId__": 71,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1291,7 +1309,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 71,
+    "__docId__": 72,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1304,7 +1322,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 72,
+    "__docId__": 73,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1317,7 +1335,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 73,
+    "__docId__": 74,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1330,7 +1348,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 74,
+    "__docId__": 75,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1343,7 +1361,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 76,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1356,7 +1374,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 77,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1369,7 +1387,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 78,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1382,7 +1400,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 79,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1395,7 +1413,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 80,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1408,7 +1426,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 81,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1421,7 +1439,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 82,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1434,7 +1452,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 83,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1447,7 +1465,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 84,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1460,7 +1478,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 85,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1473,7 +1491,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 86,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1486,7 +1504,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 87,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1499,7 +1517,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 88,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1512,7 +1530,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 89,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1525,7 +1543,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 90,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1538,7 +1556,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 91,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1551,7 +1569,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 92,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1564,7 +1582,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 93,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1577,7 +1595,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 94,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1590,7 +1608,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 96,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1603,7 +1621,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 97,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1616,7 +1634,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 98,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1629,7 +1647,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 98,
+    "__docId__": 99,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1642,7 +1660,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 100,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1655,7 +1673,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 101,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1668,7 +1686,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 101,
+    "__docId__": 102,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1681,7 +1699,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 103,
     "kind": "external",
     "static": true,
     "variation": null,

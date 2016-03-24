@@ -61,10 +61,7 @@ import SubscriptionFailedError from &apos;./subscription-failed-error&apos;;
 import PushClientEvent from &apos;./push-client-event&apos;;
 import EventDispatch from &apos;./event-dispatch&apos;;
 
-// Set the default scope to be relative to the service worker
-// script with an addition string to prevent any unlikely collisions
-// This should allow multiple instances of push on the same scope to work
-const SCOPE = &apos;./goog.push.scope/&apos;;
+const DEFAULT_SCOPE = &apos;./&apos;;
 
 const SUPPORTED = &apos;serviceWorker&apos; in navigator &amp;&amp;
     &apos;PushManager&apos; in window &amp;&amp;
@@ -144,7 +141,7 @@ export default class PushClient extends EventDispatch {
         this._scope = arguments[0].scope;
       } else if (typeof arguments[0] === &apos;string&apos;) {
         this._workerUrl = arguments[0];
-        this._scope = SCOPE;
+        this._scope = DEFAULT_SCOPE;
       }
     } else if (arguments.length === 2) {
       this._workerUrl = arguments[0];
@@ -167,6 +164,9 @@ export default class PushClient extends EventDispatch {
     if (!validInput) {
       throw new Error(ERROR_MESSAGES[&apos;bad constructor&apos;]);
     }
+
+    // Turn any relative scope into an absolute one, using the page URL as the base
+    this._scope = new URL(this._scope, window.location.href).href;
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
