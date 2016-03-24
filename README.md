@@ -27,7 +27,7 @@ To use the Propel library do the following:
       propelClient.addEventListener('statuschange', function(event) {
         if (event.permissionStatus === 'denied') {
           // Disable UI
-        } else if (event.currentSubscription){
+        } else if (event.currentSubscription) {
           // Enable UI
           // Show that user is subscribed
 
@@ -35,7 +35,7 @@ To use the Propel library do the following:
           fetch('/your-backend-api', {
             method: 'post',
             headers: new Headers().append('Content-Type', 'application/json'),
-            body: JSON.stringify(currentSubscription)
+            body: JSON.stringify(event.currentSubscription)
           });
         } else {
           // Enable UI
