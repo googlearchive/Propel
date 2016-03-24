@@ -31,7 +31,7 @@ To use the Propel library do the following:
           fetch('/your-backend-api', {
             method: 'post',
             headers: new Headers().append('Content-Type', 'application/json'),
-            body: JSON.stringify(currentSubscription)
+            body: JSON.stringify(event.currentSubscription)
           });
         } else {
           // Enable UI
