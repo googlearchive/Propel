@@ -1,7 +1,6 @@
 # Propel
 
-[![Build Status](https://travis-ci.org/GoogleChrome/Propel.svg?branch=master)](https://travis-ci.org/GoogleChrome/Propel)
-[![devDependency Status](https://david-dm.org/GoogleChrome/Propel/dev-status.svg)](https://david-dm.org/GoogleChrome/Propel#info=devDependencies)
+[![Build Status](https://travis-ci.org/GoogleChrome/Propel.svg?branch=master)](https://travis-ci.org/GoogleChrome/Propel) [![Dependency Status](https://david-dm.org/GoogleChrome/Propel.svg)](https://david-dm.org/GoogleChrome/Propel) [![devDependency Status](https://david-dm.org/GoogleChrome/Propel/dev-status.svg)](https://david-dm.org/GoogleChrome/Propel#info=devDependencies)
 
 > A library to support developers implementing Web Push notifications
 
@@ -9,17 +8,22 @@
 
 To use the Propel library do the following:
 
-1. Build Propel with `npm install && npm install -g gulp-cli && gulp`
-1. Put the `propel-client.js` file on your server.
-2. Add `propel-client.js` to your web page.
-3. Use the `PropelClient` object in your javscript.
+1. Install Propel with `npm install --save propel-web-push`
+1. Add `propel-client.js` to your web page
+
+    ```html
+    <script src="/node_modules/propel-web-push/dist/propel-client.js"></script>
+    ```
+
+1. Use `PropelClient` in your JavaScript.
+
     ```javascript
     var PropelClient = window.goog.propel.PropelClient;
 
     // Check if push is supported by the current browsers
     if (PropelClient.supported()) {
       // Initialise Push Client
-      var propelClient = new PropelClient();
+      var propelClient = new PropelClient('/sw.js');
       propelClient.addEventListener('statuschange', function(event) {
         if (event.permissionStatus === 'denied') {
           // Disable UI
@@ -31,7 +35,7 @@ To use the Propel library do the following:
           fetch('/your-backend-api', {
             method: 'post',
             headers: new Headers().append('Content-Type', 'application/json'),
-            body: JSON.stringify(event.currentSubscription)
+            body: JSON.stringify(currentSubscription)
           });
         } else {
           // Enable UI
@@ -44,7 +48,8 @@ To use the Propel library do the following:
       propelClient.unsubscribe();
     }
     ```
-4. Check out the [docs to learn more](http://googlechrome.github.io/Propel/).
+
+1. Check out the [docs to learn more](http://googlechrome.github.io/Propel/).
 
 ## Support
 
