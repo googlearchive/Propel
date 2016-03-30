@@ -35,7 +35,7 @@ class StateStub {
     // navigator.serviceWorker.register
     const registerStub = sinon.stub(
       navigator.serviceWorker, 'register', (swurl, options) => {
-        if (this.registration) {
+        if (this.registration && options && options.scope) {
           this.registration.scope = options.scope;
         }
         return Promise.resolve(this.registration);

@@ -16,11 +16,6 @@ import SubscriptionFailedError from './subscription-failed-error';
 import PushClientEvent from './push-client-event';
 import EventDispatch from './event-dispatch';
 
-// Set the default scope to be relative to the service worker
-// script with an addition string to prevent any unlikely collisions
-// This should allow multiple instances of push on the same scope to work
-const SCOPE = './goog.push.scope/';
-
 const SUPPORTED = 'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
@@ -75,52 +70,32 @@ export default class PushClient extends EventDispatch {
    * obtained in the constructor and a subscriptionChange event will be
    * dispatched.
    *
-   * @param {Object} options - Options object should be included if you
-   *  want to define any of the following.
-   * @param {String} options.workerUrl - Service worker URL to be
+   * @param {String} workerUrlOrRegistration - Service worker URL to be
    *  registered that will receive push events.
-   * @param {String} options.scope - The scope that the Service worker should be
+   * @param {String} scope - The scope that the Service worker should be
    *  registered with.
    */
-  constructor() {
+  constructor(workerUrlOrRegistration, scope) {
     super();
 
     if (!PushClient.supported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    // Initialise workerurl and scope from arguments
-    if (arguments.length === 1) {
-      if (arguments[0] instanceof ServiceWorkerRegistration) {
-        const serviceWorker = arguments[0].installing ||
-          arguments[0].waiting ||
-          arguments[0].active;
-        this._workerUrl = serviceWorker.scriptURL;
-        this._scope = arguments[0].scope;
-      } else if (typeof arguments[0] === 'string') {
-        this._workerUrl = arguments[0];
-        this._scope = SCOPE;
+    if (workerUrlOrRegistration instanceof ServiceWorkerRegistration) {
+      this._registrationPromise = Promise.resolve(workerUrlOrRegistration);
+    } else {
+      const url = workerUrlOrRegistration;
+      if (!url || typeof url !== 'string' || url.length === 0) {
+        throw new Error(ERROR_MESSAGES['bad constructor']);
       }
-    } else if (arguments.length === 2) {
-      this._workerUrl = arguments[0];
-      this._scope = arguments[1];
-    }
 
-    // Ensure the worker url and scope are valid
-    const validInput = [this._workerUrl, this._scope].reduce(
-      (isValid, currentValue) => {
-        if (typeof currentValue === 'undefined' ||
-          currentValue === null ||
-          typeof currentValue !== 'string' ||
-          currentValue.length === 0) {
-          return false;
-        }
-
-        return isValid;
-      }, true);
-
-    if (!validInput) {
-      throw new Error(ERROR_MESSAGES['bad constructor']);
+      let options;
+      if (scope) {
+        options = {scope};
+      }
+      this._registrationPromise = navigator.serviceWorker
+        .register(workerUrlOrRegistration, options);
     }
 
     // It is possible for the subscription to change in between page loads. We
@@ -171,9 +146,7 @@ export default class PushClient extends EventDispatch {
       this.dispatchEvent(new PushClientEvent('requestingsubscription'));
 
       // Make sure we have a service worker and subscribe for push
-      return navigator.serviceWorker.register(this._workerUrl, {
-        scope: this._scope
-      });
+      return this._registrationPromise;
     })
     .then(registrationReady)
     .then(registration => {
@@ -224,14 +197,7 @@ export default class PushClient extends EventDispatch {
    *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   getRegistration() {
-    return navigator.serviceWorker.getRegistration(this._scope)
-    .then(registration => {
-      if (registration && registration.scope === this._scope) {
-        return registration;
-      }
-
-      return null;
-    });
+    return this._registrationPromise;
   }
 
   /**
