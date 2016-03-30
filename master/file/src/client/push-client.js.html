@@ -115,7 +115,7 @@ export default class PushClient extends EventDispatch {
    * obtained in the constructor and a subscriptionChange event will be
    * dispatched.
    *
-   * @param {String} workerUrl - Service worker URL to be
+   * @param {String} workerUrlOrRegistration - Service worker URL to be
    *  registered that will receive push events.
    * @param {String} scope - The scope that the Service worker should be
    *  registered with.
@@ -139,7 +139,8 @@ export default class PushClient extends EventDispatch {
       if (scope) {
         options = {scope};
       }
-      this._registration = navigator.serviceWorker.register(workerUrlOrRegistration, options);
+      this._registration = navigator.serviceWorker
+        .register(workerUrlOrRegistration, options);
     }
 
     // It is possible for the subscription to change in between page loads. We
