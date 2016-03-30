@@ -69,6 +69,13 @@ describe('Test PushClient Methods', () => {
     };
   };
 
+  const getUrlAndScope = function(client) {
+    return client.getRegistration().then(reg => {
+      const sw = reg.installing || reg.waiting || reg.active;
+      return {url: sw.scriptURL, scope: reg.scope};
+    });
+  };
+
   beforeEach(() => {
     if (stateStub) {
       stateStub.restore();
@@ -134,44 +141,21 @@ describe('Test PushClient Methods', () => {
     });
 
     it('should be able to create a new push client with just a workerUrl', () => {
-      const pushClient = new window.goog.propel.PropelClient('/sw.js');
-
-      window.chai.expect(pushClient._workerUrl).to.contain('/sw.js');
-    });
-
-    it('should throw an error for an Object as the scope in the constructor', () => {
-      window.chai.expect(() => {
-        /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.PropelClient('/sw.js', {});
-      }).to.throw(ERROR_MESSAGES['bad constructor']);
-    });
-
-    it('should throw an error for an Array as the scope in the constructor', () => {
-      window.chai.expect(() => {
-        /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.PropelClient('/sw.js', []);
-      }).to.throw(ERROR_MESSAGES['bad constructor']);
-    });
-
-    it('should throw an error for null as the scope in the constructor', () => {
       window.chai.expect(() => {
         /* eslint no-unused-vars: 0 */
         var client = new window.goog.propel.PropelClient('/sw.js', null);
-      }).to.throw(ERROR_MESSAGES['bad constructor']);
+      }).not.to.throw();
     });
 
-    it('should throw an error for an empty string as the scope in the constructor', () => {
-      window.chai.expect(() => {
-        /* eslint no-unused-vars: 0 */
-        var client = new window.goog.propel.PropelClient('/sw.js', '');
-      }).to.throw(ERROR_MESSAGES['bad constructor']);
-    });
+    it('should be able to create a new push client with a workerUrl and scope', done => {
+      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH, './push-service');
 
-    it('should be able to create a new push client with a workerUrl and scope', () => {
-      const pushClient = new window.goog.propel.PropelClient('/sw.js', './push-service');
+      getUrlAndScope(pushClient).then(result => {
+        window.chai.expect(result.url).to.contain(EMPTY_SW_PATH);
+        window.chai.expect(result.scope).to.contain('/test/browser-tests/push-service');
 
-      window.chai.expect(pushClient._workerUrl).to.contain('/sw.js');
-      window.chai.expect(pushClient._scope).to.equal('./push-service');
+        done();
+      }).catch(done);
     });
 
     it('should be able to create a new push client with a service worker registration', done => {
@@ -179,10 +163,12 @@ describe('Test PushClient Methods', () => {
       .then(registration => {
         const pushClient = new window.goog.propel.PropelClient(registration);
 
-        window.chai.expect(pushClient._workerUrl).to.contain(EMPTY_SW_PATH);
-        window.chai.expect(pushClient._scope).to.contain('/test/browser-tests/push-client/');
+        return getUrlAndScope(pushClient).then(result => {
+          window.chai.expect(result.url).to.contain(EMPTY_SW_PATH);
+          window.chai.expect(result.scope).to.contain('/test/browser-tests/push-client');
 
-        done();
+          done();
+        }).catch(done);
       })
       .catch(done);
     });
