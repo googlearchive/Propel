@@ -83,7 +83,7 @@ export default class PushClient extends EventDispatch {
     }
 
     if (workerUrlOrRegistration instanceof ServiceWorkerRegistration) {
-      this._registration = Promise.resolve(workerUrlOrRegistration);
+      this._registrationPromise = Promise.resolve(workerUrlOrRegistration);
     } else {
       const url = workerUrlOrRegistration;
       if (!url || typeof url !== 'string' || url.length === 0) {
@@ -94,7 +94,7 @@ export default class PushClient extends EventDispatch {
       if (scope) {
         options = {scope};
       }
-      this._registration = navigator.serviceWorker
+      this._registrationPromise = navigator.serviceWorker
         .register(workerUrlOrRegistration, options);
     }
 
@@ -146,7 +146,7 @@ export default class PushClient extends EventDispatch {
       this.dispatchEvent(new PushClientEvent('requestingsubscription'));
 
       // Make sure we have a service worker and subscribe for push
-      return this._registration;
+      return this._registrationPromise;
     })
     .then(registrationReady)
     .then(registration => {
@@ -197,7 +197,7 @@ export default class PushClient extends EventDispatch {
    *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   getRegistration() {
-    return this._registration;
+    return this._registrationPromise;
   }
 
   /**
