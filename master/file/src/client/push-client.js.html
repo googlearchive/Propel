@@ -61,8 +61,6 @@ import SubscriptionFailedError from &apos;./subscription-failed-error&apos;;
 import PushClientEvent from &apos;./push-client-event&apos;;
 import EventDispatch from &apos;./event-dispatch&apos;;
 
-const DEFAULT_SCOPE = &apos;./&apos;;
-
 const SUPPORTED = &apos;serviceWorker&apos; in navigator &amp;&amp;
     &apos;PushManager&apos; in window &amp;&amp;
     &apos;Notification&apos; in window &amp;&amp;
@@ -117,56 +115,32 @@ export default class PushClient extends EventDispatch {
    * obtained in the constructor and a subscriptionChange event will be
    * dispatched.
    *
-   * @param {Object} options - Options object should be included if you
-   *  want to define any of the following.
-   * @param {String} options.workerUrl - Service worker URL to be
+   * @param {String} workerUrl - Service worker URL to be
    *  registered that will receive push events.
-   * @param {String} options.scope - The scope that the Service worker should be
+   * @param {String} scope - The scope that the Service worker should be
    *  registered with.
    */
-  constructor() {
+  constructor(workerUrlOrRegistration, scope) {
     super();
 
     if (!PushClient.supported()) {
       throw new Error(&apos;Your browser does not support the web push API&apos;);
     }
 
-    // Initialise workerurl and scope from arguments
-    if (arguments.length === 1) {
-      if (arguments[0] instanceof ServiceWorkerRegistration) {
-        const serviceWorker = arguments[0].installing ||
-          arguments[0].waiting ||
-          arguments[0].active;
-        this._workerUrl = serviceWorker.scriptURL;
-        this._scope = arguments[0].scope;
-      } else if (typeof arguments[0] === &apos;string&apos;) {
-        this._workerUrl = arguments[0];
-        this._scope = DEFAULT_SCOPE;
+    if (workerUrlOrRegistration instanceof ServiceWorkerRegistration) {
+      this._registration = Promise.resolve(workerUrlOrRegistration);
+    } else {
+      const url = workerUrlOrRegistration;
+      if (!url || typeof url !== &apos;string&apos; || url.length === 0) {
+        throw new Error(ERROR_MESSAGES[&apos;bad constructor&apos;]);
       }
-    } else if (arguments.length === 2) {
-      this._workerUrl = arguments[0];
-      this._scope = arguments[1];
+
+      let options;
+      if (scope) {
+        options = {scope};
+      }
+      this._registration = navigator.serviceWorker.register(workerUrlOrRegistration, options);
     }
-
-    // Ensure the worker url and scope are valid
-    const validInput = [this._workerUrl, this._scope].reduce(
-      (isValid, currentValue) =&gt; {
-        if (typeof currentValue === &apos;undefined&apos; ||
-          currentValue === null ||
-          typeof currentValue !== &apos;string&apos; ||
-          currentValue.length === 0) {
-          return false;
-        }
-
-        return isValid;
-      }, true);
-
-    if (!validInput) {
-      throw new Error(ERROR_MESSAGES[&apos;bad constructor&apos;]);
-    }
-
-    // Turn any relative scope into an absolute one, using the page URL as the base
-    this._scope = new URL(this._scope, window.location.href).href;
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
@@ -216,9 +190,7 @@ export default class PushClient extends EventDispatch {
       this.dispatchEvent(new PushClientEvent(&apos;requestingsubscription&apos;));
 
       // Make sure we have a service worker and subscribe for push
-      return navigator.serviceWorker.register(this._workerUrl, {
-        scope: this._scope
-      });
+      return this._registration;
     })
     .then(registrationReady)
     .then(registration =&gt; {
@@ -269,14 +241,7 @@ export default class PushClient extends EventDispatch {
    *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   getRegistration() {
-    return navigator.serviceWorker.getRegistration(this._scope)
-    .then(registration =&gt; {
-      if (registration &amp;&amp; registration.scope === this._scope) {
-        return registration;
-      }
-
-      return null;
-    });
+    return this._registration;
   }
 
   /**
