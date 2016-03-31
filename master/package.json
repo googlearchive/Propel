@@ -27,7 +27,7 @@
     "require-dir": "^0.3.0",
     "rollupify": "^0.2.0",
     "run-sequence": "^1.1.5",
-    "selenium-webdriver": "^2.53.1",
+    "selenium-webdriver": "^2.52.0",
     "sinon": "^1.17.3",
     "sw-testing-helpers": "0.0.6",
     "vinyl-buffer": "^1.0.0",

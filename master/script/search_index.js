@@ -462,9 +462,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/client/push-client.js~pushclient.issupported",
-    "class/src/client/push-client.js~PushClient.html#static-method-isSupported",
-    "src/client/push-client.js~PushClient.isSupported",
+    "src/client/push-client.js~pushclient.supported",
+    "class/src/client/push-client.js~PushClient.html#static-method-supported",
+    "src/client/push-client.js~PushClient.supported",
     "method"
   ],
   [
