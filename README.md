@@ -21,7 +21,7 @@ To use the Propel library do the following:
     var PropelClient = window.goog.propel.PropelClient;
 
     // Check if push is supported by the current browsers
-    if (PropelClient.supported()) {
+    if (PropelClient.isSupported()) {
       // Initialise Push Client
       var propelClient = new PropelClient('/sw.js');
       propelClient.addEventListener('statuschange', function(event) {
