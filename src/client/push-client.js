@@ -19,7 +19,6 @@ import EventDispatch from './event-dispatch';
 const SUPPORTED = 'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
-    'permissions' in navigator &&
     'showNotification' in ServiceWorkerRegistration.prototype;
 
 const ERROR_MESSAGES = {
@@ -78,7 +77,7 @@ export default class PushClient extends EventDispatch {
   constructor(workerUrlOrRegistration, scope) {
     super();
 
-    if (!PushClient.supported()) {
+    if (!PushClient.isSupported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
@@ -113,7 +112,7 @@ export default class PushClient extends EventDispatch {
       return {
         isSubscribed: (results[0] !== null),
         currentSubscription: results[0],
-        permissionState: results[1].state
+        permissionState: results[1]
       };
     })
     .then(status => {
@@ -175,6 +174,9 @@ export default class PushClient extends EventDispatch {
    */
   unsubscribe() {
     return this.getRegistration()
+    .catch(() => {
+      return null;
+    })
     .then(registration => {
       if (registration) {
         return registration.pushManager.getSubscription();
@@ -211,6 +213,9 @@ export default class PushClient extends EventDispatch {
    */
   getSubscription() {
     return this.getRegistration()
+    .catch(() => {
+      return null;
+    })
     .then(registration => {
       if (!registration) {
         return null;
@@ -229,7 +234,7 @@ export default class PushClient extends EventDispatch {
     return PushClient.getPermissionState()
     .then(permissionState => {
       // Check if requesting permission will show a prompt
-      if (permissionState.state === 'prompt') {
+      if (permissionState === 'default') {
         this.dispatchEvent(new PushClientEvent('requestingpermission'));
       }
 
@@ -248,17 +253,19 @@ export default class PushClient extends EventDispatch {
    * @return {Boolean} Whether the current browser has everything needed
    *  to use push messaging.
    */
-  static supported() {
+  static isSupported() {
     return SUPPORTED;
   }
 
   /**
    * This method can be used to check if subscribing the user will display
    * the permission dialog or not.
-   * @return {Promise<PermissionStatus>} PermistionStatus.state will be
-   * 'granted', 'denied' or 'prompt' to reflect the current permission state
+   * @return {Promise<PermissionStatus>} PermistionStatus will be
+   * 'granted', 'denied' or 'default' to reflect the current permission state
    */
   static getPermissionState() {
-    return navigator.permissions.query({name: 'push', userVisibleOnly: true});
+    return new Promise(resolve => {
+      resolve(Notification.permission);
+    });
   }
 }

@@ -20,7 +20,7 @@
   <script src="/dist/propel-client.js"></script>
   <script>
     var PushClient = window.goog.propel.PropelClient;
-    var pushClient = new PushClient();
+    var pushClient = new PushClient('./sw.js');
     console.log('Calling pushClient.subscribe()');
     pushClient.subscribe()
     .then(function(subscription) {
