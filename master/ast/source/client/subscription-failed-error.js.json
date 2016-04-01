@@ -133,7 +133,7 @@
               {
                 "type": "Property",
                 "start": 686,
-                "end": 747,
+                "end": 748,
                 "loc": {
                   "start": {
                     "line": 16,
@@ -141,7 +141,7 @@
                   },
                   "end": {
                     "line": 16,
-                    "column": 63
+                    "column": 64
                   }
                 },
                 "method": false,
@@ -150,7 +150,7 @@
                 "key": {
                   "type": "Literal",
                   "start": 686,
-                  "end": 694,
+                  "end": 695,
                   "loc": {
                     "start": {
                       "line": 16,
@@ -158,25 +158,25 @@
                     },
                     "end": {
                       "line": 16,
-                      "column": 10
+                      "column": 11
                     }
                   },
-                  "value": "denied",
-                  "rawValue": "denied",
-                  "raw": "'denied'"
+                  "value": "blocked",
+                  "rawValue": "blocked",
+                  "raw": "'blocked'"
                 },
                 "value": {
                   "type": "Literal",
-                  "start": 696,
-                  "end": 747,
+                  "start": 697,
+                  "end": 748,
                   "loc": {
                     "start": {
                       "line": 16,
-                      "column": 12
+                      "column": 13
                     },
                     "end": {
                       "line": 16,
-                      "column": 63
+                      "column": 64
                     }
                   },
                   "value": "The user denied permission to show notifications.",
@@ -187,7 +187,7 @@
               },
               {
                 "type": "Property",
-                "start": 751,
+                "start": 752,
                 "end": 818,
                 "loc": {
                   "start": {
@@ -196,7 +196,7 @@
                   },
                   "end": {
                     "line": 17,
-                    "column": 69
+                    "column": 68
                   }
                 },
                 "method": false,
@@ -204,7 +204,7 @@
                 "computed": false,
                 "key": {
                   "type": "Literal",
-                  "start": 751,
+                  "start": 752,
                   "end": 760,
                   "loc": {
                     "start": {
@@ -213,12 +213,12 @@
                     },
                     "end": {
                       "line": 17,
-                      "column": 11
+                      "column": 10
                     }
                   },
-                  "value": "default",
-                  "rawValue": "default",
-                  "raw": "'default'"
+                  "value": "prompt",
+                  "rawValue": "prompt",
+                  "raw": "'prompt'"
                 },
                 "value": {
                   "type": "Literal",
@@ -227,11 +227,11 @@
                   "loc": {
                     "start": {
                       "line": 17,
-                      "column": 13
+                      "column": 12
                     },
                     "end": {
                       "line": 17,
-                      "column": 69
+                      "column": 68
                     }
                   },
                   "value": "The user dismissed the notification permission dialog.",
