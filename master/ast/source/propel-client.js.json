@@ -1,23 +1,68 @@
 {
   "type": "Program",
-  "start": 0,
-  "end": 863,
-  "loc": {
-    "start": {
-      "line": 1,
-      "column": 0
-    },
-    "end": {
-      "line": 23,
-      "column": 0
-    }
-  },
-  "sourceType": "module",
   "body": [
     {
       "type": "ImportDeclaration",
-      "start": 622,
-      "end": 668,
+      "specifiers": [
+        {
+          "type": "ImportDefaultSpecifier",
+          "local": {
+            "type": "Identifier",
+            "name": "PushClient",
+            "range": [
+              629,
+              639
+            ],
+            "loc": {
+              "start": {
+                "line": 15,
+                "column": 7
+              },
+              "end": {
+                "line": 15,
+                "column": 17
+              }
+            }
+          },
+          "range": [
+            629,
+            639
+          ],
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 7
+            },
+            "end": {
+              "line": 15,
+              "column": 17
+            }
+          }
+        }
+      ],
+      "source": {
+        "type": "Literal",
+        "value": "./client/push-client",
+        "raw": "'./client/push-client'",
+        "range": [
+          645,
+          667
+        ],
+        "loc": {
+          "start": {
+            "line": 15,
+            "column": 23
+          },
+          "end": {
+            "line": 15,
+            "column": 45
+          }
+        }
+      },
+      "range": [
+        622,
+        668
+      ],
       "loc": {
         "start": {
           "line": 15,
@@ -28,66 +73,14 @@
           "column": 46
         }
       },
-      "specifiers": [
-        {
-          "type": "ImportDefaultSpecifier",
-          "start": 629,
-          "end": 639,
-          "loc": {
-            "start": {
-              "line": 15,
-              "column": 7
-            },
-            "end": {
-              "line": 15,
-              "column": 17
-            }
-          },
-          "local": {
-            "type": "Identifier",
-            "start": 629,
-            "end": 639,
-            "loc": {
-              "start": {
-                "line": 15,
-                "column": 7
-              },
-              "end": {
-                "line": 15,
-                "column": 17
-              }
-            },
-            "name": "PushClient",
-            "leadingComments": null
-          },
-          "leadingComments": null
-        }
-      ],
-      "importKind": "value",
-      "source": {
-        "type": "Literal",
-        "start": 645,
-        "end": 667,
-        "loc": {
-          "start": {
-            "line": 15,
-            "column": 23
-          },
-          "end": {
-            "line": 15,
-            "column": 45
-          }
-        },
-        "value": "./client/push-client",
-        "rawValue": "./client/push-client",
-        "raw": "'./client/push-client'"
-      },
       "leadingComments": [
         {
           "type": "Block",
           "value": "\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n",
-          "start": 0,
-          "end": 595,
+          "range": [
+            0,
+            595
+          ],
           "loc": {
             "start": {
               "line": 1,
@@ -97,17 +90,15 @@
               "line": 12,
               "column": 2
             }
-          },
-          "range": [
-            0,
-            595
-          ]
+          }
         },
         {
           "type": "Block",
           "value": " eslint-env browser ",
-          "start": 596,
-          "end": 620,
+          "range": [
+            596,
+            620
+          ],
           "loc": {
             "start": {
               "line": 13,
@@ -117,47 +108,22 @@
               "line": 13,
               "column": 24
             }
-          },
-          "range": [
-            596,
-            620
-          ]
+          }
         }
       ]
     },
     {
       "type": "ImportDeclaration",
-      "start": 669,
-      "end": 721,
-      "loc": {
-        "start": {
-          "line": 16,
-          "column": 0
-        },
-        "end": {
-          "line": 16,
-          "column": 52
-        }
-      },
       "specifiers": [
         {
           "type": "ImportDefaultSpecifier",
-          "start": 676,
-          "end": 689,
-          "loc": {
-            "start": {
-              "line": 16,
-              "column": 7
-            },
-            "end": {
-              "line": 16,
-              "column": 20
-            }
-          },
           "local": {
             "type": "Identifier",
-            "start": 676,
-            "end": 689,
+            "name": "serverUpdater",
+            "range": [
+              676,
+              689
+            ],
             "loc": {
               "start": {
                 "line": 16,
@@ -167,16 +133,32 @@
                 "line": 16,
                 "column": 20
               }
+            }
+          },
+          "range": [
+            676,
+            689
+          ],
+          "loc": {
+            "start": {
+              "line": 16,
+              "column": 7
             },
-            "name": "serverUpdater"
+            "end": {
+              "line": 16,
+              "column": 20
+            }
           }
         }
       ],
-      "importKind": "value",
       "source": {
         "type": "Literal",
-        "start": 695,
-        "end": 720,
+        "value": "./client/server-updater",
+        "raw": "'./client/server-updater'",
+        "range": [
+          695,
+          720
+        ],
         "loc": {
           "start": {
             "line": 16,
@@ -186,59 +168,38 @@
             "line": 16,
             "column": 51
           }
+        }
+      },
+      "range": [
+        669,
+        721
+      ],
+      "loc": {
+        "start": {
+          "line": 16,
+          "column": 0
         },
-        "value": "./client/server-updater",
-        "rawValue": "./client/server-updater",
-        "raw": "'./client/server-updater'"
+        "end": {
+          "line": 16,
+          "column": 52
+        }
       }
     },
     {
       "type": "ExpressionStatement",
-      "start": 723,
-      "end": 755,
-      "loc": {
-        "start": {
-          "line": 18,
-          "column": 0
-        },
-        "end": {
-          "line": 18,
-          "column": 32
-        }
-      },
       "expression": {
         "type": "AssignmentExpression",
-        "start": 723,
-        "end": 754,
-        "loc": {
-          "start": {
-            "line": 18,
-            "column": 0
-          },
-          "end": {
-            "line": 18,
-            "column": 31
-          }
-        },
         "operator": "=",
         "left": {
           "type": "MemberExpression",
-          "start": 723,
-          "end": 734,
-          "loc": {
-            "start": {
-              "line": 18,
-              "column": 0
-            },
-            "end": {
-              "line": 18,
-              "column": 11
-            }
-          },
+          "computed": false,
           "object": {
             "type": "Identifier",
-            "start": 723,
-            "end": 729,
+            "name": "window",
+            "range": [
+              723,
+              729
+            ],
             "loc": {
               "start": {
                 "line": 18,
@@ -248,13 +209,15 @@
                 "line": 18,
                 "column": 6
               }
-            },
-            "name": "window"
+            }
           },
           "property": {
             "type": "Identifier",
-            "start": 730,
-            "end": 734,
+            "name": "goog",
+            "range": [
+              730,
+              734
+            ],
             "loc": {
               "start": {
                 "line": 18,
@@ -264,43 +227,36 @@
                 "line": 18,
                 "column": 11
               }
-            },
-            "name": "goog"
+            }
           },
-          "computed": false
-        },
-        "right": {
-          "type": "LogicalExpression",
-          "start": 737,
-          "end": 754,
+          "range": [
+            723,
+            734
+          ],
           "loc": {
             "start": {
               "line": 18,
-              "column": 14
+              "column": 0
             },
             "end": {
               "line": 18,
-              "column": 31
+              "column": 11
             }
-          },
+          }
+        },
+        "right": {
+          "type": "LogicalExpression",
+          "operator": "||",
           "left": {
             "type": "MemberExpression",
-            "start": 737,
-            "end": 748,
-            "loc": {
-              "start": {
-                "line": 18,
-                "column": 14
-              },
-              "end": {
-                "line": 18,
-                "column": 25
-              }
-            },
+            "computed": false,
             "object": {
               "type": "Identifier",
-              "start": 737,
-              "end": 743,
+              "name": "window",
+              "range": [
+                737,
+                743
+              ],
               "loc": {
                 "start": {
                   "line": 18,
@@ -310,13 +266,15 @@
                   "line": 18,
                   "column": 20
                 }
-              },
-              "name": "window"
+              }
             },
             "property": {
               "type": "Identifier",
-              "start": 744,
-              "end": 748,
+              "name": "goog",
+              "range": [
+                744,
+                748
+              ],
               "loc": {
                 "start": {
                   "line": 18,
@@ -326,16 +284,30 @@
                   "line": 18,
                   "column": 25
                 }
-              },
-              "name": "goog"
+              }
             },
-            "computed": false
+            "range": [
+              737,
+              748
+            ],
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 14
+              },
+              "end": {
+                "line": 18,
+                "column": 25
+              }
+            }
           },
-          "operator": "||",
           "right": {
             "type": "ObjectExpression",
-            "start": 752,
-            "end": 754,
+            "properties": [],
+            "range": [
+              752,
+              754
+            ],
             "loc": {
               "start": {
                 "line": 18,
@@ -345,73 +317,71 @@
                 "line": 18,
                 "column": 31
               }
+            }
+          },
+          "range": [
+            737,
+            754
+          ],
+          "loc": {
+            "start": {
+              "line": 18,
+              "column": 14
             },
-            "properties": []
+            "end": {
+              "line": 18,
+              "column": 31
+            }
           }
+        },
+        "range": [
+          723,
+          754
+        ],
+        "loc": {
+          "start": {
+            "line": 18,
+            "column": 0
+          },
+          "end": {
+            "line": 18,
+            "column": 31
+          }
+        }
+      },
+      "range": [
+        723,
+        755
+      ],
+      "loc": {
+        "start": {
+          "line": 18,
+          "column": 0
+        },
+        "end": {
+          "line": 18,
+          "column": 32
         }
       }
     },
     {
       "type": "ExpressionStatement",
-      "start": 756,
-      "end": 862,
-      "loc": {
-        "start": {
-          "line": 19,
-          "column": 0
-        },
-        "end": {
-          "line": 22,
-          "column": 2
-        }
-      },
       "expression": {
         "type": "AssignmentExpression",
-        "start": 756,
-        "end": 861,
-        "loc": {
-          "start": {
-            "line": 19,
-            "column": 0
-          },
-          "end": {
-            "line": 22,
-            "column": 1
-          }
-        },
         "operator": "=",
         "left": {
           "type": "MemberExpression",
-          "start": 756,
-          "end": 774,
-          "loc": {
-            "start": {
-              "line": 19,
-              "column": 0
-            },
-            "end": {
-              "line": 19,
-              "column": 18
-            }
-          },
+          "computed": false,
           "object": {
             "type": "MemberExpression",
-            "start": 756,
-            "end": 767,
-            "loc": {
-              "start": {
-                "line": 19,
-                "column": 0
-              },
-              "end": {
-                "line": 19,
-                "column": 11
-              }
-            },
+            "computed": false,
             "object": {
               "type": "Identifier",
-              "start": 756,
-              "end": 762,
+              "name": "window",
+              "range": [
+                756,
+                762
+              ],
               "loc": {
                 "start": {
                   "line": 19,
@@ -421,13 +391,15 @@
                   "line": 19,
                   "column": 6
                 }
-              },
-              "name": "window"
+              }
             },
             "property": {
               "type": "Identifier",
-              "start": 763,
-              "end": 767,
+              "name": "goog",
+              "range": [
+                763,
+                767
+              ],
               "loc": {
                 "start": {
                   "line": 19,
@@ -437,15 +409,30 @@
                   "line": 19,
                   "column": 11
                 }
-              },
-              "name": "goog"
+              }
             },
-            "computed": false
+            "range": [
+              756,
+              767
+            ],
+            "loc": {
+              "start": {
+                "line": 19,
+                "column": 0
+              },
+              "end": {
+                "line": 19,
+                "column": 11
+              }
+            }
           },
           "property": {
             "type": "Identifier",
-            "start": 768,
-            "end": 774,
+            "name": "propel",
+            "range": [
+              768,
+              774
+            ],
             "loc": {
               "start": {
                 "line": 19,
@@ -455,57 +442,39 @@
                 "line": 19,
                 "column": 18
               }
-            },
-            "name": "propel"
+            }
           },
-          "computed": false
-        },
-        "right": {
-          "type": "LogicalExpression",
-          "start": 777,
-          "end": 861,
+          "range": [
+            756,
+            774
+          ],
           "loc": {
             "start": {
               "line": 19,
-              "column": 21
+              "column": 0
             },
             "end": {
-              "line": 22,
-              "column": 1
+              "line": 19,
+              "column": 18
             }
-          },
+          }
+        },
+        "right": {
+          "type": "LogicalExpression",
+          "operator": "||",
           "left": {
             "type": "MemberExpression",
-            "start": 777,
-            "end": 795,
-            "loc": {
-              "start": {
-                "line": 19,
-                "column": 21
-              },
-              "end": {
-                "line": 19,
-                "column": 39
-              }
-            },
+            "computed": false,
             "object": {
               "type": "MemberExpression",
-              "start": 777,
-              "end": 788,
-              "loc": {
-                "start": {
-                  "line": 19,
-                  "column": 21
-                },
-                "end": {
-                  "line": 19,
-                  "column": 32
-                }
-              },
+              "computed": false,
               "object": {
                 "type": "Identifier",
-                "start": 777,
-                "end": 783,
+                "name": "window",
+                "range": [
+                  777,
+                  783
+                ],
                 "loc": {
                   "start": {
                     "line": 19,
@@ -515,13 +484,15 @@
                     "line": 19,
                     "column": 27
                   }
-                },
-                "name": "window"
+                }
               },
               "property": {
                 "type": "Identifier",
-                "start": 784,
-                "end": 788,
+                "name": "goog",
+                "range": [
+                  784,
+                  788
+                ],
                 "loc": {
                   "start": {
                     "line": 19,
@@ -531,15 +502,30 @@
                     "line": 19,
                     "column": 32
                   }
-                },
-                "name": "goog"
+                }
               },
-              "computed": false
+              "range": [
+                777,
+                788
+              ],
+              "loc": {
+                "start": {
+                  "line": 19,
+                  "column": 21
+                },
+                "end": {
+                  "line": 19,
+                  "column": 32
+                }
+              }
             },
             "property": {
               "type": "Identifier",
-              "start": 789,
-              "end": 795,
+              "name": "propel",
+              "range": [
+                789,
+                795
+              ],
               "loc": {
                 "start": {
                   "line": 19,
@@ -549,48 +535,35 @@
                   "line": 19,
                   "column": 39
                 }
-              },
-              "name": "propel"
+              }
             },
-            "computed": false
-          },
-          "operator": "||",
-          "right": {
-            "type": "ObjectExpression",
-            "start": 799,
-            "end": 861,
+            "range": [
+              777,
+              795
+            ],
             "loc": {
               "start": {
                 "line": 19,
-                "column": 43
+                "column": 21
               },
               "end": {
-                "line": 22,
-                "column": 1
+                "line": 19,
+                "column": 39
               }
-            },
+            }
+          },
+          "right": {
+            "type": "ObjectExpression",
             "properties": [
               {
                 "type": "Property",
-                "start": 803,
-                "end": 827,
-                "loc": {
-                  "start": {
-                    "line": 20,
-                    "column": 2
-                  },
-                  "end": {
-                    "line": 20,
-                    "column": 26
-                  }
-                },
-                "method": false,
-                "shorthand": false,
-                "computed": false,
                 "key": {
                   "type": "Identifier",
-                  "start": 803,
-                  "end": 815,
+                  "name": "PropelClient",
+                  "range": [
+                    803,
+                    815
+                  ],
                   "loc": {
                     "start": {
                       "line": 20,
@@ -600,13 +573,15 @@
                       "line": 20,
                       "column": 14
                     }
-                  },
-                  "name": "PropelClient"
+                  }
                 },
                 "value": {
                   "type": "Identifier",
-                  "start": 817,
-                  "end": 827,
+                  "name": "PushClient",
+                  "range": [
+                    817,
+                    827
+                  ],
                   "loc": {
                     "start": {
                       "line": 20,
@@ -616,32 +591,36 @@
                       "line": 20,
                       "column": 26
                     }
-                  },
-                  "name": "PushClient"
-                },
-                "kind": "init"
-              },
-              {
-                "type": "Property",
-                "start": 831,
-                "end": 859,
-                "loc": {
-                  "start": {
-                    "line": 21,
-                    "column": 2
-                  },
-                  "end": {
-                    "line": 21,
-                    "column": 30
                   }
                 },
+                "kind": "init",
                 "method": false,
                 "shorthand": false,
                 "computed": false,
+                "range": [
+                  803,
+                  827
+                ],
+                "loc": {
+                  "start": {
+                    "line": 20,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 20,
+                    "column": 26
+                  }
+                }
+              },
+              {
+                "type": "Property",
                 "key": {
                   "type": "Identifier",
-                  "start": 831,
-                  "end": 844,
+                  "name": "serverUpdater",
+                  "range": [
+                    831,
+                    844
+                  ],
                   "loc": {
                     "start": {
                       "line": 21,
@@ -651,13 +630,15 @@
                       "line": 21,
                       "column": 15
                     }
-                  },
-                  "name": "serverUpdater"
+                  }
                 },
                 "value": {
                   "type": "Identifier",
-                  "start": 846,
-                  "end": 859,
+                  "name": "serverUpdater",
+                  "range": [
+                    846,
+                    859
+                  ],
                   "loc": {
                     "start": {
                       "line": 21,
@@ -667,13 +648,138 @@
                       "line": 21,
                       "column": 30
                     }
-                  },
-                  "name": "serverUpdater"
+                  }
                 },
-                "kind": "init"
+                "kind": "init",
+                "method": false,
+                "shorthand": false,
+                "computed": false,
+                "range": [
+                  831,
+                  859
+                ],
+                "loc": {
+                  "start": {
+                    "line": 21,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 21,
+                    "column": 30
+                  }
+                }
               }
-            ]
+            ],
+            "range": [
+              799,
+              861
+            ],
+            "loc": {
+              "start": {
+                "line": 19,
+                "column": 43
+              },
+              "end": {
+                "line": 22,
+                "column": 1
+              }
+            }
+          },
+          "range": [
+            777,
+            861
+          ],
+          "loc": {
+            "start": {
+              "line": 19,
+              "column": 21
+            },
+            "end": {
+              "line": 22,
+              "column": 1
+            }
           }
+        },
+        "range": [
+          756,
+          861
+        ],
+        "loc": {
+          "start": {
+            "line": 19,
+            "column": 0
+          },
+          "end": {
+            "line": 22,
+            "column": 1
+          }
+        }
+      },
+      "range": [
+        756,
+        862
+      ],
+      "loc": {
+        "start": {
+          "line": 19,
+          "column": 0
+        },
+        "end": {
+          "line": 22,
+          "column": 2
+        }
+      }
+    }
+  ],
+  "sourceType": "module",
+  "range": [
+    622,
+    862
+  ],
+  "loc": {
+    "start": {
+      "line": 15,
+      "column": 0
+    },
+    "end": {
+      "line": 22,
+      "column": 2
+    }
+  },
+  "comments": [
+    {
+      "type": "Block",
+      "value": "\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n",
+      "range": [
+        0,
+        595
+      ],
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 0
+        },
+        "end": {
+          "line": 12,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": "Block",
+      "value": " eslint-env browser ",
+      "range": [
+        596,
+        620
+      ],
+      "loc": {
+        "start": {
+          "line": 13,
+          "column": 0
+        },
+        "end": {
+          "line": 13,
+          "column": 24
         }
       }
     }
