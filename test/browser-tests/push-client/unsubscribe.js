@@ -49,8 +49,9 @@ describe('Test unsubscribe()', function() {
 
   it('should unsubscribe the current subscription', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -67,8 +68,9 @@ describe('Test unsubscribe()', function() {
 
   it('should unsubscribe the current subscription and dispatch a statuschange event', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -99,7 +101,7 @@ describe('Test unsubscribe()', function() {
 
   it('should reject promise when no registration is available', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
+    stateStub.stubNotificationPermissions('default');
 
     const pushClient = new window.goog.propel.PropelClient(NON_EXISTANT_SW_PATH);
     pushClient.unsubscribe()
@@ -109,7 +111,7 @@ describe('Test unsubscribe()', function() {
 
   it('should dispatch a status event when no registration is available', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
+    stateStub.stubNotificationPermissions('default');
 
     let statuschangeCounter = 0;
 
@@ -131,8 +133,9 @@ describe('Test unsubscribe()', function() {
 
   it('should resolve promise when no subscription is available', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(null);
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     return pushClient.unsubscribe();
@@ -140,8 +143,8 @@ describe('Test unsubscribe()', function() {
 
   it('should dispatch a status event when no subscription is available', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
     let statuschangeCounter = 0;
 

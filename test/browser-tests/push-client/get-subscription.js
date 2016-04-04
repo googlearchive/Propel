@@ -49,7 +49,8 @@ describe('Test getSubscription()', function() {
 
   it('should return null when the user isn\'t subscribed', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setUpRegistration(null);
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(null);
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     return pushClient.getSubscription()
@@ -60,8 +61,9 @@ describe('Test getSubscription()', function() {
 
   it('should return a subscription when the user is subscribed', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -79,8 +81,7 @@ describe('Test getSubscription()', function() {
 
   it('should manage a failing pushManager.getSubscription() call', function(done) {
     stateStub = window.StateStub.getStub(true);
-    // Empty function will caused an error to be throw
-    stateStub.setUpRegistration();
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.getSubscription()

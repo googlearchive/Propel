@@ -48,8 +48,8 @@ describe('Test \'statuschange\' event', function() {
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: default, subscription: null)', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.addEventListener('statuschange', event => {
@@ -64,8 +64,8 @@ describe('Test \'statuschange\' event', function() {
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: blocked, subscription: null)', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.addEventListener('statuschange', event => {
@@ -80,8 +80,8 @@ describe('Test \'statuschange\' event', function() {
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: granted, subscription: null)', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.addEventListener('statuschange', event => {
@@ -96,8 +96,9 @@ describe('Test \'statuschange\' event', function() {
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: granted, subscription: {STUBBED})', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)

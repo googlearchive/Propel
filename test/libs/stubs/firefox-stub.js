@@ -38,7 +38,7 @@ class FFStateStub extends window.BaseStateStub {
       Services.perms.PROMPT_ACTION);
   }
 
-  setPermissionState(newState) {
+  stubNotificationPermissions(newState) {
     let permissionState;
     switch (newState) {
       case 'granted':
@@ -66,8 +66,12 @@ class FFStateStub extends window.BaseStateStub {
       permissionState);
   }
 
-  setUpRegistration() {
+  stubSWRegistration() {
     // NOOP - We use actual SW registration etc
+  }
+
+  stubSubscription() {
+    // NOOP - We use actual push manage subscriptions etc
   }
 }
 

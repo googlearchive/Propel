@@ -58,7 +58,7 @@ describe('Test getRegistration()', function() {
 
   it('should resolve with a registration', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setUpRegistration(null);
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     return pushClient.getRegistration()

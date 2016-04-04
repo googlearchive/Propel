@@ -26,6 +26,20 @@ describe('Test PushWorker.getNotifications()', function() {
   const swUtils = window.goog.SWHelper;
   const serviceWorkersFolder = '/test/browser-tests/push-worker/get-notifications/serviceworkers';
 
+  let stateStub;
+
+  beforeEach(function() {
+    if (stateStub) {
+      stateStub.restore();
+    }
+  });
+
+  after(function() {
+    if (stateStub) {
+      stateStub.restore();
+    }
+  });
+
   const sendMessage = (swController, testName) => {
     return new Promise(function(resolve, reject) {
       var messageChannel = new MessageChannel();
@@ -42,9 +56,7 @@ describe('Test PushWorker.getNotifications()', function() {
     });
   };
 
-  it('should pass all get notification tests', function() {
-    this.timeout(60000);
-    const loadedSW = serviceWorkersFolder + '/get-notifications.js';
+  const performTest = loadedSW => {
     return swUtils.activateSW(loadedSW)
     .then(iframe => {
       return iframe.contentWindow.navigator.serviceWorker.ready
@@ -67,12 +79,41 @@ describe('Test PushWorker.getNotifications()', function() {
             ' had ' + testResults.failed.length + ' test failures.\n';
           errorMessage += '------------------------------------------------\n';
           errorMessage += failedTests.map((failedTest, i) => {
-            return `[Failed Test ${i + 1}]\n    ${failedTest.title}\n`;
+            return `[Failed Test ${i + 1}]\n` +
+                   `    - ${failedTest.parentTitle} > ${failedTest.title}\n` +
+                   `        ${failedTest.err.message}\n`;
           }).join('\n');
           errorMessage += '------------------------------------------------\n';
           throw new Error(errorMessage);
         }
       });
     });
+  };
+
+  it('should pass all get notification tests when permission is default', function() {
+    this.timeout(60000);
+
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('default');
+
+    performTest(serviceWorkersFolder + '/default-get-notifications.js');
+  });
+
+  it('should pass all get notification tests when permission is granted', function() {
+    this.timeout(60000);
+
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('granted');
+
+    performTest(serviceWorkersFolder + '/granted-get-notifications.js');
+  });
+
+  it('should pass all get notification tests when permission is denied', function() {
+    this.timeout(60000);
+
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('denied');
+
+    performTest(serviceWorkersFolder + '/denied-get-notifications.js');
   });
 });

@@ -165,6 +165,11 @@ export default class PushClient extends EventDispatch {
       this._dispatchStatusUpdate();
 
       return subscription;
+    })
+    .catch(err => {
+      this._dispatchStatusUpdate();
+
+      throw err;
     });
   }
 

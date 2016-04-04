@@ -48,8 +48,8 @@ describe('Test subscribe()', function() {
 
   it('should return an error that the user dismissed the notification', function(done) {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.subscribe()
@@ -64,8 +64,8 @@ describe('Test subscribe()', function() {
 
   it('should dispatch a status event if the notification permission is blocked', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
     let eventCounter = 0;
 
@@ -89,8 +89,8 @@ describe('Test subscribe()', function() {
 
   it('should reject the promise with an error that the user has blocked notifications', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.subscribe()
@@ -105,8 +105,9 @@ describe('Test subscribe()', function() {
 
   it('should dispatch a status event with the subscription when the permission is granted', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     let eventCounter = 0;
 
@@ -130,8 +131,9 @@ describe('Test subscribe()', function() {
 
   it('should resolve the promise with a subscription when notifications are granted', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.subscribe()
@@ -147,8 +149,9 @@ describe('Test subscribe()', function() {
 
   it('should dispath events in order, requestingpermission, requestingsubscription and statuschange', function(done) {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(EXAMPLE_SUBSCRIPTION);
 
     let statuschangeCounter = 0;
     let eventTypes = [];
@@ -178,7 +181,7 @@ describe('Test subscribe()', function() {
       done();
     });
     pushClient.addEventListener('requestingpermission', event => {
-      stateStub.setPermissionState('granted');
+      stateStub.stubNotificationPermissions('granted');
 
       eventTypes.push(event.type);
     });
