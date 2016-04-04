@@ -3,7 +3,8 @@
   "destination": "./docs",
   "includes": ["\\.(js|es6)$"],
   "autoPrivate": true,
-  "plugins": [
-    {"name": "esdoc-es7-plugin"}
-  ]
+  "manual": {
+    "installation": ["./doc-pages/installation.md"],
+    "usage": ["./doc-pages/usage.md"]
+  }
 }
