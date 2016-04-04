@@ -10,10 +10,24 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-/* eslint-env serviceworker */
+/* eslint-env browser */
 
-import notificationHandler from './worker/notification-handler';
+/**
+ * PushWorker is a front end library that simplifies adding push to your
+ * site.
+ */
+export default class PushWorker {
+  getNotifications(tagName) {
+    if (typeof tagName !== 'undefined' && typeof tagName !== 'string') {
+      throw new Error('The optional tagName argument must be a string if set');
+    }
 
-self.goog = self.goog || {};
-self.goog.propel = self.goog.propel || {};
-self.goog.propel.worker = {notificationHandler};
+    if (tagName && tagName.length === 0) {
+      throw new Error('The optional tagName cannot be an empty String');
+    }
+
+    return self.registration.getNotifications({
+      tag: tagName
+    });
+  }
+}
