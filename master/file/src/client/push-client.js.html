@@ -150,7 +150,9 @@ export default class PushClient extends EventDispatch {
 
   _dispatchStatusUpdate() {
     return Promise.all([
-      this.getSubscription(),
+      this.getSubscription().catch(() =&gt; {
+        return null;
+      }),
       PushClient.getPermissionState()
     ])
     .then(results =&gt; {
@@ -219,9 +221,6 @@ export default class PushClient extends EventDispatch {
    */
   unsubscribe() {
     return this.getRegistration()
-    .catch(() =&gt; {
-      return null;
-    })
     .then(registration =&gt; {
       if (registration) {
         return registration.pushManager.getSubscription();
@@ -234,6 +233,12 @@ export default class PushClient extends EventDispatch {
     })
     .then(() =&gt; {
       this._dispatchStatusUpdate();
+    })
+    .catch(err =&gt; {
+      return this._dispatchStatusUpdate()
+      .then(() =&gt; {
+        throw err;
+      });
     });
   }
 
@@ -258,9 +263,6 @@ export default class PushClient extends EventDispatch {
    */
   getSubscription() {
     return this.getRegistration()
-    .catch(() =&gt; {
-      return null;
-    })
     .then(registration =&gt; {
       if (!registration) {
         return null;
