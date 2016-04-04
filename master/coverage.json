@@ -1,7 +1,7 @@
 {
-  "coverage": "43.47%",
-  "expectCount": 23,
-  "actualCount": 10,
+  "coverage": "42.3%",
+  "expectCount": 26,
+  "actualCount": 11,
   "files": {
     "src/client/event-dispatch.js": {
       "expectCount": 5,
@@ -26,6 +26,14 @@
         17,
         18,
         19
+      ]
+    },
+    "src/worker/push-worker.js": {
+      "expectCount": 3,
+      "actualCount": 1,
+      "undocumentLines": [
+        34,
+        20
       ]
     },
     "src/client/subscription-failed-error.js": {

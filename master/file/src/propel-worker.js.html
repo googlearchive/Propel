@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <base data-ice="baseUrl" href="../../../">
-  <title data-ice="title">src/client/subscription-failed-error.js | API Document</title>
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/propel-worker.js | API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -43,7 +43,7 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/client/subscription-failed-error.js</h1>
+<div class="content" data-ice="content"><h1 data-ice="title">src/propel-worker.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/*
   Copyright 2015 Google Inc. All Rights Reserved.
   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -56,28 +56,17 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+/* eslint-env serviceworker */
 
-const MESSAGES = {
-  &apos;not supported&apos;: &apos;Your browser doesn\&apos;t support push messaging.&apos;,
-  &apos;blocked&apos;: &apos;The user denied permission to show notifications.&apos;,
-  &apos;prompt&apos;: &apos;The user dismissed the notification permission dialog.&apos;,
-  &apos;endpoint&apos;: &apos;No endpoint URL specified.&apos;,
-  &apos;nogcmid&apos;: &apos;Please ensure you have a Web App Manifest with &apos; +
-    &apos;a &quot;gcm_sender_id&quot; defined.&apos;
+import PushWorker from &apos;./worker/push-worker&apos;;
+import notificationHandler from &apos;./worker/notification-handler&apos;;
+
+self.goog = self.goog || {};
+self.goog.propel = self.goog.propel || {};
+self.goog.propel.worker = {
+  helpers: new PushWorker(),
+  notificationHandler
 };
-
-export default class SubscriptionFailedError extends Error {
-  constructor(type) {
-    super();
-
-    this.message = &apos;Subscription failed.&apos;;
-    if (MESSAGES[type]) {
-      this.message += &apos; &apos; + MESSAGES[type];
-    }
-
-    this.type = type;
-  }
-}
 </code></pre>
 
 </div>

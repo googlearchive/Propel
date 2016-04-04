@@ -1,0 +1,856 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 895,
+  "loc": {
+    "start": {
+      "line": 1,
+      "column": 0
+    },
+    "end": {
+      "line": 24,
+      "column": 0
+    }
+  },
+  "sourceType": "module",
+  "body": [
+    {
+      "type": "ImportDeclaration",
+      "start": 628,
+      "end": 674,
+      "loc": {
+        "start": {
+          "line": 15,
+          "column": 0
+        },
+        "end": {
+          "line": 15,
+          "column": 46
+        }
+      },
+      "specifiers": [
+        {
+          "type": "ImportDefaultSpecifier",
+          "start": 635,
+          "end": 645,
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 7
+            },
+            "end": {
+              "line": 15,
+              "column": 17
+            }
+          },
+          "local": {
+            "type": "Identifier",
+            "start": 635,
+            "end": 645,
+            "loc": {
+              "start": {
+                "line": 15,
+                "column": 7
+              },
+              "end": {
+                "line": 15,
+                "column": 17
+              }
+            },
+            "name": "PushWorker",
+            "leadingComments": null
+          },
+          "leadingComments": null
+        }
+      ],
+      "importKind": "value",
+      "source": {
+        "type": "Literal",
+        "start": 651,
+        "end": 673,
+        "loc": {
+          "start": {
+            "line": 15,
+            "column": 23
+          },
+          "end": {
+            "line": 15,
+            "column": 45
+          }
+        },
+        "value": "./worker/push-worker",
+        "rawValue": "./worker/push-worker",
+        "raw": "'./worker/push-worker'"
+      },
+      "leadingComments": [
+        {
+          "type": "Block",
+          "value": "\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n",
+          "start": 0,
+          "end": 595,
+          "loc": {
+            "start": {
+              "line": 1,
+              "column": 0
+            },
+            "end": {
+              "line": 12,
+              "column": 2
+            }
+          },
+          "range": [
+            0,
+            595
+          ]
+        },
+        {
+          "type": "Block",
+          "value": " eslint-env serviceworker ",
+          "start": 596,
+          "end": 626,
+          "loc": {
+            "start": {
+              "line": 13,
+              "column": 0
+            },
+            "end": {
+              "line": 13,
+              "column": 30
+            }
+          },
+          "range": [
+            596,
+            626
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ImportDeclaration",
+      "start": 675,
+      "end": 739,
+      "loc": {
+        "start": {
+          "line": 16,
+          "column": 0
+        },
+        "end": {
+          "line": 16,
+          "column": 64
+        }
+      },
+      "specifiers": [
+        {
+          "type": "ImportDefaultSpecifier",
+          "start": 682,
+          "end": 701,
+          "loc": {
+            "start": {
+              "line": 16,
+              "column": 7
+            },
+            "end": {
+              "line": 16,
+              "column": 26
+            }
+          },
+          "local": {
+            "type": "Identifier",
+            "start": 682,
+            "end": 701,
+            "loc": {
+              "start": {
+                "line": 16,
+                "column": 7
+              },
+              "end": {
+                "line": 16,
+                "column": 26
+              }
+            },
+            "name": "notificationHandler"
+          }
+        }
+      ],
+      "importKind": "value",
+      "source": {
+        "type": "Literal",
+        "start": 707,
+        "end": 738,
+        "loc": {
+          "start": {
+            "line": 16,
+            "column": 32
+          },
+          "end": {
+            "line": 16,
+            "column": 63
+          }
+        },
+        "value": "./worker/notification-handler",
+        "rawValue": "./worker/notification-handler",
+        "raw": "'./worker/notification-handler'"
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 741,
+      "end": 769,
+      "loc": {
+        "start": {
+          "line": 18,
+          "column": 0
+        },
+        "end": {
+          "line": 18,
+          "column": 28
+        }
+      },
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 741,
+        "end": 768,
+        "loc": {
+          "start": {
+            "line": 18,
+            "column": 0
+          },
+          "end": {
+            "line": 18,
+            "column": 27
+          }
+        },
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "start": 741,
+          "end": 750,
+          "loc": {
+            "start": {
+              "line": 18,
+              "column": 0
+            },
+            "end": {
+              "line": 18,
+              "column": 9
+            }
+          },
+          "object": {
+            "type": "Identifier",
+            "start": 741,
+            "end": 745,
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 0
+              },
+              "end": {
+                "line": 18,
+                "column": 4
+              }
+            },
+            "name": "self"
+          },
+          "property": {
+            "type": "Identifier",
+            "start": 746,
+            "end": 750,
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 5
+              },
+              "end": {
+                "line": 18,
+                "column": 9
+              }
+            },
+            "name": "goog"
+          },
+          "computed": false
+        },
+        "right": {
+          "type": "LogicalExpression",
+          "start": 753,
+          "end": 768,
+          "loc": {
+            "start": {
+              "line": 18,
+              "column": 12
+            },
+            "end": {
+              "line": 18,
+              "column": 27
+            }
+          },
+          "left": {
+            "type": "MemberExpression",
+            "start": 753,
+            "end": 762,
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 12
+              },
+              "end": {
+                "line": 18,
+                "column": 21
+              }
+            },
+            "object": {
+              "type": "Identifier",
+              "start": 753,
+              "end": 757,
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 12
+                },
+                "end": {
+                  "line": 18,
+                  "column": 16
+                }
+              },
+              "name": "self"
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 758,
+              "end": 762,
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 17
+                },
+                "end": {
+                  "line": 18,
+                  "column": 21
+                }
+              },
+              "name": "goog"
+            },
+            "computed": false
+          },
+          "operator": "||",
+          "right": {
+            "type": "ObjectExpression",
+            "start": 766,
+            "end": 768,
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 25
+              },
+              "end": {
+                "line": 18,
+                "column": 27
+              }
+            },
+            "properties": []
+          }
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 770,
+      "end": 812,
+      "loc": {
+        "start": {
+          "line": 19,
+          "column": 0
+        },
+        "end": {
+          "line": 19,
+          "column": 42
+        }
+      },
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 770,
+        "end": 811,
+        "loc": {
+          "start": {
+            "line": 19,
+            "column": 0
+          },
+          "end": {
+            "line": 19,
+            "column": 41
+          }
+        },
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "start": 770,
+          "end": 786,
+          "loc": {
+            "start": {
+              "line": 19,
+              "column": 0
+            },
+            "end": {
+              "line": 19,
+              "column": 16
+            }
+          },
+          "object": {
+            "type": "MemberExpression",
+            "start": 770,
+            "end": 779,
+            "loc": {
+              "start": {
+                "line": 19,
+                "column": 0
+              },
+              "end": {
+                "line": 19,
+                "column": 9
+              }
+            },
+            "object": {
+              "type": "Identifier",
+              "start": 770,
+              "end": 774,
+              "loc": {
+                "start": {
+                  "line": 19,
+                  "column": 0
+                },
+                "end": {
+                  "line": 19,
+                  "column": 4
+                }
+              },
+              "name": "self"
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 775,
+              "end": 779,
+              "loc": {
+                "start": {
+                  "line": 19,
+                  "column": 5
+                },
+                "end": {
+                  "line": 19,
+                  "column": 9
+                }
+              },
+              "name": "goog"
+            },
+            "computed": false
+          },
+          "property": {
+            "type": "Identifier",
+            "start": 780,
+            "end": 786,
+            "loc": {
+              "start": {
+                "line": 19,
+                "column": 10
+              },
+              "end": {
+                "line": 19,
+                "column": 16
+              }
+            },
+            "name": "propel"
+          },
+          "computed": false
+        },
+        "right": {
+          "type": "LogicalExpression",
+          "start": 789,
+          "end": 811,
+          "loc": {
+            "start": {
+              "line": 19,
+              "column": 19
+            },
+            "end": {
+              "line": 19,
+              "column": 41
+            }
+          },
+          "left": {
+            "type": "MemberExpression",
+            "start": 789,
+            "end": 805,
+            "loc": {
+              "start": {
+                "line": 19,
+                "column": 19
+              },
+              "end": {
+                "line": 19,
+                "column": 35
+              }
+            },
+            "object": {
+              "type": "MemberExpression",
+              "start": 789,
+              "end": 798,
+              "loc": {
+                "start": {
+                  "line": 19,
+                  "column": 19
+                },
+                "end": {
+                  "line": 19,
+                  "column": 28
+                }
+              },
+              "object": {
+                "type": "Identifier",
+                "start": 789,
+                "end": 793,
+                "loc": {
+                  "start": {
+                    "line": 19,
+                    "column": 19
+                  },
+                  "end": {
+                    "line": 19,
+                    "column": 23
+                  }
+                },
+                "name": "self"
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 794,
+                "end": 798,
+                "loc": {
+                  "start": {
+                    "line": 19,
+                    "column": 24
+                  },
+                  "end": {
+                    "line": 19,
+                    "column": 28
+                  }
+                },
+                "name": "goog"
+              },
+              "computed": false
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 799,
+              "end": 805,
+              "loc": {
+                "start": {
+                  "line": 19,
+                  "column": 29
+                },
+                "end": {
+                  "line": 19,
+                  "column": 35
+                }
+              },
+              "name": "propel"
+            },
+            "computed": false
+          },
+          "operator": "||",
+          "right": {
+            "type": "ObjectExpression",
+            "start": 809,
+            "end": 811,
+            "loc": {
+              "start": {
+                "line": 19,
+                "column": 39
+              },
+              "end": {
+                "line": 19,
+                "column": 41
+              }
+            },
+            "properties": []
+          }
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 813,
+      "end": 894,
+      "loc": {
+        "start": {
+          "line": 20,
+          "column": 0
+        },
+        "end": {
+          "line": 23,
+          "column": 2
+        }
+      },
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 813,
+        "end": 893,
+        "loc": {
+          "start": {
+            "line": 20,
+            "column": 0
+          },
+          "end": {
+            "line": 23,
+            "column": 1
+          }
+        },
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "start": 813,
+          "end": 836,
+          "loc": {
+            "start": {
+              "line": 20,
+              "column": 0
+            },
+            "end": {
+              "line": 20,
+              "column": 23
+            }
+          },
+          "object": {
+            "type": "MemberExpression",
+            "start": 813,
+            "end": 829,
+            "loc": {
+              "start": {
+                "line": 20,
+                "column": 0
+              },
+              "end": {
+                "line": 20,
+                "column": 16
+              }
+            },
+            "object": {
+              "type": "MemberExpression",
+              "start": 813,
+              "end": 822,
+              "loc": {
+                "start": {
+                  "line": 20,
+                  "column": 0
+                },
+                "end": {
+                  "line": 20,
+                  "column": 9
+                }
+              },
+              "object": {
+                "type": "Identifier",
+                "start": 813,
+                "end": 817,
+                "loc": {
+                  "start": {
+                    "line": 20,
+                    "column": 0
+                  },
+                  "end": {
+                    "line": 20,
+                    "column": 4
+                  }
+                },
+                "name": "self"
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 818,
+                "end": 822,
+                "loc": {
+                  "start": {
+                    "line": 20,
+                    "column": 5
+                  },
+                  "end": {
+                    "line": 20,
+                    "column": 9
+                  }
+                },
+                "name": "goog"
+              },
+              "computed": false
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 823,
+              "end": 829,
+              "loc": {
+                "start": {
+                  "line": 20,
+                  "column": 10
+                },
+                "end": {
+                  "line": 20,
+                  "column": 16
+                }
+              },
+              "name": "propel"
+            },
+            "computed": false
+          },
+          "property": {
+            "type": "Identifier",
+            "start": 830,
+            "end": 836,
+            "loc": {
+              "start": {
+                "line": 20,
+                "column": 17
+              },
+              "end": {
+                "line": 20,
+                "column": 23
+              }
+            },
+            "name": "worker"
+          },
+          "computed": false
+        },
+        "right": {
+          "type": "ObjectExpression",
+          "start": 839,
+          "end": 893,
+          "loc": {
+            "start": {
+              "line": 20,
+              "column": 26
+            },
+            "end": {
+              "line": 23,
+              "column": 1
+            }
+          },
+          "properties": [
+            {
+              "type": "Property",
+              "start": 843,
+              "end": 868,
+              "loc": {
+                "start": {
+                  "line": 21,
+                  "column": 2
+                },
+                "end": {
+                  "line": 21,
+                  "column": 27
+                }
+              },
+              "method": false,
+              "shorthand": false,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 843,
+                "end": 850,
+                "loc": {
+                  "start": {
+                    "line": 21,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 21,
+                    "column": 9
+                  }
+                },
+                "name": "helpers"
+              },
+              "value": {
+                "type": "NewExpression",
+                "start": 852,
+                "end": 868,
+                "loc": {
+                  "start": {
+                    "line": 21,
+                    "column": 11
+                  },
+                  "end": {
+                    "line": 21,
+                    "column": 27
+                  }
+                },
+                "callee": {
+                  "type": "Identifier",
+                  "start": 856,
+                  "end": 866,
+                  "loc": {
+                    "start": {
+                      "line": 21,
+                      "column": 15
+                    },
+                    "end": {
+                      "line": 21,
+                      "column": 25
+                    }
+                  },
+                  "name": "PushWorker"
+                },
+                "arguments": []
+              },
+              "kind": "init"
+            },
+            {
+              "type": "Property",
+              "start": 872,
+              "end": 891,
+              "loc": {
+                "start": {
+                  "line": 22,
+                  "column": 2
+                },
+                "end": {
+                  "line": 22,
+                  "column": 21
+                }
+              },
+              "method": false,
+              "shorthand": true,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 872,
+                "end": 891,
+                "loc": {
+                  "start": {
+                    "line": 22,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 22,
+                    "column": 21
+                  }
+                },
+                "name": "notificationHandler"
+              },
+              "kind": "init",
+              "value": {
+                "type": "Identifier",
+                "start": 872,
+                "end": 891,
+                "loc": {
+                  "start": {
+                    "line": 22,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 22,
+                    "column": 21
+                  }
+                },
+                "name": "notificationHandler"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

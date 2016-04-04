@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../../">
-  <title data-ice="title">SubscriptionFailedError | API Document</title>
+  <title data-ice="title">PushWorker | API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -44,23 +44,23 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import SubscriptionFailedError from &apos;<span><a href="file/src/client/subscription-failed-error.js.html#lineNumber23">propel-web-push/src/client/subscription-failed-error.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import PushWorker from &apos;<span><a href="file/src/worker/push-worker.js.html#lineNumber19">propel-web-push/src/worker/push-worker.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/client/subscription-failed-error.js.html#lineNumber23">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/worker/push-worker.js.html#lineNumber19">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
-  <h1 data-ice="name">SubscriptionFailedError</h1>
+  <h1 data-ice="name">PushWorker</h1>
 
   
 
   
   
-  <div class="flat-list" data-ice="extendsChain"><h4>Extends:</h4><div><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a></span> &#x2192; SubscriptionFailedError</div></div>
+  
   
   
   
@@ -70,7 +70,9 @@
 
   
   
-  
+  <div class="description" data-ice="description"><p>PushWorker is a front end library that simplifies adding push to your
+site.</p>
+</div>
 
   
 
@@ -83,8 +85,10 @@
 
 
 
-<div data-ice="constructorSummary"><h2>Constructor Summary</h2><table class="summary" data-ice="summary">
-  <thead><tr><td data-ice="title" colspan="3">Public Constructor</td></tr></thead>
+
+
+<div data-ice="methodSummary"><h2>Method Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Methods</td></tr></thead>
   <tbody>
   
   <tr data-ice="target">
@@ -98,39 +102,7 @@
     <td>
       <div>
         <p>
-           <span data-ice="name"><span><a href="class/src/client/subscription-failed-error.js~SubscriptionFailedError.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(type: <span>*</span>)</span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-</tbody>
-</table>
-</div>
-<div data-ice="memberSummary"><h2>Member Summary</h2><table class="summary" data-ice="summary">
-  <thead><tr><td data-ice="title" colspan="3">Public Members</td></tr></thead>
-  <tbody>
-  
-  <tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-           <span data-ice="name"><span><a href="class/src/client/subscription-failed-error.js~SubscriptionFailedError.html#instance-member-message">message</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></span>
+           <span data-ice="name"><span><a href="class/src/worker/push-worker.js~PushWorker.html#instance-method-closeNotifications">closeNotifications</a></span></span><span data-ice="signature">(tagName: <span>*</span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -155,7 +127,7 @@
     <td>
       <div>
         <p>
-           <span data-ice="name"><span><a href="class/src/client/subscription-failed-error.js~SubscriptionFailedError.html#instance-member-type">type</a></span></span><span data-ice="signature">: <span>*</span></span>
+           <span data-ice="name"><span><a href="class/src/worker/push-worker.js~PushWorker.html#instance-method-getNotifications">getNotifications</a></span></span><span data-ice="signature">(tagName: <span>*</span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -178,20 +150,21 @@
 
 
 
-<div data-ice="constructorDetails"><h2 data-ice="title">Public Constructors</h2>
+
+<div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-constructor-constructor">
+  <h3 data-ice="anchor" id="instance-method-closeNotifications">
     <span class="access" data-ice="access">public</span>
     
     
     
     
-    <span data-ice="name">constructor</span><span data-ice="signature">(type: <span>*</span>)</span>
+    <span data-ice="name">closeNotifications</span><span data-ice="signature">(tagName: <span>*</span>): <span>*</span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/subscription-failed-error.js.html#lineNumber24">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/worker/push-worker.js.html#lineNumber34">source</a></span></span>
     </span>
   </h3>
 
@@ -211,7 +184,7 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">type</td>
+      <td data-ice="name" data-depth="0">tagName</td>
       <td data-ice="type"><span>*</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
@@ -221,50 +194,17 @@
 </div>
 </div>
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tr>
+        <td class="return-type" data-ice="returnType"><span>*</span></td>
+        
+      </tr>
+    </table>
+    <div data-ice="returnProperties">
 </div>
-</div>
-<div data-ice="memberDetails"><h2 data-ice="title">Public Members</h2>
-
-<div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-member-message">
-    <span class="access" data-ice="access">public</span>
-    
-    
-    
-    
-    <span data-ice="name">message</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></span>
-    <span class="right-info">
-      
-      
-      <span data-ice="source"><span><a href="file/src/client/subscription-failed-error.js.html#lineNumber27">source</a></span></span>
-    </span>
-  </h3>
-
-  
-  
-  
-  
-
-  
-
-  <div data-ice="properties">
-</div>
-
-  
+  </div>
 
   
 
@@ -280,17 +220,17 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-member-type">
+  <h3 data-ice="anchor" id="instance-method-getNotifications">
     <span class="access" data-ice="access">public</span>
     
     
     
     
-    <span data-ice="name">type</span><span data-ice="signature">: <span>*</span></span>
+    <span data-ice="name">getNotifications</span><span data-ice="signature">(tagName: <span>*</span>): <span>*</span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/subscription-failed-error.js.html#lineNumber32">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/worker/push-worker.js.html#lineNumber20">source</a></span></span>
     </span>
   </h3>
 
@@ -301,10 +241,36 @@
 
   
 
-  <div data-ice="properties">
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">tagName</td>
+      <td data-ice="type"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
 </div>
 
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tr>
+        <td class="return-type" data-ice="returnType"><span>*</span></td>
+        
+      </tr>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
 
   
 
@@ -320,7 +286,6 @@
   
 </div>
 </div>
-
 </div>
 
 <footer class="footer">
