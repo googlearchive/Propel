@@ -37,8 +37,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html">PushClient</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/client/subscription-failed-error.js~SubscriptionFailedError.html">SubscriptionFailedError</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-serverUpdater">serverUpdater</a></span></span></li>
-<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">worker</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/worker/push-worker.js~PushWorker.html">PushWorker</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-notificationHandler">notificationHandler</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">worker</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-notificationHandler">notificationHandler</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -65,7 +64,6 @@ import EventDispatch from &apos;./event-dispatch&apos;;
 const SUPPORTED = &apos;serviceWorker&apos; in navigator &amp;&amp;
     &apos;PushManager&apos; in window &amp;&amp;
     &apos;Notification&apos; in window &amp;&amp;
-    &apos;permissions&apos; in navigator &amp;&amp;
     &apos;showNotification&apos; in ServiceWorkerRegistration.prototype;
 
 const ERROR_MESSAGES = {
@@ -124,7 +122,7 @@ export default class PushClient extends EventDispatch {
   constructor(workerUrlOrRegistration, scope) {
     super();
 
-    if (!PushClient.supported()) {
+    if (!PushClient.isSupported()) {
       throw new Error(&apos;Your browser does not support the web push API&apos;);
     }
 
@@ -152,14 +150,16 @@ export default class PushClient extends EventDispatch {
 
   _dispatchStatusUpdate() {
     return Promise.all([
-      this.getSubscription(),
+      this.getSubscription().catch(() =&gt; {
+        return null;
+      }),
       PushClient.getPermissionState()
     ])
     .then(results =&gt; {
       return {
         isSubscribed: (results[0] !== null),
         currentSubscription: results[0],
-        permissionState: results[1].state
+        permissionState: results[1]
       };
     })
     .then(status =&gt; {
@@ -233,6 +233,12 @@ export default class PushClient extends EventDispatch {
     })
     .then(() =&gt; {
       this._dispatchStatusUpdate();
+    })
+    .catch(err =&gt; {
+      return this._dispatchStatusUpdate()
+      .then(() =&gt; {
+        throw err;
+      });
     });
   }
 
@@ -269,17 +275,13 @@ export default class PushClient extends EventDispatch {
   /**
    * Will manage requesting permission for push messages, resolving
    * with the final permission status.
-   * @param {Boolean} dispatchStatusChange - This is optional. The default
-   *     value for this is true. It means that once the permission dialog
-   *     has been interacted with by the user, a &apos;statuschange&apos; event will
-   *     be triggered.
    * @return {Promise&lt;String&gt;} Permission status of granted, default or denied
    */
   requestPermission(dispatchStatusChange = true) {
     return PushClient.getPermissionState()
     .then(permissionState =&gt; {
       // Check if requesting permission will show a prompt
-      if (permissionState.state === &apos;prompt&apos;) {
+      if (permissionState === &apos;default&apos;) {
         this.dispatchEvent(new PushClientEvent(&apos;requestingpermission&apos;));
       }
 
@@ -298,18 +300,20 @@ export default class PushClient extends EventDispatch {
    * @return {Boolean} Whether the current browser has everything needed
    *  to use push messaging.
    */
-  static supported() {
+  static isSupported() {
     return SUPPORTED;
   }
 
   /**
    * This method can be used to check if subscribing the user will display
    * the permission dialog or not.
-   * @return {Promise&lt;PermissionStatus&gt;} PermistionStatus.state will be
-   * &apos;granted&apos;, &apos;denied&apos; or &apos;prompt&apos; to reflect the current permission state
+   * @return {Promise&lt;PermissionStatus&gt;} PermistionStatus will be
+   * &apos;granted&apos;, &apos;denied&apos; or &apos;default&apos; to reflect the current permission state
    */
   static getPermissionState() {
-    return navigator.permissions.query({name: &apos;push&apos;, userVisibleOnly: true});
+    return new Promise(resolve =&gt; {
+      resolve(Notification.permission);
+    });
   }
 }
 </code></pre>
