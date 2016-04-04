@@ -28,6 +28,7 @@ const swTestingHelpers = require('sw-testing-helpers');
 const testServer = swTestingHelpers.testServer;
 const automatedBrowserTesting = swTestingHelpers.automatedBrowserTesting;
 const seleniumFirefox = require('selenium-webdriver/firefox');
+const sauceConnectLauncher = require('sauce-connect-launcher');
 
 describe('Test Propel', function() {
   // Browser tests can be slow
@@ -108,5 +109,27 @@ describe('Test Propel', function() {
   const automatedBrowsers = automatedBrowserTesting.getAutomatedBrowsers();
   automatedBrowsers.forEach(browserInfo => {
     queueUnitTest(browserInfo);
+  });
+
+  describe('SauceLab Browser Tests', function() {
+    it('should pass all tests on Desktop Safari', function(done) {
+      console.log('Testing Safari');
+      sauceConnectLauncher({
+        username: 'gauntface',
+        accessKey: '0e2902d8-a72e-45cc-8746-74466cadc3d1'
+      }, (err, sauceConnectProcess) => {
+        if (err) {
+          done(new Error('Unable to connect to saucelabs: ' + err.message));
+          return;
+        }
+
+        console.log('Sauce Connect ready');
+
+        sauceConnectProcess.close(function() {
+          console.log('Closed Sauce Connect process');
+          done();
+        });
+      });
+    });
   });
 });
