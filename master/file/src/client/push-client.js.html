@@ -275,6 +275,10 @@ export default class PushClient extends EventDispatch {
   /**
    * Will manage requesting permission for push messages, resolving
    * with the final permission status.
+   * @param {Boolean} dispatchStatusChange - Optional parameter with a
+   * default value of true. If true, a `statuschange` event will be
+   * dispatched once the permission state has resolved (i.e. use interacted
+   * with the permission dialog).
    * @return {Promise&lt;String&gt;} Permission status of granted, default or denied
    */
   requestPermission(dispatchStatusChange = true) {
