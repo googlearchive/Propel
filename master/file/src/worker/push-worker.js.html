@@ -76,23 +76,6 @@ export default class PushWorker {
       tag: tagName
     });
   }
-
-  closeNotifications(tagName) {
-    if (typeof tagName !== &apos;undefined&apos; || typeof tagName !== &apos;string&apos;) {
-      throw new Error(&apos;The optional tagName argument must be a string if set&apos;);
-    }
-
-    if (tagName &amp;&amp; tagName.length === 0) {
-      throw new Error(&apos;The optional tagName cannot be an empty String&apos;);
-    }
-
-    return this.getNotifications(tagName)
-    .then(notifications =&gt; {
-      notifications.forEach(notification =&gt; {
-        notification.close();
-      });
-    });
-  }
 }
 </code></pre>
 
