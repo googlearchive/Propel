@@ -33,18 +33,29 @@
   <script src="/node_modules/chai/chai.js"></script>
   <script src="/node_modules/mocha/mocha.js"></script>
   <script src="/node_modules/sinon/pkg/sinon.js"></script>
+  <script src="/node_modules/sw-testing-helpers/src/in-browser-helpers/sw-utils.js"></script>
 
-  <!-- Helper functions will be under window.testHelper -->
-  <script src="/test/libs/helper-functions.js"></script>
-  <script src="/test/libs/state-stub.js"></script>
+  <script src="/test/libs/is-supported.js"></script>
+  <script src="/test/libs/stubs/base-stub.js"></script>
+  <script src="/test/libs/stubs/firefox-stub.js"></script>
+  <script src="/test/libs/stubs/full-stub.js"></script>
+  <script src="/test/libs/state-stub-singleton.js"></script>
 
   <script>mocha.setup({
     ui: 'bdd'
   })</script>
 
   <!-- In browser test scripts should be added to the page here-->
-  <script src="/test/browser-tests/push-client/push-client-lib.js"></script>
-  <script src="/test/browser-tests/push-client/push-client-methods.js"></script>
+  <script src="/test/browser-tests/push-client/lib-usage.js"></script>
+  <script src="/test/browser-tests/push-client/is-supported.js"></script>
+  <script src="/test/browser-tests/push-client/constructor.js"></script>
+  <script src="/test/browser-tests/push-client/get-registration.js"></script>
+  <script src="/test/browser-tests/push-client/get-permission-state.js"></script>
+  <script src="/test/browser-tests/push-client/get-subscription.js"></script>
+  <script src="/test/browser-tests/push-client/status-change-event.js"></script>
+  <script src="/test/browser-tests/push-client/request-permission.js"></script>
+  <script src="/test/browser-tests/push-client/subscribe.js"></script>
+  <script src="/test/browser-tests/push-client/unsubscribe.js"></script>
 
   <script>
     (function() {
@@ -83,16 +94,18 @@
       // We unregister all service workers, clear all caches and remove
       // All registered iframes
       beforeEach(function() {
-        return testHelper.cleanState();
+        return window.goog.SWHelper.cleanState();
       });
 
       // Clean up after the final test has finished
       after(function() {
-        return testHelper.cleanState();
+        return window.goog.SWHelper.cleanState();
       });
 
       mocha.checkLeaks();
-      mocha.globals(['goog']);
+      // Services is a global that is set if we use Firefox's API to disable
+      // permission prompts
+      mocha.globals(['goog', 'Services']);
       var runResults = mocha.run();
       // pass, fail and end events allow up to capture results and
       // determine when to publish test results

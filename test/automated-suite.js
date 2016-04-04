@@ -27,6 +27,7 @@ const path = require('path');
 const swTestingHelpers = require('sw-testing-helpers');
 const testServer = swTestingHelpers.testServer;
 const automatedBrowserTesting = swTestingHelpers.automatedBrowserTesting;
+const seleniumFirefox = require('selenium-webdriver/firefox');
 
 describe('Test Propel', function() {
   // Browser tests can be slow
@@ -57,13 +58,34 @@ describe('Test Propel', function() {
 
   const queueUnitTest = browserInfo => {
     it(`should pass all tests in ${browserInfo.prettyName}`, () => {
+
+      if (browserInfo.seleniumBrowserId === 'firefox') {
+        const ffProfile = new seleniumFirefox.Profile();
+        ffProfile.setPreference('security.turn_off_all_security_so_that_viruses_can_take_over_this_computer', true);
+        browserInfo.seleniumOptions.setProfile(ffProfile);
+      }
+
       globalDriverReference = browserInfo.getSeleniumDriver();
 
-      return automatedBrowserTesting.runMochaTests(
-        browserInfo.prettyName,
-        globalDriverReference,
-        `${testServerURL}/test/browser-tests/`
-      )
+      let initialisePromise = Promise.resolve();
+      if (browserInfo.seleniumBrowserId === 'firefox') {
+        // H/T to web-push for this trick to get permissions accepted / denied
+        // https://github.com/marco-c/web-push
+        initialisePromise = globalDriverReference.executeScript(() => {
+          /* global window, Components */
+          window.netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+          Components.utils.import('resource://gre/modules/Services.jsm');
+        });
+      }
+
+      return initialisePromise
+      .then(() => {
+        return automatedBrowserTesting.runMochaTests(
+          browserInfo.prettyName,
+          globalDriverReference,
+          `${testServerURL}/test/browser-tests/`
+        );
+      })
       .then(testResults => {
         automatedBrowserTesting.manageTestResults(
           browserInfo.prettyName,

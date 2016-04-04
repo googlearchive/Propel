@@ -13,8 +13,8 @@
 
 const MESSAGES = {
   'not supported': 'Your browser doesn\'t support push messaging.',
-  'blocked': 'The user denied permission to show notifications.',
-  'prompt': 'The user dismissed the notification permission dialog.',
+  'denied': 'The user denied permission to show notifications.',
+  'default': 'The user dismissed the notification permission dialog.',
   'endpoint': 'No endpoint URL specified.',
   'nogcmid': 'Please ensure you have a Web App Manifest with ' +
     'a "gcm_sender_id" defined.'
