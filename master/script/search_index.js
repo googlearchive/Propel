@@ -18,12 +18,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "propel-web-push/src/worker/push-worker.js~pushworker",
-    "class/src/worker/push-worker.js~PushWorker.html",
-    "<span>PushWorker</span> <span class=\"search-result-import-path\">propel-web-push/src/worker/push-worker.js</span>",
-    "class"
-  ],
-  [
     "propel-web-push/src/client/subscription-failed-error.js~subscriptionfailederror",
     "class/src/client/subscription-failed-error.js~SubscriptionFailedError.html",
     "<span>SubscriptionFailedError</span> <span class=\"search-result-import-path\">propel-web-push/src/client/subscription-failed-error.js</span>",
@@ -468,9 +462,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/client/push-client.js~pushclient.supported",
-    "class/src/client/push-client.js~PushClient.html#static-method-supported",
-    "src/client/push-client.js~PushClient.supported",
+    "src/client/push-client.js~pushclient.issupported",
+    "class/src/client/push-client.js~PushClient.html#static-method-isSupported",
+    "src/client/push-client.js~PushClient.isSupported",
     "method"
   ],
   [
@@ -510,9 +504,9 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/propel-worker.js",
-    "file/src/propel-worker.js.html",
-    "src/propel-worker.js",
+    "src/worker.js",
+    "file/src/worker.js.html",
+    "src/worker.js",
     "file"
   ],
   [
@@ -520,23 +514,5 @@ window.esdocSearchIndex = [
     "file/src/worker/notification-handler.js.html",
     "src/worker/notification-handler.js",
     "file"
-  ],
-  [
-    "src/worker/push-worker.js",
-    "file/src/worker/push-worker.js.html",
-    "src/worker/push-worker.js",
-    "file"
-  ],
-  [
-    "src/worker/push-worker.js~pushworker#closenotifications",
-    "class/src/worker/push-worker.js~PushWorker.html#instance-method-closeNotifications",
-    "src/worker/push-worker.js~PushWorker#closeNotifications",
-    "method"
-  ],
-  [
-    "src/worker/push-worker.js~pushworker#getnotifications",
-    "class/src/worker/push-worker.js~PushWorker.html#instance-method-getNotifications",
-    "src/worker/push-worker.js~PushWorker#getNotifications",
-    "method"
   ]
 ]
