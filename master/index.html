@@ -60,7 +60,7 @@
 <pre><code class="lang-javascript"><code class="source-code prettyprint"> var PropelClient = window.goog.propel.PropelClient;
 
  // Check if push is supported by the current browsers
- if (PropelClient.supported()) {
+ if (PropelClient.isSupported()) {
    // Initialise Push Client
    var propelClient = new PropelClient(&apos;/sw.js&apos;);
    propelClient.addEventListener(&apos;statuschange&apos;, function(event) {
