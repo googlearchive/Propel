@@ -20,8 +20,10 @@ importScripts('/node_modules/chai/chai.js');
 
 const getFriendlyTestResult = testResult => {
   return {
+    parentTitle: testResult.parent.title,
     title: testResult.title,
-    state: testResult.state
+    state: testResult.state,
+    err: testResult.err
   };
 };
 

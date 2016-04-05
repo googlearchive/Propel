@@ -45,8 +45,8 @@ describe('Test requestPermission()', function() {
   // We can't surpress a dialog after requesting it so force stub
   it('should dispatch a \'requestingpermission\' event when the permission state is default', function(done) {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.addEventListener('requestingpermission', () => {
@@ -58,8 +58,8 @@ describe('Test requestPermission()', function() {
   // We can't surpress a dialog after requesting it so force stub
   it('should resolve to default', function() {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     return pushClient.requestPermission()
@@ -70,8 +70,8 @@ describe('Test requestPermission()', function() {
 
   it('should not dispatch a \'requestingpermission\' event because permission is granted', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.addEventListener('requestingpermission', () => {
@@ -83,8 +83,8 @@ describe('Test requestPermission()', function() {
 
   it('should resolve to permission state of granted', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     return pushClient.requestPermission()
@@ -95,8 +95,8 @@ describe('Test requestPermission()', function() {
 
   it('should not dispatch a \'requestingpermission\' event because permission is blocked', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.addEventListener('requestingpermission', () => {
@@ -108,8 +108,8 @@ describe('Test requestPermission()', function() {
 
   it('should resolve to blocked', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
     const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
     pushClient.requestPermission()
@@ -120,8 +120,8 @@ describe('Test requestPermission()', function() {
 
   it('should dispatch a \'statuschange\' event when called directly', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
     let counter = 0;
 

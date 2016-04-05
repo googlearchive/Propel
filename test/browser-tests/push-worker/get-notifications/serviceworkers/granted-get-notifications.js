@@ -31,7 +31,7 @@ const removeAllNotifications = () => {
 };
 
 self.setUpTests = () => {
-  describe('Test getNotifications()', function() {
+  describe('Test getNotifications() with \'granted\' permission state', function() {
     // Ensure we start with no notifications between tests
     beforeEach(removeAllNotifications);
     after(removeAllNotifications);

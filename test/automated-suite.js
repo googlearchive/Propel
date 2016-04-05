@@ -63,6 +63,22 @@ describe('Test Propel', function() {
         const ffProfile = new seleniumFirefox.Profile();
         ffProfile.setPreference('security.turn_off_all_security_so_that_viruses_can_take_over_this_computer', true);
         browserInfo.seleniumOptions.setProfile(ffProfile);
+      } else if (browserInfo.seleniumBrowserId === 'chrome') {
+        /* eslint-disable camelcase */
+        const chromePreferences = {
+          profile: {
+            content_settings: {
+              exceptions: {
+                notifications: {}
+              }
+            }
+          }
+        };
+        chromePreferences.profile.content_settings.exceptions.notifications[testServerURL + ',*'] = {
+          setting: 1
+        };
+        browserInfo.seleniumOptions.setUserPreferences(chromePreferences);
+        /* eslint-enable camelcase */
       }
 
       globalDriverReference = browserInfo.getSeleniumDriver();

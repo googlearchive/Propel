@@ -43,7 +43,7 @@ describe('Test getPermissionState()', function() {
 
   it('should return permission status of granted', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
+    stateStub.stubNotificationPermissions('granted');
 
     return window.goog.propel.PropelClient.getPermissionState()
     .then(permissionState => {
@@ -53,7 +53,7 @@ describe('Test getPermissionState()', function() {
 
   it('should return permission status of default', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
+    stateStub.stubNotificationPermissions('default');
 
     return window.goog.propel.PropelClient.getPermissionState()
     .then(permissionState => {
@@ -63,7 +63,7 @@ describe('Test getPermissionState()', function() {
 
   it('should return permission status of denied', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
+    stateStub.stubNotificationPermissions('denied');
 
     return window.goog.propel.PropelClient.getPermissionState()
     .then(permissionState => {
