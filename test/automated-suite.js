@@ -25,6 +25,7 @@
 require('chai').should();
 const path = require('path');
 const swTestingHelpers = require('sw-testing-helpers');
+const MochaUtils = require('../node_modules/sw-testing-helpers/src/mocha/utils.js');
 const testServer = swTestingHelpers.testServer;
 const automatedBrowserTesting = swTestingHelpers.automatedBrowserTesting;
 const seleniumFirefox = require('selenium-webdriver/firefox');
@@ -87,7 +88,7 @@ describe('Test Propel', function() {
         );
       })
       .then(testResults => {
-        automatedBrowserTesting.manageTestResults(
+        MochaUtils.prettyPrintErrors(
           browserInfo.prettyName,
           testResults
         );
