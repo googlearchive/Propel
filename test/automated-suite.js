@@ -25,7 +25,7 @@
 require('chai').should();
 const path = require('path');
 const swTestingHelpers = require('sw-testing-helpers');
-const testServer = swTestingHelpers.testServer;
+const TestServer = require('./server/test-server.js');
 const automatedBrowserTesting = swTestingHelpers.automatedBrowserTesting;
 const seleniumFirefox = require('selenium-webdriver/firefox');
 
@@ -37,9 +37,11 @@ describe('Test Propel', function() {
   // where the desired browser isn't installed / fails to load
   // Null allows afterEach a safe way to skip quiting the driver
   let globalDriverReference = null;
+  let testServer = null;
   let testServerURL;
 
   before(function() {
+    testServer = new TestServer();
     return testServer.startServer(path.join(__dirname, '..'))
     .then(portNumber => {
       testServerURL = `http://localhost:${portNumber}`;

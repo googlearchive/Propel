@@ -20,6 +20,7 @@
 /* eslint-env node */
 
 var path = require('path');
-const testServer = require('sw-testing-helpers').testServer;
+const TestServer = require('./test-server.js');
 
+const testServer = new TestServer();
 testServer.startServer(path.join(__dirname, '..', '..'), 8888);

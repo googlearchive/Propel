@@ -30,4 +30,46 @@ export default class PushWorker {
       tag: tagName
     });
   }
+
+  getOpenWindows(filter) {
+    if (typeof filter !== 'undefined') {
+      if (typeof filter !== 'string' && !(filter instanceof RegExp)) {
+        return Promise.reject('getOpenWindows expects the optional filter ' +
+          'to be either a string of a url or a regex.');
+      }
+    }
+
+    // Filter should be a string or regex
+    return self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    })
+    .then(clientWindows => {
+      // This is to overcome pages in firefox 45
+      clientWindows = clientWindows.filter(clientWindow => {
+        if (clientWindow.url === 'about:blank') {
+          return false;
+        }
+
+        return true;
+      });
+      if (!filter) {
+        return clientWindows;
+      }
+
+      return clientWindows.filter(clientWindow => {
+        if (typeof filter === 'string') {
+          if (clientWindow.url === filter) {
+            return true;
+          }
+        } else if (filter instanceof RegExp) {
+          if (filter.test(clientWindow.url)) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+    });
+  }
 }
