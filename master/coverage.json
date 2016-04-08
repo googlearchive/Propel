@@ -15,9 +15,11 @@
       ]
     },
     "src/client/push-client.js": {
-      "expectCount": 9,
+      "expectCount": 10,
       "actualCount": 9,
-      "undocumentLines": []
+      "undocumentLines": [
+        278
+      ]
     },
     "src/client/push-client-event.js": {
       "expectCount": 3,
@@ -29,11 +31,10 @@
       ]
     },
     "src/worker/push-worker.js": {
-      "expectCount": 3,
+      "expectCount": 2,
       "actualCount": 1,
       "undocumentLines": [
-        20,
-        34
+        20
       ]
     },
     "src/client/subscription-failed-error.js": {

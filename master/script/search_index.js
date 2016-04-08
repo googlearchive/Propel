@@ -462,6 +462,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/client/push-client.js~pushclient.createclient",
+    "class/src/client/push-client.js~PushClient.html#static-method-createClient",
+    "src/client/push-client.js~PushClient.createClient",
+    "method"
+  ],
+  [
     "src/client/push-client.js~pushclient.getpermissionstate",
     "class/src/client/push-client.js~PushClient.html#static-method-getPermissionState",
     "src/client/push-client.js~PushClient.getPermissionState",
@@ -531,12 +537,6 @@ window.esdocSearchIndex = [
     "src/worker/push-worker.js~pushworker#getnotifications",
     "class/src/worker/push-worker.js~PushWorker.html#instance-method-getNotifications",
     "src/worker/push-worker.js~PushWorker#getNotifications",
-    "method"
-  ],
-  [
-    "src/worker/push-worker.js~pushworker#getopenwindows",
-    "class/src/worker/push-worker.js~PushWorker.html#instance-method-getOpenWindows",
-    "src/worker/push-worker.js~PushWorker#getOpenWindows",
     "method"
   ]
 ]
