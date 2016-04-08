@@ -528,15 +528,15 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/worker/push-worker.js~pushworker#closenotifications",
-    "class/src/worker/push-worker.js~PushWorker.html#instance-method-closeNotifications",
-    "src/worker/push-worker.js~PushWorker#closeNotifications",
-    "method"
-  ],
-  [
     "src/worker/push-worker.js~pushworker#getnotifications",
     "class/src/worker/push-worker.js~PushWorker.html#instance-method-getNotifications",
     "src/worker/push-worker.js~PushWorker#getNotifications",
+    "method"
+  ],
+  [
+    "src/worker/push-worker.js~pushworker#getopenwindows",
+    "class/src/worker/push-worker.js~PushWorker.html#instance-method-getOpenWindows",
+    "src/worker/push-worker.js~PushWorker#getOpenWindows",
     "method"
   ]
 ]

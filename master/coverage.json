@@ -32,8 +32,8 @@
       "expectCount": 3,
       "actualCount": 1,
       "undocumentLines": [
-        34,
-        20
+        20,
+        34
       ]
     },
     "src/client/subscription-failed-error.js": {

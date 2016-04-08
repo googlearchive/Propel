@@ -887,7 +887,7 @@
     "access": null,
     "description": null,
     "lineNumber": 19,
-    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\n/**\n * PushWorker is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushWorker {\n  getNotifications(tagName) {\n    if (typeof tagName !== 'undefined' && typeof tagName !== 'string') {\n      throw new Error('The optional tagName argument must be a string if set');\n    }\n\n    if (tagName && tagName.length === 0) {\n      throw new Error('The optional tagName cannot be an empty String');\n    }\n\n    return self.registration.getNotifications({\n      tag: tagName\n    });\n  }\n\n  closeNotifications(tagName) {\n    return this.getNotifications(tagName)\n    .then(notifications => {\n      notifications.forEach(notification => {\n        notification.close();\n      });\n    });\n  }\n}\n"
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\n/**\n * PushWorker is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushWorker {\n  getNotifications(tagName) {\n    if (typeof tagName !== 'undefined' && typeof tagName !== 'string') {\n      throw new Error('The optional tagName argument must be a string if set');\n    }\n\n    if (tagName && tagName.length === 0) {\n      throw new Error('The optional tagName cannot be an empty String');\n    }\n\n    return self.registration.getNotifications({\n      tag: tagName\n    });\n  }\n\n  getOpenWindows(filter) {\n    if (typeof filter !== 'undefined') {\n      if (typeof filter !== 'string' && !(filter instanceof RegExp)) {\n        return Promise.reject('getOpenWindows expects the optional filter ' +\n          'to be either a string of a url or a regex.');\n      }\n    }\n\n    // Filter should be a string or regex\n    return self.clients.matchAll({\n      type: 'window',\n      includeUncontrolled: true\n    })\n    .then(clientWindows => {\n      // This is to overcome pages in firefox 45\n      clientWindows = clientWindows.filter(clientWindow => {\n        if (clientWindow.url === 'about:blank') {\n          return false;\n        }\n\n        return true;\n      });\n      if (!filter) {\n        return clientWindows;\n      }\n\n      return clientWindows.filter(clientWindow => {\n        if (typeof filter === 'string') {\n          if (clientWindow.url === filter) {\n            return true;\n          }\n        } else if (filter instanceof RegExp) {\n          if (filter.test(clientWindow.url)) {\n            return true;\n          }\n        }\n\n        return false;\n      });\n    });\n  }\n}\n"
   },
   {
     "__docId__": 42,
@@ -937,16 +937,16 @@
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "closeNotifications",
+    "name": "getOpenWindows",
     "memberof": "src/worker/push-worker.js~PushWorker",
-    "longname": "src/worker/push-worker.js~PushWorker#closeNotifications",
+    "longname": "src/worker/push-worker.js~PushWorker#getOpenWindows",
     "access": null,
     "description": null,
     "lineNumber": 34,
     "undocument": true,
     "params": [
       {
-        "name": "tagName",
+        "name": "filter",
         "types": [
           "*"
         ]

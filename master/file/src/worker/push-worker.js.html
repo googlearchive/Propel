@@ -77,11 +77,44 @@ export default class PushWorker {
     });
   }
 
-  closeNotifications(tagName) {
-    return this.getNotifications(tagName)
-    .then(notifications =&gt; {
-      notifications.forEach(notification =&gt; {
-        notification.close();
+  getOpenWindows(filter) {
+    if (typeof filter !== &apos;undefined&apos;) {
+      if (typeof filter !== &apos;string&apos; &amp;&amp; !(filter instanceof RegExp)) {
+        return Promise.reject(&apos;getOpenWindows expects the optional filter &apos; +
+          &apos;to be either a string of a url or a regex.&apos;);
+      }
+    }
+
+    // Filter should be a string or regex
+    return self.clients.matchAll({
+      type: &apos;window&apos;,
+      includeUncontrolled: true
+    })
+    .then(clientWindows =&gt; {
+      // This is to overcome pages in firefox 45
+      clientWindows = clientWindows.filter(clientWindow =&gt; {
+        if (clientWindow.url === &apos;about:blank&apos;) {
+          return false;
+        }
+
+        return true;
+      });
+      if (!filter) {
+        return clientWindows;
+      }
+
+      return clientWindows.filter(clientWindow =&gt; {
+        if (typeof filter === &apos;string&apos;) {
+          if (clientWindow.url === filter) {
+            return true;
+          }
+        } else if (filter instanceof RegExp) {
+          if (filter.test(clientWindow.url)) {
+            return true;
+          }
+        }
+
+        return false;
       });
     });
   }
