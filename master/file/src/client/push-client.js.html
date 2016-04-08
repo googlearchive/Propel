@@ -68,12 +68,9 @@ const SUPPORTED = &apos;serviceWorker&apos; in navigator &amp;&amp;
     &apos;showNotification&apos; in ServiceWorkerRegistration.prototype;
 
 const ERROR_MESSAGES = {
-  &apos;bad factory&apos;: &apos;The PushClient.createClient() method expects a service &apos; +
-    &apos;worker path and an option scope string.&apos;,
-  &apos;bad constructor&apos;: &apos;The PushClient constructor expects a service &apos; +
-    &apos;worker registration. Alternatively, you can use &apos; +
-    &apos;PropelClient.createClient() to create a PropelClient with a service &apos; +
-    &apos;worker path string and an optional scope string.&apos;,
+  &apos;bad constructor&apos;: &apos;The PushClient constructor expects either service &apos; +
+    &apos;worker registration or the path to a service worker file and an &apos; +
+    &apos;optional scope string.&apos;,
   &apos;redundant worker&apos;: &apos;Worker became redundant&apos;
 };
 
@@ -118,21 +115,33 @@ export default class PushClient extends EventDispatch {
    * obtained in the constructor and a subscriptionChange event will be
    * dispatched.
    *
-   * @param {ServiceWorkerRegistration} registration - Registration of a
-   *  service worker to be used for push messages
+   * @param {String} workerUrlOrRegistration - Service worker URL to be
+   *  registered that will receive push events.
+   * @param {String} scope - The scope that the Service worker should be
+   *  registered with.
    */
-  constructor(registration) {
+  constructor(workerUrlOrRegistration, scope) {
     super();
 
     if (!PushClient.isSupported()) {
       throw new Error(&apos;Your browser does not support the web push API&apos;);
     }
 
-    if (!(registration instanceof ServiceWorkerRegistration)) {
-      throw new Error(ERROR_MESSAGES[&apos;bad constructor&apos;]);
-    }
+    if (workerUrlOrRegistration instanceof ServiceWorkerRegistration) {
+      this._registrationPromise = Promise.resolve(workerUrlOrRegistration);
+    } else {
+      const url = workerUrlOrRegistration;
+      if (!url || typeof url !== &apos;string&apos; || url.length === 0) {
+        throw new Error(ERROR_MESSAGES[&apos;bad constructor&apos;]);
+      }
 
-    this._registration = registration;
+      let options;
+      if (scope) {
+        options = {scope};
+      }
+      this._registrationPromise = navigator.serviceWorker
+        .register(workerUrlOrRegistration, options);
+    }
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
@@ -184,14 +193,12 @@ export default class PushClient extends EventDispatch {
       this.dispatchEvent(new PushClientEvent(&apos;requestingsubscription&apos;));
 
       // Make sure we have a service worker and subscribe for push
-      return this._registration;
+      return this._registrationPromise;
     })
     .then(registrationReady)
     .then(registration =&gt; {
       return registration.pushManager.subscribe({userVisibleOnly: true})
-      .catch(err =&gt; {
-        return this._dispatchStatusUpdate()
-        .then(() =&gt; {
+        .catch(err =&gt; {
           // This is provide a more helpful message when work with Chrome + GCM
           if (err.message === &apos;Registration failed - no sender id provided&apos;) {
             throw new SubscriptionFailedError(&apos;nogcmid&apos;);
@@ -199,7 +206,6 @@ export default class PushClient extends EventDispatch {
             throw err;
           }
         });
-      });
     })
     .then(subscription =&gt; {
       this._dispatchStatusUpdate();
@@ -241,10 +247,10 @@ export default class PushClient extends EventDispatch {
    * Get the registration of the service worker being used for push.
    *
    * @return {Promise&lt;ServiceWorkerRegistration&gt;} A Promise that
-   *  resolves to either a ServiceWorkerRegistration.
+   *  resolves to either a ServiceWorkerRegistration or to null if none.
    */
   getRegistration() {
-    return Promise.resolve(this._registration);
+    return this._registrationPromise;
   }
 
   /**
@@ -295,32 +301,10 @@ export default class PushClient extends EventDispatch {
   }
 
   /**
-   * If you want a quick way to create Propel Client this factory method
-   * just takes a service worker file path and optional scope and
-   * returns promise that resolves to a PropelClient or errors if there
-   * was a problem.
-   * @param {String} swPath - This needs to be the path of a service worker
-   * that will be used to handle push messages,
-   * @param {String} scope - Optional parameter that can be used to define
-   * the scope of a service worker.
-   * @return {Promise&lt;PropelClient&gt;} Resolves if the service worker could be
-   * registered successfully
+   * You can use this to decide whether to construct a new PushClient or not.
+   * @return {Boolean} Whether the current browser has everything needed
+   *  to use push messaging.
    */
-  static createClient(swPath, scope) {
-    if (!swPath || typeof swPath !== &apos;string&apos; || swPath.length === 0) {
-      return Promise.reject(new Error(ERROR_MESSAGES[&apos;bad factory&apos;]));
-    }
-
-    let options;
-    if (scope) {
-      options = {scope};
-    }
-    return navigator.serviceWorker.register(swPath, options)
-    .then(reg =&gt; {
-      return new PushClient(reg);
-    });
-  }
-
   static isSupported() {
     return SUPPORTED;
   }

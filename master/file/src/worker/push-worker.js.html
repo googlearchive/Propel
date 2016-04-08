@@ -76,6 +76,15 @@ export default class PushWorker {
       tag: tagName
     });
   }
+
+  closeNotifications(tagName) {
+    return this.getNotifications(tagName)
+    .then(notifications =&gt; {
+      notifications.forEach(notification =&gt; {
+        notification.close();
+      });
+    });
+  }
 }
 </code></pre>
 
