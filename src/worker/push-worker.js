@@ -30,4 +30,13 @@ export default class PushWorker {
       tag: tagName
     });
   }
+
+  closeNotifications(tagName) {
+    return this.getNotifications(tagName)
+    .then(notifications => {
+      notifications.forEach(notification => {
+        notification.close();
+      });
+    });
+  }
 }
