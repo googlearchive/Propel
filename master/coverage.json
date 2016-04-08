@@ -1,6 +1,6 @@
 {
-  "coverage": "44%",
-  "expectCount": 25,
+  "coverage": "42.3%",
+  "expectCount": 26,
   "actualCount": 11,
   "files": {
     "src/client/event-dispatch.js": {
@@ -15,9 +15,11 @@
       ]
     },
     "src/client/push-client.js": {
-      "expectCount": 9,
+      "expectCount": 10,
       "actualCount": 9,
-      "undocumentLines": []
+      "undocumentLines": [
+        278
+      ]
     },
     "src/client/push-client-event.js": {
       "expectCount": 3,

@@ -462,6 +462,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/client/push-client.js~pushclient.createclient",
+    "class/src/client/push-client.js~PushClient.html#static-method-createClient",
+    "src/client/push-client.js~PushClient.createClient",
+    "method"
+  ],
+  [
     "src/client/push-client.js~pushclient.getpermissionstate",
     "class/src/client/push-client.js~PushClient.html#static-method-getPermissionState",
     "src/client/push-client.js~PushClient.getPermissionState",

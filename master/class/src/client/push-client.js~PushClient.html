@@ -44,13 +44,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import PushClient from &apos;<span><a href="file/src/client/push-client.js.html#lineNumber64">propel-web-push/src/client/push-client.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import PushClient from &apos;<span><a href="file/src/client/push-client.js.html#lineNumber67">propel-web-push/src/client/push-client.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/client/push-client.js.html#lineNumber64">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/client/push-client.js.html#lineNumber67">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -99,6 +99,35 @@ site.</p>
     <td>
       <div>
         <p>
+           <span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html#static-method-createClient">createClient</a></span></span><span data-ice="signature">(swPath: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, scope: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>PropelClient</span>&gt;</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>If you want a quick way to create Propel Client this factory method
+just takes a service worker file path and optional scope and
+returns promise that resolves to a PropelClient or errors if there
+was a problem.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      <span data-ice="static">static</span>
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
            <span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html#static-method-getPermissionState">getPermissionState</a></span></span><span data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>PermissionStatus</span>&gt;</span>
         </p>
       </div>
@@ -126,14 +155,13 @@ the permission dialog or not.</p>
     <td>
       <div>
         <p>
-           <span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html#static-method-isSupported">isSupported</a></span></span><span data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></span></span>
+           <span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html#static-method-isSupported">isSupported</a></span></span><span data-ice="signature">(): <span>*</span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>You can use this to decide whether to construct a new PushClient or not.</p>
-</div>
+        
       </div>
     </td>
     <td>
@@ -159,7 +187,7 @@ the permission dialog or not.</p>
     <td>
       <div>
         <p>
-           <span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(workerUrlOrRegistration: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, scope: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>)</span>
+           <span data-ice="name"><span><a href="class/src/client/push-client.js~PushClient.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(registration: <span>ServiceWorkerRegistration</span>)</span>
         </p>
       </div>
       <div>
@@ -405,6 +433,88 @@ with the final permission status.</p>
 <div data-ice="staticMethodDetails"><h2 data-ice="title">Static Public Methods</h2>
 
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-method-createClient">
+    <span class="access" data-ice="access">public</span>
+    <span data-ice="static">static</span>
+    
+    
+    
+    <span data-ice="name">createClient</span><span data-ice="signature">(swPath: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, scope: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>PropelClient</span>&gt;</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber263">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>If you want a quick way to create Propel Client this factory method
+just takes a service worker file path and optional scope and
+returns promise that resolves to a PropelClient or errors if there
+was a problem.</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">swPath</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>This needs to be the path of a service worker
+that will be used to handle push messages,</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">scope</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Optional parameter that can be used to define
+the scope of a service worker.</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tr>
+        <td class="return-type" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>PropelClient</span>&gt;</td>
+        <td class="return-desc" data-ice="returnDescription"><p>Resolves if the service worker could be
+registered successfully</p>
+</td>
+      </tr>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="static-method-getPermissionState">
     <span class="access" data-ice="access">public</span>
     <span data-ice="static">static</span>
@@ -415,7 +525,7 @@ with the final permission status.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber272">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber288">source</a></span></span>
     </span>
   </h3>
 
@@ -465,19 +575,18 @@ the permission dialog or not.</p>
     
     
     
-    <span data-ice="name">isSupported</span><span data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></span></span>
+    <span data-ice="name">isSupported</span><span data-ice="signature">(): <span>*</span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber262">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber278">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>You can use this to decide whether to construct a new PushClient or not.</p>
-</div>
+  
 
   
 
@@ -488,10 +597,8 @@ the permission dialog or not.</p>
     <h4>Return:</h4>
     <table>
       <tr>
-        <td class="return-type" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></span></td>
-        <td class="return-desc" data-ice="returnDescription"><p>Whether the current browser has everything needed
- to use push messaging.</p>
-</td>
+        <td class="return-type" data-ice="returnType"><span>*</span></td>
+        
       </tr>
     </table>
     <div data-ice="returnProperties">
@@ -521,11 +628,11 @@ the permission dialog or not.</p>
     
     
     
-    <span data-ice="name">constructor</span><span data-ice="signature">(workerUrlOrRegistration: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, scope: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>)</span>
+    <span data-ice="name">constructor</span><span data-ice="signature">(registration: <span>ServiceWorkerRegistration</span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber77">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber78">source</a></span></span>
     </span>
   </h3>
 
@@ -549,19 +656,11 @@ dispatched.</p>
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">workerUrlOrRegistration</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="name" data-depth="0">registration</td>
+      <td data-ice="type"><span>ServiceWorkerRegistration</span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Service worker URL to be
- registered that will receive push events.</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">scope</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>The scope that the Service worker should be
- registered with.</p>
+      <td data-ice="description"><p>Registration of a
+ service worker to be used for push messages</p>
 </td>
     </tr>
 </tbody>
@@ -599,7 +698,7 @@ dispatched.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber206">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber200">source</a></span></span>
     </span>
   </h3>
 
@@ -620,7 +719,7 @@ dispatched.</p>
       <tr>
         <td class="return-type" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>ServiceWorkerRegistration</span>&gt;</td>
         <td class="return-desc" data-ice="returnDescription"><p>A Promise that
- resolves to either a ServiceWorkerRegistration or to null if none.</p>
+ resolves to either a ServiceWorkerRegistration.</p>
 </td>
       </tr>
     </table>
@@ -652,7 +751,7 @@ dispatched.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber219">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber213">source</a></span></span>
     </span>
   </h3>
 
@@ -707,7 +806,7 @@ resolve with a PushSubscription object, otherwise it will resolve to null.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber239">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber233">source</a></span></span>
     </span>
   </h3>
 
@@ -780,7 +879,7 @@ with the permission dialog).</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber138">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber129">source</a></span></span>
     </span>
   </h3>
 
@@ -835,7 +934,7 @@ permissions dialog before attempting to subscribe the user to push.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber177">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/client/push-client.js.html#lineNumber171">source</a></span></span>
     </span>
   </h3>
 
