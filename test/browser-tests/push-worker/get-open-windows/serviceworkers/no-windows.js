@@ -42,7 +42,6 @@ self.setUpTests = () => {
       .then(windows => {
         (windows instanceof Array).should.equal(true);
         windows.forEach(windowClient => {
-          console.log('------------------------>' + windowClient.url);
           windowClient.url.indexOf(self.location.origin).should.equal(0);
         });
       });

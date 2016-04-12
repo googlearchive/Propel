@@ -66,12 +66,14 @@ export default class PushWorker {
   }
 
   getVisibleWindows(filter) {
-    return this.getWindows(filter)
+    return this.getOpenWindows(filter)
     .then(openWindows => {
-      return openWindows.filter(openWindow => {
-        console.log(openWindow);
-        return true;
+      const visibleWindows = openWindows.filter(openWindow => {
+        return openWindow.visibilityState === 'visible';
       });
+      console.log('All windows = ', openWindows.length);
+      console.log('Visible windows = ', visibleWindows.length);
+      return visibleWindows;
     });
   }
 }

@@ -22,7 +22,7 @@
 
 'use strict';
 
-describe('Test PushWorker.getOpenWindows()', function() {
+describe('Test PushWorker.getVisibleWindows()', function() {
   const swUtils = window.goog.SWHelper;
 
   const serviceWorkersFolder = '/test/browser-tests/push-worker/get-visible-windows/serviceworkers';

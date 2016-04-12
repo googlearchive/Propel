@@ -42,7 +42,7 @@ const startTests = () => {
     self.chai.should();
     mocha.setup({
       ui: 'bdd',
-      reporter: null
+      reporter: 'json'
     });
 
     self.setUpTests();
