@@ -20,6 +20,7 @@
 /* eslint-env node */
 
 var express = require('express');
+var path = require('path');
 
 class TestServer {
   constructor(addDefaultRoutes) {
@@ -47,9 +48,9 @@ class TestServer {
       res.redirect('/test/browser-tests/');
     });
 
-    this._app.get('/test/iframe/*', function(req, res) {
-      res.send('hello');
-    });
+    this._app.use('/test/iframe/*', express.static(
+      path.join(__dirname, 'test.html'))
+    );
   }
 
   getExpressApp() {

@@ -38,6 +38,11 @@ describe('Test PushWorker.getOpenWindows()', function() {
   });
 
   after(function() {
+    const allIframes = document.querySelectorAll('iframe');
+    for (let i = 0; i < allIframes.length; i++) {
+      console.log(allIframes[i]);
+    }
+
     const testIframes = document.querySelectorAll('.test-iframe');
     for (let i = 0; i < testIframes.length; i++) {
       const testIframe = testIframes[i];

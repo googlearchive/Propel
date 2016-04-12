@@ -45,14 +45,6 @@ export default class PushWorker {
       includeUncontrolled: true
     })
     .then(clientWindows => {
-      // This is to overcome pages in firefox 45
-      clientWindows = clientWindows.filter(clientWindow => {
-        if (clientWindow.url === 'about:blank') {
-          return false;
-        }
-
-        return true;
-      });
       if (!filter) {
         return clientWindows;
       }
@@ -69,6 +61,16 @@ export default class PushWorker {
         }
 
         return false;
+      });
+    });
+  }
+
+  getVisibleWindows(filter) {
+    return this.getWindows(filter)
+    .then(openWindows => {
+      return openWindows.filter(openWindow => {
+        console.log(openWindow);
+        return true;
       });
     });
   }

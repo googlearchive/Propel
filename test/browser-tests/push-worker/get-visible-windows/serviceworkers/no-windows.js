@@ -22,34 +22,33 @@ importScripts('/dist/propel-worker.js');
 self.setUpTests = () => {
   describe('Test getOpenWindows() No Windows Tests', function() {
     const testPage = self.location.origin +
-      '/test/browser-tests/push-worker/get-open-windows/test.html';
+      '/test/browser-tests/push-worker/get-visible-windows/test.html';
     const fakePage = self.location.origin + '/test/browser-tests/non-existant';
 
     it('should reject when argument is an array', function(done) {
-      return self.goog.propel.worker.helpers.getOpenWindows([])
+      return self.goog.propel.worker.helpers.getVisibleWindows([])
       .then(done => done(new Error('Should have rejected')))
       .catch(() => done());
     });
 
     it('should reject when argument is an object', function(done) {
-      return self.goog.propel.worker.helpers.getOpenWindows({})
+      return self.goog.propel.worker.helpers.getVisibleWindows({})
       .then(done => done(new Error('Should have rejected')))
       .catch(() => done());
     });
 
     it('should resolve to an array with any page matching current origin', function() {
-      return self.goog.propel.worker.helpers.getOpenWindows()
+      return self.goog.propel.worker.helpers.getVisibleWindows()
       .then(windows => {
         (windows instanceof Array).should.equal(true);
         windows.forEach(windowClient => {
-          console.log('------------------------>' + windowClient.url);
           windowClient.url.indexOf(self.location.origin).should.equal(0);
         });
       });
     });
 
     it('should resolve to an empty array when passing in a non-existant path', function() {
-      return self.goog.propel.worker.helpers.getOpenWindows(fakePage)
+      return self.goog.propel.worker.helpers.getVisibleWindows(fakePage)
       .then(windows => {
         (windows instanceof Array).should.equal(true);
         windows.length.should.equal(0);
@@ -57,7 +56,7 @@ self.setUpTests = () => {
     });
 
     it('should resolve to an empty array when passing in the known path', function() {
-      return self.goog.propel.worker.helpers.getOpenWindows(testPage)
+      return self.goog.propel.worker.helpers.getVisibleWindows(testPage)
       .then(windows => {
         (windows instanceof Array).should.equal(true);
         windows.length.should.equal(0);
@@ -65,8 +64,8 @@ self.setUpTests = () => {
     });
 
     it('should resolve to an empty array for regex of known path', function() {
-      return self.goog.propel.worker.helpers.getOpenWindows(
-        /\/test\/browser-tests\/push-worker\/get-open-windows\/test.html/)
+      return self.goog.propel.worker.helpers.getVisibleWindows(
+        /\/test\/browser-tests\/push-worker\/get-visible-windows\/test.html/)
       .then(windows => {
         (windows instanceof Array).should.equal(true);
         windows.length.should.equal(0);
@@ -74,7 +73,7 @@ self.setUpTests = () => {
     });
 
     it('should resolve to an array of /test/ urls from regex', function() {
-      return self.goog.propel.worker.helpers.getOpenWindows(/\/test\/.*/)
+      return self.goog.propel.worker.helpers.getVisibleWindows(/\/test\/.*/)
       .then(windows => {
         (windows instanceof Array).should.equal(true);
         windows.forEach(windowClient => {
