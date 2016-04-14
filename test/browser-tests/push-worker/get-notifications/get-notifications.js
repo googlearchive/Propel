@@ -23,56 +23,18 @@
 'use strict';
 
 describe('Test PushWorker.getNotifications()', function() {
-  const swUtils = window.goog.SWHelper;
   const serviceWorkersFolder = '/test/browser-tests/push-worker/get-notifications/serviceworkers';
-
-  const sendMessage = (swController, testName) => {
-    return new Promise(function(resolve, reject) {
-      var messageChannel = new MessageChannel();
-      messageChannel.port1.onmessage = function(event) {
-        if (event.data.error) {
-          reject(event.data.error);
-        } else {
-          resolve(event.data);
-        }
-      };
-
-      swController.postMessage(testName,
-        [messageChannel.port2]);
-    });
-  };
 
   it('should pass all get notification tests', function() {
     this.timeout(60000);
     const loadedSW = serviceWorkersFolder + '/get-notifications.js';
-    return swUtils.activateSW(loadedSW)
-    .then(iframe => {
-      return iframe.contentWindow.navigator.serviceWorker.ready
-      .then(registration => {
-        return registration.active;
-      })
-      .then(sw => {
-        return sendMessage(sw, 'start-tests');
-      })
-      .then(msgResponse => {
-        if (!msgResponse.testResults) {
-          throw new Error('Unexpected test result: ' + msgResponse);
-        }
-
-        // Print test failues
-        let testResults = msgResponse.testResults;
-        if (testResults.failed.length > 0) {
-          const failedTests = testResults.failed;
-          let errorMessage = 'Issues in ' + loadedSW + '.\n\n' + loadedSW +
-            ' had ' + testResults.failed.length + ' test failures.\n';
-          errorMessage += '------------------------------------------------\n';
-          errorMessage += failedTests.map((failedTest, i) => {
-            return `[Failed Test ${i + 1}]\n    ${failedTest.title}\n`;
-          }).join('\n');
-          errorMessage += '------------------------------------------------\n';
-          throw new Error(errorMessage);
-        }
-      });
+    return window.goog.mochaUtils.startServiceWorkerMochaTests(loadedSW)
+    .then(testResults => {
+      if (testResults.failed.length > 0) {
+        const errorMessage = window.goog.mochaUtils
+          .prettyPrintErrors(loadedSW, testResults);
+        throw new Error(errorMessage);
+      }
     });
   });
 });

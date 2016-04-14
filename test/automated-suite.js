@@ -25,8 +25,9 @@
 require('chai').should();
 const path = require('path');
 const swTestingHelpers = require('sw-testing-helpers');
-const testServer = swTestingHelpers.testServer;
+const TestServer = swTestingHelpers.TestServer;
 const automatedBrowserTesting = swTestingHelpers.automatedBrowserTesting;
+const mochaUtils = swTestingHelpers.mochaUtils;
 const seleniumFirefox = require('selenium-webdriver/firefox');
 
 describe('Test Propel', function() {
@@ -37,9 +38,11 @@ describe('Test Propel', function() {
   // where the desired browser isn't installed / fails to load
   // Null allows afterEach a safe way to skip quiting the driver
   let globalDriverReference = null;
+  let testServer;
   let testServerURL;
 
   before(function() {
+    testServer = new TestServer();
     return testServer.startServer(path.join(__dirname, '..'))
     .then(portNumber => {
       testServerURL = `http://localhost:${portNumber}`;
@@ -57,18 +60,17 @@ describe('Test Propel', function() {
   });
 
   const queueUnitTest = browserInfo => {
-    it(`should pass all tests in ${browserInfo.prettyName}`, () => {
-
-      if (browserInfo.seleniumBrowserId === 'firefox') {
+    it(`should pass all tests in ${browserInfo.getPrettyName()}`, () => {
+      if (browserInfo.getSeleniumBrowserId() === 'firefox') {
         const ffProfile = new seleniumFirefox.Profile();
         ffProfile.setPreference('security.turn_off_all_security_so_that_viruses_can_take_over_this_computer', true);
-        browserInfo.seleniumOptions.setProfile(ffProfile);
+        browserInfo.getSeleniumOptions().setProfile(ffProfile);
       }
 
       globalDriverReference = browserInfo.getSeleniumDriver();
 
       let initialisePromise = Promise.resolve();
-      if (browserInfo.seleniumBrowserId === 'firefox') {
+      if (browserInfo.getSeleniumBrowserId() === 'firefox') {
         // H/T to web-push for this trick to get permissions accepted / denied
         // https://github.com/marco-c/web-push
         initialisePromise = globalDriverReference.executeScript(() => {
@@ -80,22 +82,25 @@ describe('Test Propel', function() {
 
       return initialisePromise
       .then(() => {
-        return automatedBrowserTesting.runMochaTests(
-          browserInfo.prettyName,
+        return mochaUtils.startWebDriverMochaTests(
+          browserInfo.getPrettyName(),
           globalDriverReference,
           `${testServerURL}/test/browser-tests/`
         );
       })
       .then(testResults => {
-        automatedBrowserTesting.manageTestResults(
-          browserInfo.prettyName,
-          testResults
-        );
+        if (testResults.failed.length > 0) {
+          const errorMessage = mochaUtils.prettyPrintErrors(
+            browserInfo.getPrettyName(),
+            testResults
+          );
+          throw new Error(errorMessage);
+        }
       });
     });
   };
 
-  const automatedBrowsers = automatedBrowserTesting.getAutomatedBrowsers();
+  const automatedBrowsers = automatedBrowserTesting.getDiscoverableBrowsers();
   automatedBrowsers.forEach(browserInfo => {
     queueUnitTest(browserInfo);
   });

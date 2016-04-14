@@ -18,12 +18,15 @@
 'use strict';
 
 const gulp = require('gulp');
-const spawn = require('child_process').spawn;
+var path = require('path');
+const TestServer = require('sw-testing-helpers').TestServer;
 const mocha = require('gulp-mocha');
 
 gulp.task('test:manual', function() {
-  spawn('node', ['test/server/index.js'], {
-    stdio: 'inherit'
+  const testServer = new TestServer();
+  testServer.startServer(path.join(__dirname, '..'), 8888)
+  .then(portNumber => {
+    console.log('http://localhost:' + portNumber);
   });
 });
 
