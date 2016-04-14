@@ -887,7 +887,7 @@
     "access": null,
     "description": null,
     "lineNumber": 19,
-    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\n/**\n * PushWorker is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushWorker {\n  getNotifications(tagName) {\n    if (typeof tagName !== 'undefined' && typeof tagName !== 'string') {\n      throw new Error('The optional tagName argument must be a string if set');\n    }\n\n    if (tagName && tagName.length === 0) {\n      throw new Error('The optional tagName cannot be an empty String');\n    }\n\n    return self.registration.getNotifications({\n      tag: tagName\n    });\n  }\n\n  getOpenWindows(filter) {\n    if (typeof filter !== 'undefined') {\n      if (typeof filter !== 'string' && !(filter instanceof RegExp)) {\n        return Promise.reject('getOpenWindows expects the optional filter ' +\n          'to be either a string of a url or a regex.');\n      }\n    }\n\n    // Filter should be a string or regex\n    return self.clients.matchAll({\n      type: 'window',\n      includeUncontrolled: true\n    })\n    .then(clientWindows => {\n      if (!filter) {\n        return clientWindows;\n      }\n\n      return clientWindows.filter(clientWindow => {\n        if (typeof filter === 'string') {\n          if (clientWindow.url === filter) {\n            return true;\n          }\n        } else if (filter instanceof RegExp) {\n          if (filter.test(clientWindow.url)) {\n            return true;\n          }\n        }\n\n        return false;\n      });\n    });\n  }\n\n  getVisibleWindows(filter) {\n    return this.getWindows(filter)\n    .then(openWindows => {\n      return openWindows.filter(openWindow => {\n        console.log(openWindow);\n        return true;\n      });\n    });\n  }\n}\n"
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\n/**\n * PushWorker is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushWorker {\n  getNotifications(tagName) {\n    if (typeof tagName !== 'undefined' && typeof tagName !== 'string') {\n      throw new Error('The optional tagName argument must be a string if set');\n    }\n\n    if (tagName && tagName.length === 0) {\n      throw new Error('The optional tagName cannot be an empty String');\n    }\n\n    return self.registration.getNotifications({\n      tag: tagName\n    });\n  }\n}\n"
   },
   {
     "__docId__": 42,
@@ -933,61 +933,7 @@
     "generator": false
   },
   {
-    "__docId__": 44,
-    "kind": "method",
-    "static": false,
-    "variation": null,
-    "name": "getOpenWindows",
-    "memberof": "src/worker/push-worker.js~PushWorker",
-    "longname": "src/worker/push-worker.js~PushWorker#getOpenWindows",
-    "access": null,
-    "description": null,
-    "lineNumber": 34,
-    "undocument": true,
-    "params": [
-      {
-        "name": "filter",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    },
-    "generator": false
-  },
-  {
     "__docId__": 45,
-    "kind": "method",
-    "static": false,
-    "variation": null,
-    "name": "getVisibleWindows",
-    "memberof": "src/worker/push-worker.js~PushWorker",
-    "longname": "src/worker/push-worker.js~PushWorker#getVisibleWindows",
-    "access": null,
-    "description": null,
-    "lineNumber": 68,
-    "undocument": true,
-    "params": [
-      {
-        "name": "filter",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    },
-    "generator": false
-  },
-  {
-    "__docId__": 47,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1000,7 +946,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 48,
+    "__docId__": 46,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1013,7 +959,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 49,
+    "__docId__": 47,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1026,7 +972,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 50,
+    "__docId__": 48,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1039,7 +985,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 51,
+    "__docId__": 49,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1052,7 +998,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 52,
+    "__docId__": 50,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1065,7 +1011,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 53,
+    "__docId__": 51,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1078,7 +1024,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 54,
+    "__docId__": 52,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1091,7 +1037,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 55,
+    "__docId__": 53,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1104,7 +1050,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 56,
+    "__docId__": 54,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1117,7 +1063,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 57,
+    "__docId__": 55,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1130,7 +1076,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 58,
+    "__docId__": 56,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1143,7 +1089,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 59,
+    "__docId__": 57,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1156,7 +1102,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 60,
+    "__docId__": 58,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1169,7 +1115,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 61,
+    "__docId__": 59,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1182,7 +1128,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 62,
+    "__docId__": 60,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1195,7 +1141,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 63,
+    "__docId__": 61,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1208,7 +1154,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 64,
+    "__docId__": 62,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1221,7 +1167,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 65,
+    "__docId__": 63,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1234,7 +1180,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 66,
+    "__docId__": 64,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1247,7 +1193,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 67,
+    "__docId__": 65,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1260,7 +1206,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 68,
+    "__docId__": 66,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1273,7 +1219,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 69,
+    "__docId__": 67,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1286,7 +1232,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 70,
+    "__docId__": 68,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1299,7 +1245,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 71,
+    "__docId__": 69,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1312,7 +1258,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 72,
+    "__docId__": 70,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1325,7 +1271,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 73,
+    "__docId__": 71,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1338,7 +1284,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 74,
+    "__docId__": 72,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1351,7 +1297,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 73,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1364,7 +1310,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 74,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1377,7 +1323,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 75,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1390,7 +1336,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 76,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1403,7 +1349,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 77,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1416,7 +1362,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 78,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1429,7 +1375,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 79,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1442,7 +1388,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 80,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1455,7 +1401,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 81,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1468,7 +1414,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 82,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1481,7 +1427,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 83,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1494,7 +1440,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 84,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1507,7 +1453,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 85,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1520,7 +1466,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 86,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1533,7 +1479,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 87,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1546,7 +1492,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 88,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1559,7 +1505,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 89,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1572,7 +1518,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 90,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1585,7 +1531,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 91,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1598,7 +1544,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 93,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1611,7 +1557,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 94,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1624,7 +1570,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 95,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1637,7 +1583,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 98,
+    "__docId__": 96,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1650,7 +1596,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 97,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1663,7 +1609,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 98,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1676,7 +1622,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 101,
+    "__docId__": 99,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1689,7 +1635,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 100,
     "kind": "external",
     "static": true,
     "variation": null,
