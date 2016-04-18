@@ -14,7 +14,7 @@ To use the Propel library do the following:
     ```html
     <script src="/node_modules/propel-web-push/dist/propel-client.js"></script>
     ```
-1. Add a web app manifest to your page. It's required by propel.
+1. Add a web app manifest to your page. It's required by Chrome.
 
    ```html
    <link rel="manifest" href="manifest.json">
