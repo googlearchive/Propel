@@ -43,7 +43,7 @@ export default function notificationHandler(event, defaults = {}) {
   let data;
 
   try {
-    data = JSON.parse(event.data);
+    data = event.data.json();
   } catch (e) {
     console.log('Couldn\'t parse notification data as JSON, ignoring');
     return false;
