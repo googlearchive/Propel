@@ -18,7 +18,7 @@
 'use strict';
 
 const gulp = require('gulp');
-var path = require('path');
+const path = require('path');
 const TestServer = require('sw-testing-helpers').TestServer;
 const mocha = require('gulp-mocha');
 
