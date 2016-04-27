@@ -33,7 +33,10 @@
   <script src="/node_modules/chai/chai.js"></script>
   <script src="/node_modules/mocha/mocha.js"></script>
   <script src="/node_modules/sinon/pkg/sinon.js"></script>
-  <script src="/node_modules/sw-testing-helpers/src/in-browser-helpers/sw-utils.js"></script>
+
+  <!-- SW Helper -->
+  <script src="/node_modules/sw-testing-helpers/browser/mocha-utils.js"></script>
+  <script src="/node_modules/sw-testing-helpers/browser/sw-utils.js"></script>
 
   <script src="/test/libs/is-supported.js"></script>
   <script src="/test/libs/stubs/base-stub.js"></script>
@@ -60,64 +63,16 @@
 
   <script>
     (function() {
-      // To automate the tests with selenium, we need a way
-      // to inform selenium when the tests are completed and
-      // pass results back.
-      // This is done by waiting for window.testsuite to be defined.
-      // This is done in publishTestResults();
-      var passedTests = [];
-      var failedTests = [];
-
-      // This is a helper method that simplifies the test
-      // results to an object that can be JSON.string-ified.
-      function getFriendlyTestResult(testResult) {
-        return {
-          title: testResult.title,
-          state: testResult.state
-        };
-      };
-
-      // Once this is called, automated tests should be
-      // able to read window.testsuite and get test results.
-      function publishTestResults() {
-        window.testsuite = {
-          testResults: {
-            passed: passedTests,
-            failed: failedTests
-          }
-        };
-      }
-
-      // should adds objects to primitives which requires this call to be made
+      // should adds objects to protyptes which requires this call to be made
       // before any tests are run.
       window.chai.should();
 
-      // We unregister all service workers, clear all caches and remove
-      // All registered iframes
-      beforeEach(function() {
-        return window.goog.SWHelper.cleanState();
-      });
+      // 'Services' is injected in Firefox for enabling notification permission
+      mocha.globals(['Services']);
 
-      // Clean up after the final test has finished
-      after(function() {
-        return window.goog.SWHelper.cleanState();
-      });
-
-      mocha.checkLeaks();
-      // Services is a global that is set if we use Firefox's API to disable
-      // permission prompts
-      mocha.globals(['goog', 'Services']);
-      var runResults = mocha.run();
-      // pass, fail and end events allow up to capture results and
-      // determine when to publish test results
-      runResults.on('pass', function(test) {
-        passedTests.push(getFriendlyTestResult(test));
-      })
-      .on('fail', function(test) {
-        failedTests.push(getFriendlyTestResult(test));
-      })
-      .on('end', function() {
-        publishTestResults();
+      window.goog.mochaUtils.startInBrowserMochaTests()
+      .then(results => {
+        window.testsuite = results;
       });
     })();
   </script>
