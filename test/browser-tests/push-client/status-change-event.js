@@ -48,56 +48,65 @@ describe('Test \'statuschange\' event', function() {
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: default, subscription: null)', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.permissionState).to.equal('default');
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('default');
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
 
-      done();
+        done();
+      });
     });
   });
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: blocked, subscription: null)', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.permissionState).to.equal('denied');
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('denied');
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
 
-      done();
+        done();
+      });
     });
   });
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: granted, subscription: null)', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.permissionState).to.equal('granted');
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('granted');
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
 
-      done();
+        done();
+      });
     });
   });
 
   it('should dispatch a \'statuschange\' event when the constructor is created (permission: granted, subscription: {STUBBED})', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
+
+    let browserSubscription;
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -105,13 +114,15 @@ describe('Test \'statuschange\' event', function() {
       return reg.pushManager.subscribe({userVisibleOnly: true});
     })
     .then(subscription => {
-      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
+      browserSubscription = subscription;
+      return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH);
+    })
+    .then(pushClient => {
       pushClient.addEventListener('statuschange', event => {
         window.chai.expect(event).to.not.equal(null);
         window.chai.expect(event.permissionState).to.equal('granted');
-        window.chai.expect(event.currentSubscription.endpoint).to.equal(subscription.endpoint);
+        window.chai.expect(event.currentSubscription.endpoint).to.equal(browserSubscription.endpoint);
         window.chai.expect(event.isSubscribed).to.equal(true);
-
         done();
       });
     });

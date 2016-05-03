@@ -22,9 +22,12 @@ const SUPPORTED = 'serviceWorker' in navigator &&
     'showNotification' in ServiceWorkerRegistration.prototype;
 
 const ERROR_MESSAGES = {
-  'bad constructor': 'The PushClient constructor expects either service ' +
-    'worker registration or the path to a service worker file and an ' +
-    'optional scope string.',
+  'bad factory': 'The PushClient.createClient() method expects a service ' +
+    'worker path and an option scope string.',
+  'bad constructor': 'The PushClient constructor expects a service ' +
+    'worker registration. Alternatively, you can use ' +
+    'PropelClient.createClient() to create a PropelClient with a service ' +
+    'worker path string and an optional scope string.',
   'redundant worker': 'Worker became redundant'
 };
 
@@ -69,33 +72,21 @@ export default class PushClient extends EventDispatch {
    * obtained in the constructor and a subscriptionChange event will be
    * dispatched.
    *
-   * @param {String} workerUrlOrRegistration - Service worker URL to be
-   *  registered that will receive push events.
-   * @param {String} scope - The scope that the Service worker should be
-   *  registered with.
+   * @param {ServiceWorkerRegistration} registration - Registration of a
+   *  service worker to be used for push messages
    */
-  constructor(workerUrlOrRegistration, scope) {
+  constructor(registration) {
     super();
 
     if (!PushClient.isSupported()) {
       throw new Error('Your browser does not support the web push API');
     }
 
-    if (workerUrlOrRegistration instanceof ServiceWorkerRegistration) {
-      this._registrationPromise = Promise.resolve(workerUrlOrRegistration);
-    } else {
-      const url = workerUrlOrRegistration;
-      if (!url || typeof url !== 'string' || url.length === 0) {
-        throw new Error(ERROR_MESSAGES['bad constructor']);
-      }
-
-      let options;
-      if (scope) {
-        options = {scope};
-      }
-      this._registrationPromise = navigator.serviceWorker
-        .register(workerUrlOrRegistration, options);
+    if (!(registration instanceof ServiceWorkerRegistration)) {
+      throw new Error(ERROR_MESSAGES['bad constructor']);
     }
+
+    this._registration = registration;
 
     // It is possible for the subscription to change in between page loads. We
     // should re-send the existing subscription when we initialise (if there is
@@ -147,12 +138,14 @@ export default class PushClient extends EventDispatch {
       this.dispatchEvent(new PushClientEvent('requestingsubscription'));
 
       // Make sure we have a service worker and subscribe for push
-      return this._registrationPromise;
+      return this._registration;
     })
     .then(registrationReady)
     .then(registration => {
       return registration.pushManager.subscribe({userVisibleOnly: true})
-        .catch(err => {
+      .catch(err => {
+        return this._dispatchStatusUpdate()
+        .then(() => {
           // This is provide a more helpful message when work with Chrome + GCM
           if (err.message === 'Registration failed - no sender id provided') {
             throw new SubscriptionFailedError('nogcmid');
@@ -160,6 +153,7 @@ export default class PushClient extends EventDispatch {
             throw err;
           }
         });
+      });
     })
     .then(subscription => {
       this._dispatchStatusUpdate();
@@ -175,12 +169,12 @@ export default class PushClient extends EventDispatch {
    *  resolves once the user is unsubscribed.
    */
   unsubscribe() {
-    return this.getRegistration()
-    .then(registration => {
-      if (registration) {
-        return registration.pushManager.getSubscription();
-      }
-    })
+    const registration = this.getRegistration();
+    if (!registration) {
+      return this._dispatchStatusUpdate();
+    }
+
+    return registration.pushManager.getSubscription()
     .then(subscription => {
       if (subscription) {
         return subscription.unsubscribe();
@@ -200,11 +194,11 @@ export default class PushClient extends EventDispatch {
   /**
    * Get the registration of the service worker being used for push.
    *
-   * @return {Promise<ServiceWorkerRegistration>} A Promise that
-   *  resolves to either a ServiceWorkerRegistration or to null if none.
+   * @return {ServiceWorkerRegistration} The ServiceWorkerRegistration used
+   * for push messaging.
    */
   getRegistration() {
-    return this._registrationPromise;
+    return this._registration;
   }
 
   /**
@@ -217,14 +211,12 @@ export default class PushClient extends EventDispatch {
    *  a PushSubscription or null.
    */
   getSubscription() {
-    return this.getRegistration()
-    .then(registration => {
-      if (!registration) {
-        return null;
-      }
+    const registration = this.getRegistration();
+    if (!registration) {
+      return Promise.resolve(null);
+    }
 
-      return registration.pushManager.getSubscription();
-    });
+    return registration.pushManager.getSubscription();
   }
 
   /**
@@ -251,6 +243,33 @@ export default class PushClient extends EventDispatch {
         }
         return resolvedState;
       });
+    });
+  }
+
+  /**
+   * If you want a quick way to create Propel Client this factory method
+   * just takes a service worker file path and optional scope and
+   * returns promise that resolves to a PropelClient or errors if there
+   * was a problem.
+   * @param {String} swPath - This needs to be the path of a service worker
+   * that will be used to handle push messages,
+   * @param {String} scope - Optional parameter that can be used to define
+   * the scope of a service worker.
+   * @return {Promise<PropelClient>} Resolves if the service worker could be
+   * registered successfully
+   */
+  static createClient(swPath, scope) {
+    if (!swPath || typeof swPath !== 'string' || swPath.length === 0) {
+      return Promise.reject(new Error(ERROR_MESSAGES['bad factory']));
+    }
+
+    let options;
+    if (scope) {
+      options = {scope};
+    }
+    return navigator.serviceWorker.register(swPath, options)
+    .then(reg => {
+      return new PushClient(reg);
     });
   }
 

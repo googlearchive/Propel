@@ -45,101 +45,115 @@ describe('Test requestPermission()', function() {
   // We can't surpress a dialog after requesting it so force stub
   it('should dispatch a \'requestingpermission\' event when the permission state is default', function(done) {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('requestingpermission', () => {
-      done();
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('requestingpermission', () => {
+        done();
+      });
+      pushClient.requestPermission();
     });
-    pushClient.requestPermission();
   });
 
   // We can't surpress a dialog after requesting it so force stub
   it('should resolve to default', function() {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    return pushClient.requestPermission()
-    .then(permissionState => {
-      permissionState.should.equal('default');
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.requestPermission()
+      .then(permissionState => {
+        permissionState.should.equal('default');
+      });
     });
   });
 
   it('should not dispatch a \'requestingpermission\' event because permission is granted', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('requestingpermission', () => {
-      done(new Error('This should not be called when the state is granted'));
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('requestingpermission', () => {
+        done(new Error('This should not be called when the state is granted'));
+      });
+      pushClient.requestPermission()
+      .then(() => done());
     });
-    pushClient.requestPermission()
-    .then(() => done());
   });
 
   it('should resolve to permission state of granted', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    return pushClient.requestPermission()
-    .then(permissionState => {
-      permissionState.should.equal('granted');
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.requestPermission()
+      .then(permissionState => {
+        permissionState.should.equal('granted');
+      });
     });
   });
 
   it('should not dispatch a \'requestingpermission\' event because permission is blocked', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('requestingpermission', () => {
-      done(new Error('This should not be called'));
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('requestingpermission', () => {
+        done(new Error('This should not be called'));
+      });
+      return pushClient.requestPermission()
+      .then(() => done());
     });
-    pushClient.requestPermission()
-    .then(() => done());
   });
 
   it('should resolve to blocked', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.requestPermission()
-    .then(permissionState => {
-      permissionState.should.equal('denied');
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.requestPermission()
+      .then(permissionState => {
+        permissionState.should.equal('denied');
+      });
     });
   });
 
   it('should dispatch a \'statuschange\' event when called directly', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
 
     let counter = 0;
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      counter++;
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        counter++;
 
-      if (counter < 2) {
-        return;
-      }
+        if (counter < 2) {
+          return;
+        }
 
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.permissionState).to.equal('granted');
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('granted');
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
 
-      done();
+        done();
+      });
+      pushClient.requestPermission();
     });
-    pushClient.requestPermission();
   });
 });

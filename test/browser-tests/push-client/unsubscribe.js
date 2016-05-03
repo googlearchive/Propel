@@ -28,10 +28,6 @@ describe('Test unsubscribe()', function() {
   }
 
   const EMPTY_SW_PATH = '/test/browser-tests/push-client/empty-sw.js';
-  const NON_EXISTANT_SW_PATH = '/test/browser-tests/push-client/doesnt-exist.js';
-  const EXAMPLE_SUBSCRIPTION = {
-    endpoint: '/endpoint'
-  };
 
   let stateStub;
 
@@ -49,8 +45,9 @@ describe('Test unsubscribe()', function() {
 
   it('should unsubscribe the current subscription', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -60,15 +57,20 @@ describe('Test unsubscribe()', function() {
     .then(subscription => {
       window.chai.expect(subscription).to.not.equal(null);
 
-      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-      return pushClient.unsubscribe();
+      return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+      .then(pushClient => {
+        return pushClient.unsubscribe();
+      });
     });
   });
 
   it('should unsubscribe the current subscription and dispatch a statuschange event', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
+
+    let statuschangeCounter = 0;
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -78,9 +80,9 @@ describe('Test unsubscribe()', function() {
     .then(subscription => {
       window.chai.expect(subscription).to.not.equal(null);
 
-      let statuschangeCounter = 0;
-
-      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
+      return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH);
+    })
+    .then(pushClient => {
       pushClient.addEventListener('statuschange', event => {
         statuschangeCounter++;
         if (statuschangeCounter < 2) {
@@ -93,71 +95,108 @@ describe('Test unsubscribe()', function() {
 
         done();
       });
-      pushClient.unsubscribe();
+      return pushClient.unsubscribe();
     });
-  });
-
-  it('should reject promise when no registration is available', function(done) {
-    stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-
-    const pushClient = new window.goog.propel.PropelClient(NON_EXISTANT_SW_PATH);
-    pushClient.unsubscribe()
-    .then(() => done(new Error('Expected an error to be thrown when no registration')))
-    .catch(() => done());
-  });
-
-  it('should dispatch a status event when no registration is available', function(done) {
-    stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-
-    let statuschangeCounter = 0;
-
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      statuschangeCounter++;
-      if (statuschangeCounter < 2) {
-        return;
-      }
-
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
-
-      done();
-    });
-    pushClient.unsubscribe();
-  });
-
-  it('should resolve promise when no subscription is available', function() {
-    stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
-
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    return pushClient.unsubscribe();
   });
 
   it('should dispatch a status event when no subscription is available', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
 
     let statuschangeCounter = 0;
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      statuschangeCounter++;
-      if (statuschangeCounter < 2) {
-        return;
-      }
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        statuschangeCounter++;
+        if (statuschangeCounter < 2) {
+          return;
+        }
 
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
 
-      done();
+        done();
+      });
+      return pushClient.unsubscribe();
     });
-    pushClient.unsubscribe();
+  });
+
+  it('should resolve promise when no subscription is available', function() {
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.NULL_SUBSCRIPTION);
+
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.unsubscribe();
+    });
+  });
+
+  it('should reject promise when getSubscription throws an error', function(done) {
+    stateStub = window.StateStub.getStub(true);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.ERROR_SUBSCRIPTION);
+
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.unsubscribe()
+      .then(() => done(new Error('Shouldnt have resolved')))
+      .catch(() => done());
+    });
+  });
+
+  it('should dispatch a status event when getSubscription throws an error', function(done) {
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.ERROR_SUBSCRIPTION);
+
+    let statuschangeCounter = 0;
+
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        statuschangeCounter++;
+        if (statuschangeCounter < 2) {
+          return;
+        }
+
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
+
+        done();
+      });
+      return pushClient.unsubscribe();
+    });
+  });
+
+  it('should dispatch a status event when no subscription is available', function(done) {
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+
+    let statuschangeCounter = 0;
+
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        statuschangeCounter++;
+        if (statuschangeCounter < 2) {
+          return;
+        }
+
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
+
+        done();
+      });
+      return pushClient.unsubscribe();
+    });
   });
 });

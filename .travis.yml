@@ -32,6 +32,8 @@ before_install:
 install:
   - npm install
   - npm install -g esdoc
+  # Firefox needs Marionette / Wires to work with selenium
+  - ./node_modules/sw-testing-helpers/project/get-marionette.sh
 
 # Read more here: https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
 before_script:
@@ -40,6 +42,4 @@ before_script:
 
 script:
   - npm test
-  - if [[ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_OS_NAME" = "linux" && "$TRAVIS_PULL_REQUEST" = "false" ]]; then
-    ./node_modules/sw-testing-helpers/project/publish-docs.sh master
-  fi
+  - if [[ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_OS_NAME" = "linux" && "$TRAVIS_PULL_REQUEST" = "false" ]]; then ./node_modules/sw-testing-helpers/project/publish-docs.sh master; fi

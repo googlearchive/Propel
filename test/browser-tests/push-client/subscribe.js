@@ -28,9 +28,6 @@ describe('Test subscribe()', function() {
   }
 
   const EMPTY_SW_PATH = '/test/browser-tests/push-client/empty-sw.js';
-  const EXAMPLE_SUBSCRIPTION = {
-    endpoint: '/endpoint'
-  };
 
   let stateStub;
 
@@ -48,142 +45,209 @@ describe('Test subscribe()', function() {
 
   it('should return an error that the user dismissed the notification', function(done) {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.subscribe()
-    .then(() => {
-      done(new Error('This shouldn\'t have resolved'));
-    })
-    .catch(err => {
-      err.message.should.equal('Subscription failed. The user dismissed the notification permission dialog.');
-      done();
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.subscribe()
+      .then(() => {
+        done(new Error('This shouldn\'t have resolved'));
+      })
+      .catch(err => {
+        err.message.should.equal('Subscription failed. The user dismissed the notification permission dialog.');
+        done();
+      });
     });
   });
 
   it('should dispatch a status event if the notification permission is blocked', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
     let eventCounter = 0;
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      eventCounter++;
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        eventCounter++;
 
-      if (eventCounter < 2) {
-        return;
-      }
+        if (eventCounter < 2) {
+          return;
+        }
 
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.permissionState).to.equal('denied');
-      window.chai.expect(event.currentSubscription).to.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(false);
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('denied');
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
 
-      done();
+        done();
+      });
+      console.log('subscribe');
+      return pushClient.subscribe()
+      .then(() => {
+        console.log('subscribe then');
+      })
+      .catch(err => {
+        console.log('subscribe err', err);
+      });
     });
-    pushClient.subscribe();
   });
 
   it('should reject the promise with an error that the user has blocked notifications', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('denied');
-    stateStub.setUpRegistration(null);
+    stateStub.stubNotificationPermissions('denied');
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.subscribe()
-    .then(() => {
-      done(new Error('This shouldn\'t have resolved'));
-    })
-    .catch(err => {
-      err.message.should.equal('Subscription failed. The user denied permission to show notifications.');
-      done();
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.subscribe()
+      .then(() => {
+        done(new Error('This shouldn\'t have resolved'));
+      })
+      .catch(err => {
+        err.message.should.equal('Subscription failed. The user denied permission to show notifications.');
+        done();
+      });
     });
   });
 
   it('should dispatch a status event with the subscription when the permission is granted', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
 
     let eventCounter = 0;
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      eventCounter++;
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        eventCounter++;
 
-      if (eventCounter < 2) {
-        return;
-      }
+        if (eventCounter < 2) {
+          return;
+        }
 
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.permissionState).to.equal('granted');
-      window.chai.expect(event.currentSubscription).to.not.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(true);
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('granted');
+        window.chai.expect(event.currentSubscription).to.not.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(true);
 
-      done();
+        done();
+      });
+      return pushClient.subscribe();
     });
-    pushClient.subscribe();
   });
 
   it('should resolve the promise with a subscription when notifications are granted', function(done) {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.subscribe()
-    .then(subscriptionObject => {
-      window.chai.expect(subscriptionObject).to.not.equal(null);
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.subscribe()
+      .then(subscriptionObject => {
+        window.chai.expect(subscriptionObject).to.not.equal(null);
 
-      done();
-    })
-    .catch(err => {
-      done(err);
+        done();
+      })
+      .catch(err => {
+        done(err);
+      });
+    });
+  });
+
+  it('should reject the promise when subscribe throws an error', function(done) {
+    stateStub = window.StateStub.getStub(true);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.ERROR_SUBSCRIPTION);
+
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.subscribe()
+      .then(() => {
+        done(new Error('This should have rejected'));
+      })
+      .catch(() => done());
+    });
+  });
+
+  it('should dispath a status event when subscribe throws an error', function(done) {
+    stateStub = window.StateStub.getStub(true);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.ERROR_SUBSCRIPTION);
+
+    let eventCounter = 0;
+
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        eventCounter++;
+
+        if (eventCounter < 2) {
+          return;
+        }
+
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.permissionState).to.equal('granted');
+        window.chai.expect(event.currentSubscription).to.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(false);
+
+        done();
+      });
+      return pushClient.subscribe();
     });
   });
 
   it('should dispath events in order, requestingpermission, requestingsubscription and statuschange', function(done) {
     stateStub = window.StateStub.getStub(true);
-    stateStub.setPermissionState('default');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('default');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
 
     let statuschangeCounter = 0;
     let eventTypes = [];
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.addEventListener('statuschange', event => {
-      eventTypes.push(event.type);
 
-      statuschangeCounter++;
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      pushClient.addEventListener('statuschange', event => {
+        eventTypes.push(event.type);
 
-      if (statuschangeCounter < 2) {
-        // Called here so we can guarentee statuschange occurs first
-        // from constructor
-        pushClient.subscribe();
-        return;
-      }
+        statuschangeCounter++;
 
-      window.chai.expect(event).to.not.equal(null);
-      window.chai.expect(event.currentSubscription).to.not.equal(null);
-      window.chai.expect(event.isSubscribed).to.equal(true);
+        if (statuschangeCounter < 2) {
+          // Called here so we can guarentee statuschange occurs first
+          // from constructor
+          pushClient.subscribe();
+          return;
+        }
 
-      eventTypes.length.should.equal(4);
-      eventTypes[0].should.equal('statuschange');
-      eventTypes[1].should.equal('requestingpermission');
-      eventTypes[2].should.equal('requestingsubscription');
-      eventTypes[3].should.equal('statuschange');
+        window.chai.expect(event).to.not.equal(null);
+        window.chai.expect(event.currentSubscription).to.not.equal(null);
+        window.chai.expect(event.isSubscribed).to.equal(true);
 
-      done();
-    });
-    pushClient.addEventListener('requestingpermission', event => {
-      stateStub.setPermissionState('granted');
+        eventTypes.length.should.equal(4);
+        eventTypes[0].should.equal('statuschange');
+        eventTypes[1].should.equal('requestingpermission');
+        eventTypes[2].should.equal('requestingsubscription');
+        eventTypes[3].should.equal('statuschange');
 
-      eventTypes.push(event.type);
-    });
-    pushClient.addEventListener('requestingsubscription', event => {
-      eventTypes.push(event.type);
+        done();
+      });
+      pushClient.addEventListener('requestingpermission', event => {
+        stateStub.stubNotificationPermissions('granted');
+
+        eventTypes.push(event.type);
+      });
+      pushClient.addEventListener('requestingsubscription', event => {
+        eventTypes.push(event.type);
+      });
     });
   });
 });
