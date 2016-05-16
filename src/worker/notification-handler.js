@@ -56,8 +56,8 @@ export default function notificationHandler(event, defaults = {}) {
 
   const options = Object.assign({}, defaults, data.notification);
 
-  if (!options.title || !options.body) {
-    console.log('WARN: Notification data found, but no title or body provided');
+  if (!options.title) {
+    console.log('WARN: Notification data found, but no title provided');
     return false;
   }
 
