@@ -5,22 +5,28 @@
     <div class="footer-col-wrapper">
       <div class="footer-col footer-col-1">
         <ul class="contact-list">
-          {% if site.github_link %}
-          <li>
-            {% include icon-github.html link=site.github_link %}
-          </li>
-          {% endif %}
+          <li><a href="{{ site.github.repository_url }}">Projects Github Page</a></li>
+          <li><a href="{{ site.github.issues_url | replace: 'http://', 'https://' }}">Raise an issue</a></li>
         </ul>
       </div>
 
       <div class="footer-col footer-col-2">
-        <ul class="social-media-list">
 
-        </ul>
       </div>
 
       <div class="footer-col footer-col-3">
-        <p>{{ site.description }}</p>
+        <ul class="social-media-list">
+          {% if site.twitter_username %}
+          <li>
+            {% include icon-twitter.html username=site.twitter_username %}
+          </li>
+          {% endif %}
+          {% if site.github_username %}
+          <li>
+            {% include icon-github.html username=site.github_username %}
+          </li>
+          {% endif %}
+        </ul>
       </div>
     </div>
 

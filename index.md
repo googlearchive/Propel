@@ -1,35 +1,13 @@
 ---
 layout: default
 ---
-{% assign staticFiles = site.static_files | sort: 'path' | reverse%}
-{% assign currentTopLevelName = '' %}
-{% assign currentVersionName = '' %}
 
-{% for file in staticFiles %}
-  {% if file.extname != '.html' %}
-    {% continue %}
-  {% endif %}
+# Releases
+{% for release in site.data.gendoclist.releases %}
+[View the docs for {{ release }}]({{ release | prepend: "/docs/releases/" | prepend: site.github.url | replace: 'http://', 'https://' }})
+{% endfor %}
 
-  {% comment %}
-    The first forward slash in the path means pathParts[0] == ''
-  {% endcomment %}
-  {% assign pathParts = file.path | split: '/' %}
-  {% assign topLevelGroup = pathParts[1] %}
-
-  {% if currentTopLevelName != topLevelGroup %}
-{% assign currentTopLevelName = topLevelGroup %}
-{% if currentTopLevelName == 'master' %}
-  <h1>Master Branch</h1>
-{% elsif currentTopLevelName == 'releases' %}
-  <h1>Releases</h1>
-{% endif %}
-  {% endif %}
-
-{% if currentTopLevelName == 'master' and pathParts[2] == 'index.html' %}
-  <p><a href="{{ file.path | prepend: site.baseurl }}">View the Docs for the Master Branch</a></p>
-{% elsif currentTopLevelName == 'releases' and currentVersionName != pathParts[2] %}
-  {% assign currentVersionName = pathParts[2] and pathParts[3] == 'index.html' %}
-  <p><a href="{{ file.path | prepend: site.baseurl }}">View the Docs for the {{ pathParts[2] }} release</a></p>
-{% endif %}
-
+# Github Branches
+{% for doc in site.data.gendoclist.docs %}
+[View the docs for {{doc | capitalize}}]({{ doc | prepend: "/docs/" | prepend: site.github.url | replace: 'http://', 'https://' }})
 {% endfor %}

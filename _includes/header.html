@@ -2,7 +2,10 @@
 
   <div class="wrapper">
 
-    <a class="site-title" href="{{ site.baseurl }}/">{{ site.title }}</a>
+    <div class="site-title">
+      <p><a href="{{ site.github.url | replace: 'http://', 'https://' }}">{{ site.github.project_title }}</a></p>
+      <p>{{ site.github.project_tagline }}</p>
+    </div>
 
     <nav class="site-nav">
       <a href="#" class="menu-icon">
@@ -16,7 +19,7 @@
       <div class="trigger">
         {% for my_page in site.pages %}
           {% if my_page.title %}
-          <a class="page-link" href="{{ my_page.url | prepend: site.baseurl }}">{{ my_page.title }}</a>
+          <a class="page-link" href="{{ my_page.url | prepend: site.github.url | replace: 'http://', 'https://' }}">{{ my_page.title }}</a>
           {% endif %}
         {% endfor %}
       </div>
