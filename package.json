@@ -1,6 +1,6 @@
 {
   "name": "propel-web-push",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A library to support developers implementing Web Push notifications",
   "scripts": {
     "publish-release": "./node_modules/sw-testing-helpers/project/publish-release.sh",
