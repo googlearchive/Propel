@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../">
+  <title data-ice="title">Usage</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container manual-root" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  <a href="./manual/index.html" data-ice="manualHeaderLink">Manual</a>
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div class="manual-toc-root">
+  
+<div data-ice="manual" data-toc-name="installation">
+    <h1 class="manual-toc-title"><a href="manual/installation.html" data-ice="title">Installation</a></h1>
+    <ul class="manual-toc">
+      
+    <li data-ice="manualNav" class="indent-h1"><span class="manual-dot"></span><a href="manual/installation.html#npm" data-ice="link">NPM</a></li>
+<li data-ice="manualNav" class="indent-h1"><span class="manual-dot"></span><a href="manual/installation.html#bower" data-ice="link">Bower</a></li>
+</ul>
+  </div>
+<div data-ice="manual" data-toc-name="usage">
+    <h1 class="manual-toc-title"><a href="manual/usage.html" data-ice="title">Usage</a></h1>
+    <ul class="manual-toc">
+      
+    <li data-ice="manualNav" class="indent-h1"><span class="manual-dot"></span><a href="manual/usage.html#adding-propel-to-your-web-app" data-ice="link">Adding Propel to Your Web App</a></li>
+<li data-ice="manualNav" class="indent-h2"><span class="manual-dot"></span><a href="manual/usage.html#use-pre-built" data-ice="link">Use Pre-Built</a></li>
+<li data-ice="manualNav" class="indent-h2"><span class="manual-dot"></span><a href="manual/usage.html#use-source" data-ice="link">Use Source</a></li>
+<li data-ice="manualNav" class="indent-h1"><span class="manual-dot"></span><a href="manual/usage.html#propelclient-constructor" data-ice="link">PropelClient Constructor</a></li>
+<li data-ice="manualNav" class="indent-h2"><span class="manual-dot"></span><a href="manual/usage.html#service-worker-file" data-ice="link">Service Worker File</a></li>
+<li data-ice="manualNav" class="indent-h2"><span class="manual-dot"></span><a href="manual/usage.html#use-an-existing-registration" data-ice="link">Use an Existing Registration</a></li>
+</ul>
+  </div>
+<div data-ice="manual" data-toc-name="reference">
+    <h1 class="manual-toc-title"><a href="identifiers.html" data-ice="title">Reference</a></h1>
+    <ul class="manual-toc">
+      
+    <li data-ice="manualNav" class="indent-h1"><span class="manual-dot"></span><a href="identifiers.html#class" data-ice="link">Class</a></li>
+<li data-ice="manualNav" class="indent-h1"><span class="manual-dot"></span><a href="identifiers.html#function" data-ice="link">Function</a></li>
+</ul>
+  </div>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div class="github-markdown">
+  <div class="manual-breadcrumb-list">
+    <a href="./manual/./index.html">Manual</a>
+    <span>&#xBB;</span>
+    <span data-ice="title">Usage</span>
+  </div>
+  <div data-ice="content"><h1 id="adding-propel-to-your-web-app">Adding Propel to Your Web App</h1>
+<p>There are two options for adding Propel to your Web App.</p>
+<p>The simplest approach is to use the pre-built versions of Propel which are
+minified and transpiled.</p>
+<p>If you have a build process to work with ES2015 JavaScrtipt you might
+want to try using the Propel source by importing the library.</p>
+<h2 id="use-pre-built">Use Pre-Built</h2>
+<p>Each release of Propel will come with transpiled and minified builds of the
+scripts which you can add to your web app like so:</p>
+<pre><code class="lang-html"><code class="source-code prettyprint">&lt;script src=&quot;/node_modules/propel-web-push/dist/propel-client.js&quot;&gt;&lt;/script&gt;</code>
+</code></pre>
+<h2 id="use-source">Use Source</h2>
+<p>To use the source import the PropelClient in your JavaScriptlike so:</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">import PropelClient from &apos;/node_modules/propel-web-push/src/client/push-client&apos;;
+
+// Make use of PropelClient as usual - See next section</code>
+</code></pre>
+<h1 id="propelclient-constructor">PropelClient Constructor</h1>
+<p>There are two ways to construct a PropelClient:</p>
+<ol>
+<li><p>Pass in the path of a service worker file. Propel will register
+the service worker and use it for push notifications.</p>
+</li>
+<li><p>If an existing service worker is registered, that can be used for
+push notifications by passing the registration into the
+constructor of PropelClient.</p>
+</li>
+</ol>
+<p>Below is an example of these approaches.</p>
+<h2 id="service-worker-file">Service Worker File</h2>
+<p>The simplest way to use Propel in your web app is to pass in the path
+to your service worker like so:</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">var PropelClient = window.goog.propel.PropelClient;
+
+// Check if push is supported by the current browsers
+if (PropelClient.supported()) {
+  // Initialise Push Client
+  var propelClient = new PropelClient(&apos;/sw.js&apos;);
+
+  // TODO: Use propelClient
+}</code>
+</code></pre>
+<p>If you want to create a service worker file specifically for push notifications
+you can pass in a scope variable to restrict it&apos;s use.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">var propelClient = new PropelClient(&apos;/push-sw.js&apos;, &apos;/.goog.propel.sw/&apos;);</code>
+</code></pre>
+<p>If you aren&apos;t sure how the scope affects a service worker then <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers#Registering_your_worker">check out
+MDN&apos;s docs on Registering a service worker</a>.</p>
+<h2 id="use-an-existing-registration">Use an Existing Registration</h2>
+<p>To use an existing service worker registration, just pass it into the
+constructor of PropelClient.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">if (&apos;serviceWorker&apos; in navigator) {
+  navigator.serviceWorker.register(&apos;/sw.js&apos;)
+  .then(function(reg) {
+    if (PropelClient.supported()) {
+      var propelClient = new PropelClient(reg);
+
+      // TODO: Use propelClient
+    }
+  })
+  .catch(function(error) {
+    // registration failed
+    console.log(&apos;Registration failed with &apos; + error);
+  });
+};</code>
+</code></pre>
+</div>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.5)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
