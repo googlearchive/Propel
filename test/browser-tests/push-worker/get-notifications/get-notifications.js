@@ -23,18 +23,97 @@
 'use strict';
 
 describe('Test PushWorker.getNotifications()', function() {
+  const swUtils = window.goog.swUtils;
   const serviceWorkersFolder = '/test/browser-tests/push-worker/get-notifications/serviceworkers';
 
-  it('should pass all get notification tests', function() {
-    this.timeout(60000);
-    const loadedSW = serviceWorkersFolder + '/get-notifications.js';
-    return window.goog.mochaUtils.startServiceWorkerMochaTests(loadedSW)
-    .then(testResults => {
-      if (testResults.failed.length > 0) {
-        const errorMessage = window.goog.mochaUtils
-          .prettyPrintErrors(loadedSW, testResults);
-        throw new Error(errorMessage);
-      }
+  let stateStub;
+
+  beforeEach(function() {
+    if (stateStub) {
+      stateStub.restore();
+    }
+  });
+
+  after(function() {
+    if (stateStub) {
+      stateStub.restore();
+    }
+  });
+
+  const sendMessage = (swController, testName) => {
+    return new Promise(function(resolve, reject) {
+      var messageChannel = new MessageChannel();
+      messageChannel.port1.onmessage = function(event) {
+        if (event.data.error) {
+          reject(event.data.error);
+        } else {
+          resolve(event.data);
+        }
+      };
+
+      swController.postMessage(testName,
+        [messageChannel.port2]);
     });
+  };
+
+  const performTest = loadedSW => {
+    return swUtils.activateSW(loadedSW)
+    .then(iframe => {
+      return iframe.contentWindow.navigator.serviceWorker.ready
+      .then(registration => {
+        return registration.active;
+      })
+      .then(sw => {
+        return sendMessage(sw, 'start-tests');
+      })
+      .then(msgResponse => {
+        if (!msgResponse.testResults) {
+          throw new Error('Unexpected test result: ' + msgResponse);
+        }
+
+        // Print test failues
+        let testResults = msgResponse.testResults;
+        if (testResults.failed.length > 0) {
+          const failedTests = testResults.failed;
+          let errorMessage = 'Issues in ' + loadedSW + '.\n\n' + loadedSW +
+            ' had ' + testResults.failed.length + ' test failures.\n';
+          errorMessage += '------------------------------------------------\n';
+          errorMessage += failedTests.map((failedTest, i) => {
+            return `[Failed Test ${i + 1}]\n` +
+                   `    - ${failedTest.parentTitle} > ${failedTest.title}\n` +
+                   `        ${failedTest.err.message}\n`;
+          }).join('\n');
+          errorMessage += '------------------------------------------------\n';
+          throw new Error(errorMessage);
+        }
+      });
+    });
+  };
+
+  it('should pass all get notification tests when permission is default', function() {
+    this.timeout(60000);
+
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('default');
+
+    performTest(serviceWorkersFolder + '/default-get-notifications.js');
+  });
+
+  it('should pass all get notification tests when permission is granted', function() {
+    this.timeout(60000);
+
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('granted');
+
+    performTest(serviceWorkersFolder + '/granted-get-notifications.js');
+  });
+
+  it('should pass all get notification tests when permission is denied', function() {
+    this.timeout(60000);
+
+    stateStub = window.StateStub.getStub();
+    stateStub.stubNotificationPermissions('denied');
+
+    performTest(serviceWorkersFolder + '/denied-get-notifications.js');
   });
 });

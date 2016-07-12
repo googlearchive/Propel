@@ -65,6 +65,22 @@ describe('Test Propel', function() {
         const ffProfile = new seleniumFirefox.Profile();
         ffProfile.setPreference('security.turn_off_all_security_so_that_viruses_can_take_over_this_computer', true);
         browserInfo.getSeleniumOptions().setProfile(ffProfile);
+      } else if (browserInfo.getSeleniumBrowserId() === 'chrome') {
+        /* eslint-disable camelcase */
+        const chromePreferences = {
+          profile: {
+            content_settings: {
+              exceptions: {
+                notifications: {}
+              }
+            }
+          }
+        };
+        chromePreferences.profile.content_settings.exceptions.notifications[testServerURL + ',*'] = {
+          setting: 1
+        };
+        browserInfo.getSeleniumOptions().setUserPreferences(chromePreferences);
+        /* eslint-enable camelcase */
       }
 
       globalDriverReference = browserInfo.getSeleniumDriver();
@@ -102,6 +118,13 @@ describe('Test Propel', function() {
 
   const automatedBrowsers = automatedBrowserTesting.getDiscoverableBrowsers();
   automatedBrowsers.forEach(browserInfo => {
+    if (browserInfo.getSeleniumBrowserId() === 'firefox' &&
+      browserInfo.getReleaseName() === 'beta') {
+      // Skip V47 of Firefox due to executeScript issue.
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1274639
+      return;
+    }
+
     queueUnitTest(browserInfo);
   });
 });

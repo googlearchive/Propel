@@ -29,17 +29,19 @@ describe('Test PushClient Constructor', function() {
 
   const EMPTY_SW_PATH = '/test/browser-tests/push-client/empty-sw.js';
   const ERROR_MESSAGES = {
-    'bad constructor': 'The PushClient constructor expects either service ' +
-      'worker registration or the path to a service worker file and an ' +
-      'optional scope string.',
+    'bad factory': 'The PushClient.createClient() method expects a service ' +
+      'worker path and an option scope string.',
+    'bad constructor': 'The PushClient constructor expects a service ' +
+      'worker registration. Alternatively, you can use ' +
+      'PropelClient.createClient() to create a PropelClient with a service ' +
+      'worker path string and an optional scope string.',
     'redundant worker': 'Worker became redundant'
   };
 
   const getUrlAndScope = function(client) {
-    return client.getRegistration().then(reg => {
-      const sw = reg.installing || reg.waiting || reg.active;
-      return {url: sw.scriptURL, scope: reg.scope};
-    });
+    const reg = client.getRegistration();
+    const sw = reg.installing || reg.waiting || reg.active;
+    return Promise.resolve({url: sw.scriptURL, scope: reg.scope});
   };
 
   it('should throw an error for no constructor arguments', function() {
@@ -77,22 +79,18 @@ describe('Test PushClient Constructor', function() {
     }).to.throw(ERROR_MESSAGES['bad constructor']);
   });
 
-  it('should be able to create a new push client with just a workerUrl', function() {
+  it('should throw when testing the factory method API on the constructor, path', function() {
+    window.chai.expect(() => {
+      /* eslint no-unused-vars: 0 */
+      var client = new window.goog.propel.PropelClient('/sw.js');
+    }).to.throw(ERROR_MESSAGES['bad constructor']);
+  });
+
+  it('should throw when testing the factory method API on the constructor, path + scope', function() {
     window.chai.expect(() => {
       /* eslint no-unused-vars: 0 */
       var client = new window.goog.propel.PropelClient('/sw.js', null);
-    }).not.to.throw();
-  });
-
-  it('should be able to create a new push client with a workerUrl and scope', function(done) {
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH, './push-service');
-
-    getUrlAndScope(pushClient).then(result => {
-      window.chai.expect(result.url).to.contain(EMPTY_SW_PATH);
-      window.chai.expect(result.scope).to.contain('/test/browser-tests/push-service');
-
-      done();
-    }).catch(done);
+    }).to.throw(ERROR_MESSAGES['bad constructor']);
   });
 
   it('should be able to create a new push client with a service worker registration', function(done) {

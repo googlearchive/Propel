@@ -28,10 +28,6 @@ describe('Test getSubscription()', function() {
   }
 
   const EMPTY_SW_PATH = '/test/browser-tests/push-client/empty-sw.js';
-  const NON_EXISTANT_SW_PATH = '/test/browser-tests/push-client/doesnt-exist.js';
-  const EXAMPLE_SUBSCRIPTION = {
-    endpoint: '/endpoint'
-  };
 
   let stateStub;
 
@@ -49,19 +45,25 @@ describe('Test getSubscription()', function() {
 
   it('should return null when the user isn\'t subscribed', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setUpRegistration(null);
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.NULL_SUBSCRIPTION);
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    return pushClient.getSubscription()
-    .then(subscription => {
-      window.chai.expect(subscription).to.equal(null);
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.getSubscription()
+      .then(subscription => {
+        window.chai.expect(subscription).to.equal(null);
+      });
     });
   });
 
   it('should return a subscription when the user is subscribed', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setPermissionState('granted');
-    stateStub.setUpRegistration(EXAMPLE_SUBSCRIPTION);
+    stateStub.stubNotificationPermissions('granted');
+    stateStub.stubSWRegistration();
+    stateStub.stubSubscription(stateStub.VALID_SUBSCRIPTION);
+
+    let browserSubscription;
 
     // Subscribe before we initialise propel to see if it picks up the subscription
     return navigator.serviceWorker.register(EMPTY_SW_PATH)
@@ -69,36 +71,31 @@ describe('Test getSubscription()', function() {
       return reg.pushManager.subscribe({userVisibleOnly: true});
     })
     .then(subscription => {
-      const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
+      browserSubscription = subscription;
+      return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH);
+    })
+    .then(pushClient => {
       return pushClient.getSubscription()
       .then(innerSubscription => {
-        window.chai.expect(innerSubscription.endpoint).to.equal(subscription.endpoint);
+        window.chai.expect(innerSubscription.endpoint).to.equal(browserSubscription.endpoint);
       });
     });
   });
 
   it('should manage a failing pushManager.getSubscription() call', function(done) {
     stateStub = window.StateStub.getStub(true);
-    // Empty function will caused an error to be throw
-    stateStub.setUpRegistration();
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    pushClient.getSubscription()
-    .then(() => {
-      done(new Error('getSubscription should have thrown an error'));
-    })
-    .catch(err => {
-      err.message.should.equal('Test Generated Error');
-      done();
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      return pushClient.getSubscription()
+      .then(() => {
+        done(new Error('getSubscription should have thrown an error'));
+      })
+      .catch(err => {
+        err.message.should.equal('Test Generated Error');
+        done();
+      });
     });
-  });
-
-  it('should reject the promise when no registration is set', function(done) {
-    stateStub = window.StateStub.getStub();
-
-    const pushClient = new window.goog.propel.PropelClient(NON_EXISTANT_SW_PATH);
-    pushClient.getSubscription()
-    .then(() => done(new Error('getSubscription should reject when no registration is available')))
-    .catch(() => done());
   });
 });

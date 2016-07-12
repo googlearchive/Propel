@@ -18,24 +18,29 @@
 
 /* eslint-env browser */
 
-const DEFAULT_PERMISSION_STATE = 'default';
-
 class BaseStateStub {
   constructor() {
-    this.setPermissionState(DEFAULT_PERMISSION_STATE);
-    this._currentRegistration = null;
+    this.ERROR_REGISTRATION = 0;
+
+    this.ERROR_SUBSCRIPTION = 0;
+    this.NULL_SUBSCRIPTION = 1;
+    this.VALID_SUBSCRIPTION = 2;
   }
 
   restore() {
     throw new Error('restore() must be overriden');
   }
 
-  setPermissionState() {
-    throw new Error('setPermissionState() must be overriden');
+  stubNotificationPermissions() {
+    throw new Error('stubNotificationPermissions() must be overriden');
   }
 
-  setUpRegistration() {
-    throw new Error('setUpRegistration() must be overriden');
+  stubSWRegistration() {
+    throw new Error('stubSWRegistration() must be overriden');
+  }
+
+  stubSubscription() {
+    throw new Error('stubSubscription() must be overriden');
   }
 }
 

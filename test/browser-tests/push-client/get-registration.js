@@ -43,26 +43,13 @@ describe('Test getRegistration()', function() {
     }
   });
 
-  it('should reject due to a bad registration', function(done) {
-    stateStub = window.StateStub.getStub();
-
-    const pushClient = new window.goog.propel.PropelClient('/non-existant/sw.js');
-    pushClient.getRegistration()
-    .then(() => {
-      done(new Error('getRegistration should reject for a bad SW'));
-    })
-    .catch(() => {
-      done();
-    });
-  });
-
   it('should resolve with a registration', function() {
     stateStub = window.StateStub.getStub();
-    stateStub.setUpRegistration(null);
+    stateStub.stubSWRegistration();
 
-    const pushClient = new window.goog.propel.PropelClient(EMPTY_SW_PATH);
-    return pushClient.getRegistration()
-    .then(reg => {
+    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
+    .then(pushClient => {
+      const reg = pushClient.getRegistration();
       window.chai.expect(reg).to.not.equal(null);
     });
   });

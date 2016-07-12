@@ -20,7 +20,6 @@
 const gulp = require('gulp');
 const path = require('path');
 const TestServer = require('sw-testing-helpers').TestServer;
-const mocha = require('gulp-mocha');
 
 gulp.task('test:manual', function() {
   const testServer = new TestServer();
@@ -28,12 +27,4 @@ gulp.task('test:manual', function() {
   .then(portNumber => {
     console.log('http://localhost:' + portNumber);
   });
-});
-
-gulp.task('test:automated', ['default'], function() {
-  // This task requires you to have chrome driver in your path
-  // You can do this with:
-  // npm install -g chromedriver
-  return gulp.src('test/automated-suite.js', {read: false})
-    .pipe(mocha());
 });

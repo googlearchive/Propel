@@ -23,75 +23,138 @@ class FullStateStub extends window.BaseStateStub {
   constructor() {
     super();
 
-    this.allStubs = [];
-
-    // Fallbacks for browsers where we can't pre-select the permission dialog
-    const permissionQueryStub = sinon.stub(window.goog.propel.PropelClient,
-      'getPermissionState',
-      () => {
-        return Promise.resolve(this._currentPermission);
-      }
-    );
-
-    // Notification.requestPermission
-    const permissionRequestStub = sinon.stub(Notification,
-      'requestPermission',
-      cb => {
-        cb(this._currentPermission);
-      });
-
-    // navigator.serviceWorker.register
-    const registerStub = sinon.stub(
-      navigator.serviceWorker, 'register', (swurl, options) => {
-        if (this._currentRegistration === null) {
-          return Promise.reject(new Error('No valid SW registered'));
-        }
-
-        if (this._currentRegistration && options && options.scope) {
-          this._currentRegistration.scope = options.scope;
-        }
-        return Promise.resolve(this._currentRegistration);
-      }
-    );
-
-    // navigator.serviceWorker.getRegistration
-    const getRegistrationStub = sinon.stub(
-      navigator.serviceWorker, 'getRegistration', scope => {
-        if (this._currentRegistration) {
-          this._currentRegistration.scope = scope;
-        }
-
-        return Promise.resolve(this._currentRegistration);
-      }
-    );
-
-    this.allStubs.push(permissionQueryStub);
-    this.allStubs.push(permissionRequestStub);
-    this.allStubs.push(registerStub);
-    this.allStubs.push(getRegistrationStub);
+    this.permissionStubs = [];
+    this.swStubs = [];
   }
 
   restore() {
-    this.allStubs.forEach(stub => {
+    this.permissionStubs.forEach(stub => {
       stub.restore();
     });
+    this.permissionStubs = [];
+
+    this.swStubs.forEach(stub => {
+      stub.restore();
+    });
+    this.swStubs = [];
   }
 
-  setPermissionState(newState) {
+  stubNotificationPermissions(newState) {
     this._currentPermission = newState;
+
+    if (this.permissionStubs.length === 0) {
+      // Fallbacks for browsers where we can't pre-select the permission dialog
+      const permissionQueryStub = sinon.stub(window.goog.propel.PropelClient,
+        'getPermissionState',
+        () => {
+          return Promise.resolve(this._currentPermission);
+        }
+      );
+
+      // Notification.requestPermission
+      const permissionRequestStub = sinon.stub(Notification,
+        'requestPermission',
+        cb => {
+          cb(this._currentPermission);
+        });
+
+      this.permissionStubs.push(permissionQueryStub);
+      this.permissionStubs.push(permissionRequestStub);
+    }
   }
 
-  setUpRegistration(subscription) {
-    this._currentRegistration = this._buildSWRegistration(subscription);
+  // setUpRegistration(subscription) {
+  stubSWRegistration(registrationType) {
+    // this._currentRegistration = this._buildSWRegistration(subscription);
+    this._registrationType = registrationType;
+
+    if (this.swStubs.length === 0) {
+      const origRegister = navigator.serviceWorker.register;
+      const registerStub = sinon.stub(
+        navigator.serviceWorker, 'register', (swurl, options) => {
+          if (this._registrationType === this.ERROR_REGISTRATION) {
+            return Promise.reject(new Error('No valid SW registered'));
+          }
+
+          return origRegister.call(navigator.serviceWorker, swurl, options)
+          .then(registration => {
+            if (this._currentRegistration) {
+              return this._currentRegistration;
+            }
+
+            const subscribeStub = sinon.stub(
+              registration.pushManager, 'subscribe', options => {
+                if (!options.userVisibleOnly) {
+                  throw new Error('Test Stub Error: User Visible Required');
+                }
+
+                if (this._subscription) {
+                  return Promise.resolve(this._subscription);
+                }
+
+                if (typeof this._subscription === 'undefined') {
+                  return Promise.reject(new Error('Test Generated Error'));
+                }
+
+                return Promise.resolve(null);
+              });
+            this.swStubs.push(subscribeStub);
+
+            const getSubscriptionStub = sinon.stub(
+              registration.pushManager, 'getSubscription', () => {
+                if (typeof this._subscription === 'undefined') {
+                  return Promise.reject(new Error('Test Generated Error'));
+                }
+
+                return Promise.resolve(this._subscription);
+              });
+            this.swStubs.push(getSubscriptionStub);
+
+            this._currentRegistration = registration;
+
+            return registration;
+          });
+        }
+      );
+
+      // navigator.serviceWorker.getRegistration
+      const getRegistrationStub = sinon.stub(
+        navigator.serviceWorker, 'getRegistration', () => {
+          return Promise.resolve(this._currentRegistration);
+        }
+      );
+
+      this.swStubs.push(registerStub);
+      this.swStubs.push(getRegistrationStub);
+    }
   }
 
-  _buildSWRegistration(subscription) {
-    let innerSubscription = subscription;
-    if (innerSubscription) {
-      innerSubscription.unsubscribe = () => {
-        innerSubscription = null;
+  stubSubscription(subscriptionType) {
+    switch (subscriptionType) {
+      case this.ERROR_SUBSCRIPTION:
+        this._subscription = undefined;
+        break;
+      case this.NULL_SUBSCRIPTION:
+        this._subscription = null;
+        break;
+      case this.VALID_SUBSCRIPTION:
+        this._subscription = {
+          endpoint: '/endpoint'
+        };
+        break;
+      default:
+        throw new Error('Unknown subscription type.');
+    }
+
+    if (this._subscription) {
+      this._subscription.unsubscribe = () => {
+        this._subscription = null;
       };
     }
+  }
+
+  _buildSWRegistration() {
+    console.log('_buildSWRegistration <-----------------');
     return {
       scope: './',
       active: {
@@ -99,18 +162,27 @@ class FullStateStub extends window.BaseStateStub {
       },
       pushManager: {
         subscribe: options => {
+          console.log('pushManage.subscribe() <-----------------');
           if (!options.userVisibleOnly) {
             throw new Error('Test Stub Error: User Visible Required');
           }
 
-          return Promise.resolve(innerSubscription);
-        },
-        getSubscription: () => {
-          if (typeof subscription === 'undefined') {
+          if (this._subscription) {
+            return Promise.resolve(this._subscription);
+          }
+
+          if (typeof this._subscription === 'undefined') {
             return Promise.reject(new Error('Test Generated Error'));
           }
 
-          return Promise.resolve(innerSubscription);
+          return Promise.resolve(null);
+        },
+        getSubscription: () => {
+          if (typeof this._subscription === 'undefined') {
+            return Promise.reject(new Error('Test Generated Error'));
+          }
+
+          return Promise.resolve(this._subscription);
         }
       }
     };
