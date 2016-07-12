@@ -227,7 +227,7 @@
     "access": null,
     "description": null,
     "lineNumber": 15,
-    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport SubscriptionFailedError from './subscription-failed-error';\nimport PushClientEvent from './push-client-event';\nimport EventDispatch from './event-dispatch';\n\nconst SUPPORTED = 'serviceWorker' in navigator &&\n    'PushManager' in window &&\n    'Notification' in window &&\n    'showNotification' in ServiceWorkerRegistration.prototype;\n\nconst ERROR_MESSAGES = {\n  'bad constructor': 'The PushClient constructor expects either service ' +\n    'worker registration or the path to a service worker file and an ' +\n    'optional scope string.',\n  'redundant worker': 'Worker became redundant'\n};\n\nconst registrationReady = function(registration) {\n  if (registration.active) {\n    return Promise.resolve(registration);\n  }\n\n  let serviceWorker = registration.installing || registration.waiting;\n\n  return new Promise(function(resolve, reject) {\n    // Because the Promise function is called on next tick there is a\n    // small chance that the worker became active already.\n    if (serviceWorker.state === 'activated') {\n      resolve(registration);\n      return;\n    }\n\n    let stateChangeListener = function() {\n      if (serviceWorker.state === 'activated') {\n        resolve(registration);\n      } else if (serviceWorker.state === 'redundant') {\n        reject(new Error(ERROR_MESSAGES['redundant worker']));\n      } else {\n        return;\n      }\n      serviceWorker.removeEventListener('statechange', stateChangeListener);\n    };\n    serviceWorker.addEventListener('statechange', stateChangeListener);\n  });\n};\n\n/**\n * PushClient is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushClient extends EventDispatch {\n  /**\n   * Constructs a new PushClient.\n   *\n   * If the current browser has a push subscription then it will be\n   * obtained in the constructor and a subscriptionChange event will be\n   * dispatched.\n   *\n   * @param {String} workerUrlOrRegistration - Service worker URL to be\n   *  registered that will receive push events.\n   * @param {String} scope - The scope that the Service worker should be\n   *  registered with.\n   */\n  constructor(workerUrlOrRegistration, scope) {\n    super();\n\n    if (!PushClient.isSupported()) {\n      throw new Error('Your browser does not support the web push API');\n    }\n\n    if (workerUrlOrRegistration instanceof ServiceWorkerRegistration) {\n      this._registrationPromise = Promise.resolve(workerUrlOrRegistration);\n    } else {\n      const url = workerUrlOrRegistration;\n      if (!url || typeof url !== 'string' || url.length === 0) {\n        throw new Error(ERROR_MESSAGES['bad constructor']);\n      }\n\n      let options;\n      if (scope) {\n        options = {scope};\n      }\n      this._registrationPromise = navigator.serviceWorker\n        .register(workerUrlOrRegistration, options);\n    }\n\n    // It is possible for the subscription to change in between page loads. We\n    // should re-send the existing subscription when we initialise (if there is\n    // one)\n    this._dispatchStatusUpdate();\n  }\n\n  _dispatchStatusUpdate() {\n    return Promise.all([\n      this.getSubscription().catch(() => {\n        return null;\n      }),\n      PushClient.getPermissionState()\n    ])\n    .then(results => {\n      return {\n        isSubscribed: (results[0] !== null),\n        currentSubscription: results[0],\n        permissionState: results[1]\n      };\n    })\n    .then(status => {\n      this.dispatchEvent(new PushClientEvent('statuschange', status));\n    })\n    .catch(err => {\n      console.warn('Unable to dispatch a status event ' +\n        'getSubscription() failed.', err);\n    });\n  }\n\n  /**\n   * This method will subscribe a use for push messaging.\n   *\n   * If permission isn't granted for push, this method will show the\n   * permissions dialog before attempting to subscribe the user to push.\n   *\n   * @return {Promise<PushSubscription>} A Promise that\n   *  resolves with a PushSubscription if successful.\n   */\n  subscribe() {\n    // Check for permission\n    return this.requestPermission(false)\n    .then(permissionStatus => {\n      if (permissionStatus !== 'granted') {\n        this._dispatchStatusUpdate();\n        throw new SubscriptionFailedError(permissionStatus);\n      }\n\n      this.dispatchEvent(new PushClientEvent('requestingsubscription'));\n\n      // Make sure we have a service worker and subscribe for push\n      return this._registrationPromise;\n    })\n    .then(registrationReady)\n    .then(registration => {\n      return registration.pushManager.subscribe({userVisibleOnly: true})\n        .catch(err => {\n          // This is provide a more helpful message when work with Chrome + GCM\n          if (err.message === 'Registration failed - no sender id provided') {\n            throw new SubscriptionFailedError('nogcmid');\n          } else {\n            throw err;\n          }\n        });\n    })\n    .then(subscription => {\n      this._dispatchStatusUpdate();\n\n      return subscription;\n    });\n  }\n\n  /**\n   * This method will unsubscribe the user from push on the client side.\n   *\n   * @return {Promise} A Promise that\n   *  resolves once the user is unsubscribed.\n   */\n  unsubscribe() {\n    return this.getRegistration()\n    .then(registration => {\n      if (registration) {\n        return registration.pushManager.getSubscription();\n      }\n    })\n    .then(subscription => {\n      if (subscription) {\n        return subscription.unsubscribe();\n      }\n    })\n    .then(() => {\n      this._dispatchStatusUpdate();\n    })\n    .catch(err => {\n      return this._dispatchStatusUpdate()\n      .then(() => {\n        throw err;\n      });\n    });\n  }\n\n  /**\n   * Get the registration of the service worker being used for push.\n   *\n   * @return {Promise<ServiceWorkerRegistration>} A Promise that\n   *  resolves to either a ServiceWorkerRegistration or to null if none.\n   */\n  getRegistration() {\n    return this._registrationPromise;\n  }\n\n  /**\n   * If the user is currently subscribed for push then the returned promise will\n   * resolve with a PushSubscription object, otherwise it will resolve to null.\n   *\n   * This will not display the permission dialog.\n   *\n   * @return {Promise<PushSubscription>} A Promise that resolves with\n   *  a PushSubscription or null.\n   */\n  getSubscription() {\n    return this.getRegistration()\n    .then(registration => {\n      if (!registration) {\n        return null;\n      }\n\n      return registration.pushManager.getSubscription();\n    });\n  }\n\n  /**\n   * Will manage requesting permission for push messages, resolving\n   * with the final permission status.\n   * @param {Boolean} dispatchStatusChange - Optional parameter with a\n   * default value of true. If true, a `statuschange` event will be\n   * dispatched once the permission state has resolved (i.e. use interacted\n   * with the permission dialog).\n   * @return {Promise<String>} Permission status of granted, default or denied\n   */\n  requestPermission(dispatchStatusChange = true) {\n    return PushClient.getPermissionState()\n    .then(permissionState => {\n      // Check if requesting permission will show a prompt\n      if (permissionState === 'default') {\n        this.dispatchEvent(new PushClientEvent('requestingpermission'));\n      }\n\n      return new Promise(resolve => Notification.requestPermission(resolve))\n      .then(resolvedState => {\n        if (dispatchStatusChange) {\n          this._dispatchStatusUpdate();\n        }\n        return resolvedState;\n      });\n    });\n  }\n\n  /**\n   * You can use this to decide whether to construct a new PushClient or not.\n   * @return {Boolean} Whether the current browser has everything needed\n   *  to use push messaging.\n   */\n  static isSupported() {\n    return SUPPORTED;\n  }\n\n  /**\n   * This method can be used to check if subscribing the user will display\n   * the permission dialog or not.\n   * @return {Promise<PermissionStatus>} PermistionStatus will be\n   * 'granted', 'denied' or 'default' to reflect the current permission state\n   */\n  static getPermissionState() {\n    return new Promise(resolve => {\n      resolve(Notification.permission);\n    });\n  }\n}\n"
+    "content": "/*\n  Copyright 2015 Google Inc. All Rights Reserved.\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n      http://www.apache.org/licenses/LICENSE-2.0\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n*/\n/* eslint-env browser */\n\nimport SubscriptionFailedError from './subscription-failed-error';\nimport PushClientEvent from './push-client-event';\nimport EventDispatch from './event-dispatch';\n\nconst SUPPORTED = 'serviceWorker' in navigator &&\n    'PushManager' in window &&\n    'Notification' in window &&\n    'showNotification' in ServiceWorkerRegistration.prototype;\n\nconst ERROR_MESSAGES = {\n  'bad factory': 'The PushClient.createClient() method expects a service ' +\n    'worker path and an option scope string.',\n  'bad constructor': 'The PushClient constructor expects a service ' +\n    'worker registration. Alternatively, you can use ' +\n    'PropelClient.createClient() to create a PropelClient with a service ' +\n    'worker path string and an optional scope string.',\n  'redundant worker': 'Worker became redundant'\n};\n\nconst registrationReady = function(registration) {\n  if (registration.active) {\n    return Promise.resolve(registration);\n  }\n\n  let serviceWorker = registration.installing || registration.waiting;\n\n  return new Promise(function(resolve, reject) {\n    // Because the Promise function is called on next tick there is a\n    // small chance that the worker became active already.\n    if (serviceWorker.state === 'activated') {\n      resolve(registration);\n      return;\n    }\n\n    let stateChangeListener = function() {\n      if (serviceWorker.state === 'activated') {\n        resolve(registration);\n      } else if (serviceWorker.state === 'redundant') {\n        reject(new Error(ERROR_MESSAGES['redundant worker']));\n      } else {\n        return;\n      }\n      serviceWorker.removeEventListener('statechange', stateChangeListener);\n    };\n    serviceWorker.addEventListener('statechange', stateChangeListener);\n  });\n};\n\n/**\n * PushClient is a front end library that simplifies adding push to your\n * site.\n */\nexport default class PushClient extends EventDispatch {\n  /**\n   * Constructs a new PushClient.\n   *\n   * If the current browser has a push subscription then it will be\n   * obtained in the constructor and a subscriptionChange event will be\n   * dispatched.\n   *\n   * @param {ServiceWorkerRegistration} registration - Registration of a\n   *  service worker to be used for push messages\n   */\n  constructor(registration) {\n    super();\n\n    if (!PushClient.isSupported()) {\n      throw new Error('Your browser does not support the web push API');\n    }\n\n    if (!(registration instanceof ServiceWorkerRegistration)) {\n      throw new Error(ERROR_MESSAGES['bad constructor']);\n    }\n\n    this._registration = registration;\n\n    // It is possible for the subscription to change in between page loads. We\n    // should re-send the existing subscription when we initialise (if there is\n    // one)\n    this._dispatchStatusUpdate();\n  }\n\n  _dispatchStatusUpdate() {\n    return Promise.all([\n      this.getSubscription().catch(() => {\n        return null;\n      }),\n      PushClient.getPermissionState()\n    ])\n    .then(results => {\n      return {\n        isSubscribed: (results[0] !== null),\n        currentSubscription: results[0],\n        permissionState: results[1]\n      };\n    })\n    .then(status => {\n      this.dispatchEvent(new PushClientEvent('statuschange', status));\n    })\n    .catch(err => {\n      console.warn('Unable to dispatch a status event ' +\n        'getSubscription() failed.', err);\n    });\n  }\n\n  /**\n   * This method will subscribe a use for push messaging.\n   *\n   * If permission isn't granted for push, this method will show the\n   * permissions dialog before attempting to subscribe the user to push.\n   *\n   * @return {Promise<PushSubscription>} A Promise that\n   *  resolves with a PushSubscription if successful.\n   */\n  subscribe() {\n    // Check for permission\n    return this.requestPermission(false)\n    .then(permissionStatus => {\n      if (permissionStatus !== 'granted') {\n        this._dispatchStatusUpdate();\n        throw new SubscriptionFailedError(permissionStatus);\n      }\n\n      this.dispatchEvent(new PushClientEvent('requestingsubscription'));\n\n      // Make sure we have a service worker and subscribe for push\n      return this._registration;\n    })\n    .then(registrationReady)\n    .then(registration => {\n      return registration.pushManager.subscribe({userVisibleOnly: true})\n      .catch(err => {\n        return this._dispatchStatusUpdate()\n        .then(() => {\n          // This is provide a more helpful message when work with Chrome + GCM\n          if (err.message === 'Registration failed - no sender id provided') {\n            throw new SubscriptionFailedError('nogcmid');\n          } else {\n            throw err;\n          }\n        });\n      });\n    })\n    .then(subscription => {\n      this._dispatchStatusUpdate();\n\n      return subscription;\n    });\n  }\n\n  /**\n   * This method will unsubscribe the user from push on the client side.\n   *\n   * @return {Promise} A Promise that\n   *  resolves once the user is unsubscribed.\n   */\n  unsubscribe() {\n    const registration = this.getRegistration();\n    if (!registration) {\n      return this._dispatchStatusUpdate();\n    }\n\n    return registration.pushManager.getSubscription()\n    .then(subscription => {\n      if (subscription) {\n        return subscription.unsubscribe();\n      }\n    })\n    .then(() => {\n      this._dispatchStatusUpdate();\n    })\n    .catch(err => {\n      return this._dispatchStatusUpdate()\n      .then(() => {\n        throw err;\n      });\n    });\n  }\n\n  /**\n   * Get the registration of the service worker being used for push.\n   *\n   * @return {ServiceWorkerRegistration} The ServiceWorkerRegistration used\n   * for push messaging.\n   */\n  getRegistration() {\n    return this._registration;\n  }\n\n  /**\n   * If the user is currently subscribed for push then the returned promise will\n   * resolve with a PushSubscription object, otherwise it will resolve to null.\n   *\n   * This will not display the permission dialog.\n   *\n   * @return {Promise<PushSubscription>} A Promise that resolves with\n   *  a PushSubscription or null.\n   */\n  getSubscription() {\n    const registration = this.getRegistration();\n    if (!registration) {\n      return Promise.resolve(null);\n    }\n\n    return registration.pushManager.getSubscription();\n  }\n\n  /**\n   * Will manage requesting permission for push messages, resolving\n   * with the final permission status.\n   * @param {Boolean} dispatchStatusChange - Optional parameter with a\n   * default value of true. If true, a `statuschange` event will be\n   * dispatched once the permission state has resolved (i.e. use interacted\n   * with the permission dialog).\n   * @return {Promise<String>} Permission status of granted, default or denied\n   */\n  requestPermission(dispatchStatusChange = true) {\n    return PushClient.getPermissionState()\n    .then(permissionState => {\n      // Check if requesting permission will show a prompt\n      if (permissionState === 'default') {\n        this.dispatchEvent(new PushClientEvent('requestingpermission'));\n      }\n\n      return new Promise(resolve => Notification.requestPermission(resolve))\n      .then(resolvedState => {\n        if (dispatchStatusChange) {\n          this._dispatchStatusUpdate();\n        }\n        return resolvedState;\n      });\n    });\n  }\n\n  /**\n   * If you want a quick way to create Propel Client this factory method\n   * just takes a service worker file path and optional scope and\n   * returns promise that resolves to a PropelClient or errors if there\n   * was a problem.\n   * @param {String} swPath - This needs to be the path of a service worker\n   * that will be used to handle push messages,\n   * @param {String} scope - Optional parameter that can be used to define\n   * the scope of a service worker.\n   * @return {Promise<PropelClient>} Resolves if the service worker could be\n   * registered successfully\n   */\n  static createClient(swPath, scope) {\n    if (!swPath || typeof swPath !== 'string' || swPath.length === 0) {\n      return Promise.reject(new Error(ERROR_MESSAGES['bad factory']));\n    }\n\n    let options;\n    if (scope) {\n      options = {scope};\n    }\n    return navigator.serviceWorker.register(swPath, options)\n    .then(reg => {\n      return new PushClient(reg);\n    });\n  }\n\n  /**\n   * You can use this to decide whether to construct a new PushClient or not.\n   * @return {Boolean} Whether the current browser has everything needed\n   *  to use push messaging.\n   */\n  static isSupported() {\n    return SUPPORTED;\n  }\n\n  /**\n   * This method can be used to check if subscribing the user will display\n   * the permission dialog or not.\n   * @return {Promise<PermissionStatus>} PermistionStatus will be\n   * 'granted', 'denied' or 'default' to reflect the current permission state\n   */\n  static getPermissionState() {\n    return new Promise(resolve => {\n      resolve(Notification.permission);\n    });\n  }\n}\n"
   },
   {
     "__docId__": 12,
@@ -284,7 +284,7 @@
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 31,
+    "lineNumber": 34,
     "undocument": true,
     "params": [
       {
@@ -314,7 +314,7 @@
     "importPath": "propel-web-push/src/client/push-client.js",
     "importStyle": "PushClient",
     "description": "PushClient is a front end library that simplifies adding push to your\nsite.",
-    "lineNumber": 64,
+    "lineNumber": 67,
     "interface": false,
     "extends": [
       "src/client/event-dispatch.js~EventDispatch"
@@ -330,27 +330,17 @@
     "longname": "src/client/push-client.js~PushClient#constructor",
     "access": null,
     "description": "Constructs a new PushClient.\n\nIf the current browser has a push subscription then it will be\nobtained in the constructor and a subscriptionChange event will be\ndispatched.",
-    "lineNumber": 77,
+    "lineNumber": 78,
     "params": [
       {
         "nullable": null,
         "types": [
-          "String"
+          "ServiceWorkerRegistration"
         ],
         "spread": false,
         "optional": false,
-        "name": "workerUrlOrRegistration",
-        "description": "Service worker URL to be\n registered that will receive push events."
-      },
-      {
-        "nullable": null,
-        "types": [
-          "String"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "scope",
-        "description": "The scope that the Service worker should be\n registered with."
+        "name": "registration",
+        "description": "Registration of a\n service worker to be used for push messages"
       }
     ],
     "generator": false
@@ -360,12 +350,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_registrationPromise",
+    "name": "_registration",
     "memberof": "src/client/push-client.js~PushClient",
-    "longname": "src/client/push-client.js~PushClient#_registrationPromise",
+    "longname": "src/client/push-client.js~PushClient#_registration",
     "access": null,
     "description": null,
-    "lineNumber": 85,
+    "lineNumber": 89,
     "undocument": true,
     "type": {
       "types": [
@@ -375,24 +365,6 @@
   },
   {
     "__docId__": 18,
-    "kind": "member",
-    "static": false,
-    "variation": null,
-    "name": "_registrationPromise",
-    "memberof": "src/client/push-client.js~PushClient",
-    "longname": "src/client/push-client.js~PushClient#_registrationPromise",
-    "access": null,
-    "description": null,
-    "lineNumber": 96,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 19,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -401,7 +373,7 @@
     "longname": "src/client/push-client.js~PushClient#_dispatchStatusUpdate",
     "access": null,
     "description": null,
-    "lineNumber": 106,
+    "lineNumber": 97,
     "undocument": true,
     "params": [],
     "return": {
@@ -412,7 +384,7 @@
     "generator": false
   },
   {
-    "__docId__": 20,
+    "__docId__": 19,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -421,7 +393,7 @@
     "longname": "src/client/push-client.js~PushClient#subscribe",
     "access": null,
     "description": "This method will subscribe a use for push messaging.\n\nIf permission isn't granted for push, this method will show the\npermissions dialog before attempting to subscribe the user to push.",
-    "lineNumber": 138,
+    "lineNumber": 129,
     "params": [],
     "return": {
       "nullable": null,
@@ -434,7 +406,7 @@
     "generator": false
   },
   {
-    "__docId__": 21,
+    "__docId__": 20,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -443,7 +415,7 @@
     "longname": "src/client/push-client.js~PushClient#unsubscribe",
     "access": null,
     "description": "This method will unsubscribe the user from push on the client side.",
-    "lineNumber": 177,
+    "lineNumber": 171,
     "params": [],
     "return": {
       "nullable": null,
@@ -456,7 +428,7 @@
     "generator": false
   },
   {
-    "__docId__": 22,
+    "__docId__": 21,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -465,20 +437,20 @@
     "longname": "src/client/push-client.js~PushClient#getRegistration",
     "access": null,
     "description": "Get the registration of the service worker being used for push.",
-    "lineNumber": 206,
+    "lineNumber": 200,
     "params": [],
     "return": {
       "nullable": null,
       "types": [
-        "Promise<ServiceWorkerRegistration>"
+        "ServiceWorkerRegistration"
       ],
       "spread": false,
-      "description": "A Promise that\n resolves to either a ServiceWorkerRegistration or to null if none."
+      "description": "The ServiceWorkerRegistration used\nfor push messaging."
     },
     "generator": false
   },
   {
-    "__docId__": 23,
+    "__docId__": 22,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -487,7 +459,7 @@
     "longname": "src/client/push-client.js~PushClient#getSubscription",
     "access": null,
     "description": "If the user is currently subscribed for push then the returned promise will\nresolve with a PushSubscription object, otherwise it will resolve to null.\n\nThis will not display the permission dialog.",
-    "lineNumber": 219,
+    "lineNumber": 213,
     "params": [],
     "return": {
       "nullable": null,
@@ -500,7 +472,7 @@
     "generator": false
   },
   {
-    "__docId__": 24,
+    "__docId__": 23,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -509,7 +481,7 @@
     "longname": "src/client/push-client.js~PushClient#requestPermission",
     "access": null,
     "description": "Will manage requesting permission for push messages, resolving\nwith the final permission status.",
-    "lineNumber": 239,
+    "lineNumber": 231,
     "params": [
       {
         "nullable": null,
@@ -533,6 +505,49 @@
     "generator": false
   },
   {
+    "__docId__": 24,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "createClient",
+    "memberof": "src/client/push-client.js~PushClient",
+    "longname": "src/client/push-client.js~PushClient.createClient",
+    "access": null,
+    "description": "If you want a quick way to create Propel Client this factory method\njust takes a service worker file path and optional scope and\nreturns promise that resolves to a PropelClient or errors if there\nwas a problem.",
+    "lineNumber": 261,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "swPath",
+        "description": "This needs to be the path of a service worker\nthat will be used to handle push messages,"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "scope",
+        "description": "Optional parameter that can be used to define\nthe scope of a service worker."
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<PropelClient>"
+      ],
+      "spread": false,
+      "description": "Resolves if the service worker could be\nregistered successfully"
+    },
+    "generator": false
+  },
+  {
     "__docId__": 25,
     "kind": "method",
     "static": true,
@@ -542,7 +557,7 @@
     "longname": "src/client/push-client.js~PushClient.isSupported",
     "access": null,
     "description": "You can use this to decide whether to construct a new PushClient or not.",
-    "lineNumber": 262,
+    "lineNumber": 281,
     "params": [],
     "return": {
       "nullable": null,
@@ -564,7 +579,7 @@
     "longname": "src/client/push-client.js~PushClient.getPermissionState",
     "access": null,
     "description": "This method can be used to check if subscribing the user will display\nthe permission dialog or not.",
-    "lineNumber": 272,
+    "lineNumber": 291,
     "params": [],
     "return": {
       "nullable": null,
