@@ -16,23 +16,19 @@
 
 'use strict';
 
-/* eslint-disable max-len, no-console, padded-blocks, no-multiple-empty-lines */
-/* eslint-env node,mocha */
-
-// These tests make use of selenium-webdriver. You can find the relevant
-// documentation here: http://selenium.googlecode.com/git/docs/api/javascript/index.html
-
-require('chai').should();
 const path = require('path');
+const seleniumAssistant = require('selenium-assistant');
+const chalk = require('chalk');
 const swTestingHelpers = require('sw-testing-helpers');
 const TestServer = swTestingHelpers.TestServer;
-const automatedBrowserTesting = swTestingHelpers.automatedBrowserTesting;
 const mochaUtils = swTestingHelpers.mochaUtils;
-const seleniumFirefox = require('selenium-webdriver/firefox');
+
+require('chai').should();
 
 describe('Test Propel', function() {
   // Browser tests can be slow
   this.timeout(60000);
+  this.retries(3);
 
   // Driver is initialised to null to handle scenarios
   // where the desired browser isn't installed / fails to load
@@ -56,16 +52,12 @@ describe('Test Propel', function() {
   afterEach(function() {
     this.timeout(10000);
 
-    return automatedBrowserTesting.killWebDriver(globalDriverReference);
+    return seleniumAssistant.killWebDriver(globalDriverReference);
   });
 
   const queueUnitTest = browserInfo => {
     it(`should pass all tests in ${browserInfo.getPrettyName()}`, () => {
-      if (browserInfo.getSeleniumBrowserId() === 'firefox') {
-        const ffProfile = new seleniumFirefox.Profile();
-        ffProfile.setPreference('security.turn_off_all_security_so_that_viruses_can_take_over_this_computer', true);
-        browserInfo.getSeleniumOptions().setProfile(ffProfile);
-      } else if (browserInfo.getSeleniumBrowserId() === 'chrome') {
+      if (browserInfo.getSeleniumBrowserId() === 'chrome') {
         /* eslint-disable camelcase */
         const chromePreferences = {
           profile: {
@@ -76,27 +68,18 @@ describe('Test Propel', function() {
             }
           }
         };
-        chromePreferences.profile.content_settings.exceptions.notifications[testServerURL + ',*'] = {
+        chromePreferences.profile.content_settings
+        .exceptions.notifications[testServerURL + ',*'] = {
           setting: 1
         };
         browserInfo.getSeleniumOptions().setUserPreferences(chromePreferences);
         /* eslint-enable camelcase */
       }
 
-      globalDriverReference = browserInfo.getSeleniumDriver();
-
-      let initialisePromise = Promise.resolve();
-      if (browserInfo.getSeleniumBrowserId() === 'firefox') {
-        // H/T to web-push for this trick to get permissions accepted / denied
-        // https://github.com/marco-c/web-push
-        initialisePromise = globalDriverReference.executeScript(() => {
-          /* global window, Components */
-          window.netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-          Components.utils.import('resource://gre/modules/Services.jsm');
-        });
-      }
-
-      return initialisePromise
+      return browserInfo.getSeleniumDriver()
+      .then(driver => {
+        globalDriverReference = driver;
+      })
       .then(() => {
         return mochaUtils.startWebDriverMochaTests(
           browserInfo.getPrettyName(),
@@ -116,15 +99,36 @@ describe('Test Propel', function() {
     });
   };
 
-  const automatedBrowsers = automatedBrowserTesting.getDiscoverableBrowsers();
-  automatedBrowsers.forEach(browserInfo => {
-    if (browserInfo.getSeleniumBrowserId() === 'firefox' &&
-      browserInfo.getReleaseName() === 'beta') {
-      // Skip V47 of Firefox due to executeScript issue.
-      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1274639
+  const automatedBrowsers = seleniumAssistant.getAvailableBrowsers();
+  automatedBrowsers.forEach(browser => {
+    if (browser.getSeleniumBrowserId() !== 'chrome' &&
+      browser.getSeleniumBrowserId() !== 'firefox') {
       return;
     }
 
-    queueUnitTest(browserInfo);
+    if (browser.getSeleniumBrowserId() === 'firefox' &&
+      process.env.TRAVIS === 'true') {
+      console.log('');
+      console.warn(chalk.red(
+        'Running on Travis so skipping firefox tests as ' +
+        'they don\'t currently work.'
+      ));
+      console.log('');
+      return;
+    }
+
+    if (browser.getSeleniumBrowserId() === 'firefox' &&
+      browser.getVersionNumber() <= 47) {
+      // There is a bug in FF 47 that prevents Marionette working - skipping;
+      console.log('');
+      console.warn(chalk.red(
+        'Firefox 47 has an issue with getting values out of the window. ' +
+        'Skipping test as a result.'
+      ));
+      console.log('');
+      return;
+    }
+
+    queueUnitTest(browser);
   });
 });

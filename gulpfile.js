@@ -21,7 +21,7 @@ const runSequence = require('run-sequence');
 
 requireDir('./gulp-tasks');
 
-GLOBAL.config = {
+global.config = {
   env: 'prod',
   src: 'src',
   dest: 'dist'
@@ -29,14 +29,13 @@ GLOBAL.config = {
 
 gulp.task('default', function(cb) {
   runSequence(
-    'lint',
     'clean',
     'build',
     cb);
 });
 
 gulp.task('watch', function(cb) {
-  GLOBAL.config.env = 'dev';
+  global.config.env = 'dev';
 
   runSequence(
     'default',

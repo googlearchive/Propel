@@ -22,10 +22,6 @@
 /* eslint-env browser */
 
 class FFStateStub extends window.BaseStateStub {
-  constructor() {
-    super();
-  }
-
   restore() {
     window.netscape.security.PrivilegeManager
       .enablePrivilege('UniversalXPConnect');
