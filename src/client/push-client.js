@@ -22,6 +22,8 @@ const ERROR_MESSAGES = {
 };
 /* eslint-enable quote-prop */
 
+const currentScript = document.currentScript;
+
 /**
  * PushClient is a front end library that simplifies adding push to your
  * site.
@@ -48,7 +50,7 @@ export default class PushClient {
     if (typeof swRegistration === 'undefined' || swRegistration === null) {
       // Register our own SW. We should use document.currentScript, but Babels
       // polyfill breaks it.
-      return navigator.serviceWorker.register('/dist/propel.js', {
+      return navigator.serviceWorker.register(currentScript.src, {
         scope: '/propel-v1.0.0/'
       })
       .then(registration => {
