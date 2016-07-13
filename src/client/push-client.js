@@ -47,24 +47,32 @@ export default class PushClient {
       return Promise.reject(new Error(ERROR_MESSAGES.bad_fcm_server_key));
     }
 
+    let registrationPromise = null;
     if (typeof swRegistration === 'undefined' || swRegistration === null) {
       // Register our own SW. We should use document.currentScript, but Babels
       // polyfill breaks it.
-      return navigator.serviceWorker.register(currentScript.src, {
-        scope: '/propel-v1.0.0/'
-      })
-      .then(registration => {
-        this._registration = registration;
-      });
+      registrationPromise = navigator.serviceWorker
+        .register(currentScript.src, {
+          scope: '/propel-v1.0.0/'
+        });
+    } else {
+      if (!(swRegistration instanceof ServiceWorkerRegistration)) {
+        return Promise.reject(new Error(ERROR_MESSAGES.bad_sw_reg));
+      }
+
+      registrationPromise = Promise.resolve(swRegistration);
     }
 
-    if (!(swRegistration instanceof ServiceWorkerRegistration)) {
-      return Promise.reject(new Error(ERROR_MESSAGES.bad_sw_reg));
-    }
-
-    this._registration = swRegistration;
-
-    return Promise.resolve();
+    return registrationPromise
+    .then(registration => {
+      this._registration = registration;
+    })
+    .then(() => {
+      return {
+        blocked: Notification.permission === 'blocked',
+        registrationId: 'some-reg-id'
+      };
+    });
   }
 
   /**
