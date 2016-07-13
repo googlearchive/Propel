@@ -21,7 +21,7 @@ const gulp = require('gulp');
 const path = require('path');
 const TestServer = require('sw-testing-helpers').TestServer;
 
-gulp.task('test:manual', function() {
+gulp.task('test:manual', ['watch'], function() {
   const testServer = new TestServer();
   testServer.startServer(path.join(__dirname, '..'), 8888)
   .then(portNumber => {

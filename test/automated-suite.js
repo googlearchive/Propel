@@ -17,6 +17,8 @@
 'use strict';
 
 const path = require('path');
+const mkdirp = require('mkdirp');
+const fs = require('fs');
 const seleniumAssistant = require('selenium-assistant');
 const chalk = require('chalk');
 const swTestingHelpers = require('sw-testing-helpers');
@@ -59,7 +61,7 @@ describe('Test Propel', function() {
     it(`should pass all tests in ${browserInfo.getPrettyName()}`, () => {
       if (browserInfo.getSeleniumBrowserId() === 'chrome') {
         /* eslint-disable camelcase */
-        const chromePreferences = {
+        const chromeOperaPreferences = {
           profile: {
             content_settings: {
               exceptions: {
@@ -68,12 +70,20 @@ describe('Test Propel', function() {
             }
           }
         };
-        chromePreferences.profile.content_settings
-        .exceptions.notifications[testServerURL + ',*'] = {
+        chromeOperaPreferences.profile.content_settings.exceptions.notifications[testServerURL + ',*'] = {
           setting: 1
         };
-        browserInfo.getSeleniumOptions().setUserPreferences(chromePreferences);
         /* eslint-enable camelcase */
+
+        // Write to a file
+        const tempPreferenceDir = './test/output/temp/chromeOperaPreferences';
+        mkdirp.sync(tempPreferenceDir + '/Default');
+
+        // NOTE: The Default part of this path might be Chrome specific.
+        fs.writeFileSync(tempPreferenceDir + '/Default/Preferences', JSON.stringify(chromeOperaPreferences));
+
+        const options = browserInfo.getSeleniumOptions();
+        options.addArguments('user-data-dir=' + tempPreferenceDir + '/');
       }
 
       return browserInfo.getSeleniumDriver()

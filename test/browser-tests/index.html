@@ -38,20 +38,29 @@
   <script src="/node_modules/sw-testing-helpers/browser/mocha-utils.js"></script>
   <script src="/node_modules/sw-testing-helpers/browser/sw-utils.js"></script>
 
-  <script src="/test/libs/is-supported.js"></script>
+  <!-- Helpers that set up global variables to be used in tests -->
+  <script src="/test/helpers/is-supported.js"></script>
+
+  <!--
   <script src="/test/libs/stubs/base-stub.js"></script>
   <script src="/test/libs/stubs/firefox-stub.js"></script>
   <script src="/test/libs/stubs/full-stub.js"></script>
-  <script src="/test/libs/state-stub-singleton.js"></script>
+  <script src="/test/libs/state-stub-singleton.js"></script>-->
 
-  <script>mocha.setup({
-    ui: 'bdd'
-  })</script>
+  <script>
+    mocha.setup({
+      ui: 'bdd'
+    });
 
-  <!-- In browser test scripts should be added to the page here-->
-  <script src="/test/browser-tests/push-client/lib-usage.js"></script>
-  <script src="/test/browser-tests/push-client/is-supported.js"></script>
-  <script src="/test/browser-tests/push-client/create-client.js"></script>
+    mocha.globals(['propel']);
+    </script>
+
+  <!-- This must be first as it adds the script to the page -->
+  <script src="/test/browser-tests/push-client/leak-check.js"></script>
+  <script src="/test/browser-tests/push-client/supported.js"></script>
+  <script src="/test/browser-tests/push-client/initialize.js"></script>
+  <!--
+
   <script src="/test/browser-tests/push-client/constructor.js"></script>
   <script src="/test/browser-tests/push-client/get-registration.js"></script>
   <script src="/test/browser-tests/push-client/get-permission-state.js"></script>
@@ -60,16 +69,13 @@
   <script src="/test/browser-tests/push-client/request-permission.js"></script>
   <script src="/test/browser-tests/push-client/subscribe.js"></script>
   <script src="/test/browser-tests/push-client/unsubscribe.js"></script>
-  <script src="/test/browser-tests/push-worker/get-notifications/get-notifications.js"></script>
+  <script src="/test/browser-tests/push-worker/get-notifications/get-notifications.js"></script>-->
 
   <script>
     (function() {
       // should adds objects to protyptes which requires this call to be made
       // before any tests are run.
       window.chai.should();
-
-      // 'Services' is injected in Firefox for enabling notification permission
-      mocha.globals(['Services']);
 
       window.goog.mochaUtils.startInBrowserMochaTests()
       .then(results => {

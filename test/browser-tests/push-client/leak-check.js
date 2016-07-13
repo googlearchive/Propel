@@ -22,14 +22,21 @@
 
 'use strict';
 
-describe('Test isSupported()', function() {
-  it('should return true or false', function() {
-    (typeof window.goog.propel.PropelClient.isSupported()).should.equal('boolean');
-  });
+describe('Test for Leaks', function() {
+  it('should load window.propel without leaks', function(done) {
+    // By leaks this is referring to the only thing Propel
+    // should add to the global scope (i.e. window) is propel
+    const scriptElement = document.createElement('script');
+    scriptElement.setAttribute('type', 'text/javascript');
+    scriptElement.src = '/dist/propel.js';
+    document.querySelector('head').appendChild(scriptElement);
+    scriptElement.onerror = () => {
+      done(new Error('Unable to load script.'));
+    };
+    scriptElement.onload = () => {
+      window.propel.should.be.defined;
 
-  // This test is useful to make sure that the test runner is
-  // running the same check as the client.
-  it('should match the test runners supported check', function() {
-    window.goog.propel.PropelClient.isSupported().should.equal(window.isPropelClientSupported);
+      done();
+    };
   });
 });

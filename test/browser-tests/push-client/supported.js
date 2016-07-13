@@ -22,35 +22,14 @@
 
 'use strict';
 
-describe('Test getRegistration()', function() {
-  if (!window.isPropelClientSupported) {
-    return;
-  }
-
-  const EMPTY_SW_PATH = '/test/browser-tests/push-client/empty-sw.js';
-
-  let stateStub;
-
-  beforeEach(function() {
-    if (stateStub) {
-      stateStub.restore();
-    }
+describe('Test isSupported()', function() {
+  it('should return true or false', function() {
+    (typeof window.propel.supported).should.equal('boolean');
   });
 
-  after(function() {
-    if (stateStub) {
-      stateStub.restore();
-    }
-  });
-
-  it('should resolve with a registration', function() {
-    stateStub = window.StateStub.getStub();
-    stateStub.stubSWRegistration();
-
-    return window.goog.propel.PropelClient.createClient(EMPTY_SW_PATH)
-    .then(pushClient => {
-      const reg = pushClient.getRegistration();
-      window.chai.expect(reg).to.not.equal(null);
-    });
+  // This test is useful to make sure that the test runner is
+  // running the same check as the client.
+  it('should match the test runners supported check', function() {
+    window.propel.supported.should.equal(window.isPropelClientSupported);
   });
 });

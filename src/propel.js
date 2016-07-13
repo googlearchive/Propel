@@ -10,29 +10,15 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-/* eslint-env browser */
 
-export default function serverUpdater(url, data) {
-  return function(event) {
-    // We only really care about subscription changes
-    if (event.type !== 'statuschange') {
-      return;
-    }
+/* eslint-env browser, serviceworker */
 
-    send(url, {
-      action: event.isSubscribed ? 'subscribe' : 'unsubscribe',
-      subscription: event.currentSubscription,
-      data: data
-    });
-  };
-}
+import PushClient from './client/push-client';
+import PushWorker from './worker/push-worker';
 
-function send(url, message) {
-  return fetch(url, {
-    method: 'post',
-    body: JSON.stringify(message),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
+// Crude checks for window vs service worker environment
+if (typeof window !== 'undefined') {
+  window.propel = window.propel || new PushClient();
+} else if (typeof self !== 'undefined') {
+  self.propel = self.propel || new PushWorker();
 }
