@@ -22,7 +22,7 @@ const ERROR_MESSAGES = {
 };
 /* eslint-enable quote-prop */
 
-const currentScript = document.currentScript;
+const currentScript = document.currentScript || null;
 
 /**
  * PushClient is a front end library that simplifies adding push to your
@@ -77,6 +77,7 @@ export default class PushClient {
     return 'serviceWorker' in navigator &&
       'PushManager' in window &&
       'Notification' in window &&
-      'showNotification' in ServiceWorkerRegistration.prototype;
+      'showNotification' in ServiceWorkerRegistration.prototype &&
+      currentScript !== null;
   }
 }
