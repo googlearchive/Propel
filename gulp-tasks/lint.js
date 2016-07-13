@@ -19,19 +19,9 @@
 
 const gulp = require('gulp');
 const eslint = require('gulp-eslint');
-const minimist = require('minimist');
-
-const commandLineArgs = minimist(process.argv.slice(2));
 
 gulp.task('lint', function() {
-  let stream = gulp.src(['src/**/*.js', 'demo/**/*.js'])
+  return gulp.src(['src/**/*.js', 'demo/**/*.js'])
     .pipe(eslint())
     .pipe(eslint.format());
-
-  const failOnError = (typeof commandLineArgs['throw-error'] !== 'undefined');
-  if (failOnError) {
-    stream = stream.pipe(eslint.failAfterError());
-  }
-
-  return stream;
 });

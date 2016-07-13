@@ -1,5 +1,6 @@
-node_modules
-dist
+node_modules/
+dist/
 npm-debug.log
-docs
-tagged-release
+docs/
+tagged-release/
+wires

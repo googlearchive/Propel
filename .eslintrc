@@ -1,8 +1,4 @@
 {
   "parser": "babel-eslint",
-  "extends": "google",
-  "rules": {
-    "no-warning-comments": 0,
-    "require-jsdoc": 0
-  }
+  "extends": "google"
 }

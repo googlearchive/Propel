@@ -28,9 +28,6 @@ describe('Test \'statuschange\' event', function() {
   }
 
   const EMPTY_SW_PATH = '/test/browser-tests/push-client/empty-sw.js';
-  const EXAMPLE_SUBSCRIPTION = {
-    endpoint: '/endpoint'
-  };
 
   let stateStub;
 
