@@ -35,7 +35,15 @@ export default class PushClient {
     }
     this._swPath = swPath;
 
-    this._subscribeForPush();
+    this._subscribeForPush()
+    .catch(err => {
+      // TODO: What to do with errors?
+      console.error(err);
+    });
+
+    /** window.addEventListener('message', function() {
+      console.log('Received Message.');
+    });**/
   }
 
   _subscribeForPush() {
@@ -52,21 +60,35 @@ export default class PushClient {
       // TODO: Whaht happens is user has blocked notifications?
       // TODO What happens if there is already a registration id
       // TODO: Is this the correct place to request permission?
+      return registration.pushManager.getSubscription()
+      .then(currentSubscription => {
+        if (!currentSubscription) {
+          return registration.pushManager.subscribe({
+            userVisibleOnly: true
+          });
+        }
 
-      return registration.pushManager.subscribe({
-        userVisibleOnly: true
-      })
-      .then(subscription => {
-        // TODO: What to do with subscription?
-        console.log(JSON.stringify(subscription));
+        return currentSubscription;
       });
     })
-    .catch(err => {
-      // TODO: What to do with errors?
-      console.error(err);
+    .then(subscription => {
+      // TODO: What to do with subscription?
+      this._subscription = subscription;
+      this._dispatchRegistrationToken();
     });
   }
 
+  // Called when subscription is received
+  _dispatchRegistrationToken() {
+    if (this._onRegTokenCb && this._subscription) {
+      this._onRegTokenCb(this._subscription);
+    }
+  }
+
+  onRegistrationToken(cb) {
+    this._onRegTokenCb = cb;
+    this._dispatchRegistrationToken();
+  }
   /**
    * Before calling initialise, check that the current browser supports
    * everything thats required by the library.

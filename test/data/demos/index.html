@@ -22,6 +22,9 @@
     var messaging = window.propel.messaging('sw.js');
     // messaging.onMessage();
     // messaging.deleteToken();
+    messaging.onRegistrationToken(subscription => {
+      console.log('onRegistrationToken: ', subscription);
+    });
   </script>
 </body>
 </html>

@@ -100,6 +100,10 @@ describe('Test Notification', function() {
         badge: '/test/data/demos/badge.png'
       }
     ];
+    console.log('Adding message listener');
+    navigator.serviceWorker.addEventListener('message', event => {
+      console.log('Received Message. <-------', event);
+    }, false);
 
     return window.goog.swUtils.activateSW('/test/data/demos/sw.js')
     .then(() => {
