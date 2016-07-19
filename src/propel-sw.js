@@ -13,11 +13,8 @@
 /* eslint-env serviceworker */
 
 import PushWorker from './worker/push-worker';
-import notificationHandler from './worker/notification-handler';
 
-self.goog = self.goog || {};
-self.goog.propel = self.goog.propel || {};
-self.goog.propel.worker = {
-  helpers: new PushWorker(),
-  notificationHandler
-};
+self.propel = self.propel || {};
+self.propel.messaging = self.propel.messaging || (() => {
+  return new PushWorker();
+});

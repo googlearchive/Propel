@@ -15,63 +15,55 @@
 
 /* eslint-disable quote-props */
 const ERROR_MESSAGES = {
-  'bad_sw_reg': 'fcm.initialize() expects the second parameter to be a ' +
-    'service worker registration.',
-  'bad_fcm_server_key': 'fcm.initialize() requires an FCM server key as the ' +
+  'bad_sw_path': 'propel.messaging() expects the second parameter to be a ' +
+    'string to the path of your service worker file.',
+  'bad_fcm_api_key': 'propel.messaging() requires an FCM API key as the ' +
     'first parameter.'
 };
 /* eslint-enable quote-prop */
 
-const currentScript = document.currentScript || null;
-
-/**
- * PushClient is a front end library that simplifies adding push to your
- * site.
- */
 export default class PushClient {
-  /**
-   * [initialise description]
-   * @param  {String} fcmServerKey   The FCM Server Key (ADD DOCS LINK)
-   * @param  {ServiceWorkerRegistration} [swRegistration] Registration for a
-   *   service worker to use for push. If not defined FCM will register a
-   *   predefined service worker that will work with Firebase Notifications.
-   * @return {Promise}                Resolves when FCM is initialized.
-   */
-  initialize(fcmServerKey, swRegistration) {
-    if (!this.supported) {
-      return Promise.reject(new Error('Your browser does not support the ' +
-        'web push API'));
-    }
-
-    if (typeof fcmServerKey !== 'string' || fcmServerKey.length <= 0) {
-      return Promise.reject(new Error(ERROR_MESSAGES.bad_fcm_server_key));
-    }
-
-    let registrationPromise = null;
-    if (typeof swRegistration === 'undefined' || swRegistration === null) {
-      // Register our own SW. We should use document.currentScript, but Babels
-      // polyfill breaks it.
-      registrationPromise = navigator.serviceWorker
-        .register(currentScript.src, {
-          scope: '/propel-v1.0.0/'
-        });
-    } else {
-      if (!(swRegistration instanceof ServiceWorkerRegistration)) {
-        return Promise.reject(new Error(ERROR_MESSAGES.bad_sw_reg));
+  constructor(swPath) {
+    // TODO: If the service worker path is changed, should the SDK delete
+    // the previous service worker registration?
+    if (swPath) {
+      if (typeof swPath !== 'string' || swPath.length <= 0) {
+        return Promise.reject(new Error(ERROR_MESSAGES.bad_sw_path));
       }
+    } else {
+      swPath = '/push-sw.js';
+    }
+    this._swPath = swPath;
 
-      registrationPromise = Promise.resolve(swRegistration);
+    this._subscribeForPush();
+  }
+
+  _subscribeForPush() {
+    if (!this.supported) {
+      return Promise.reject(new Error('Your browser does not meet the ' +
+        'requirement for this library'));
     }
 
-    return registrationPromise
-    .then(registration => {
-      this._registration = registration;
+    return navigator.serviceWorker
+    .register(this._swPath, {
+      scope: 'propel-v1.0.0'
     })
-    .then(() => {
-      return {
-        blocked: Notification.permission === 'blocked',
-        registrationId: 'some-reg-id'
-      };
+    .then(registration => {
+      // TODO: Whaht happens is user has blocked notifications?
+      // TODO What happens if there is already a registration id
+      // TODO: Is this the correct place to request permission?
+
+      return registration.pushManager.subscribe({
+        userVisibleOnly: true
+      })
+      .then(subscription => {
+        // TODO: What to do with subscription?
+        console.log(JSON.stringify(subscription));
+      });
+    })
+    .catch(err => {
+      // TODO: What to do with errors?
+      console.error(err);
     });
   }
 
@@ -85,7 +77,6 @@ export default class PushClient {
     return 'serviceWorker' in navigator &&
       'PushManager' in window &&
       'Notification' in window &&
-      'showNotification' in ServiceWorkerRegistration.prototype &&
-      currentScript !== null;
+      'showNotification' in ServiceWorkerRegistration.prototype;
   }
 }

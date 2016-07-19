@@ -41,6 +41,7 @@
     "sw-testing-helpers": "0.0.15",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
+    "web-push": "^2.1.1",
     "which": "^1.2.4"
   },
   "license": "Apache-2.0"

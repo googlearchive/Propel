@@ -14,11 +14,9 @@
 /* eslint-env browser, serviceworker */
 
 import PushClient from './client/push-client';
-import PushWorker from './worker/push-worker';
 
 // Crude checks for window vs service worker environment
-if (typeof window !== 'undefined') {
-  window.propel = window.propel || new PushClient();
-} else if (typeof self !== 'undefined') {
-  self.propel = self.propel || new PushWorker();
-}
+window.propel = window.propel || {};
+window.propel.messaging = window.propel.messaging || (swPath => {
+  return new PushClient(swPath);
+});
