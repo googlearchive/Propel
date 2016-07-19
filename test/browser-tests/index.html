@@ -41,12 +41,6 @@
   <!-- Helpers that set up global variables to be used in tests -->
   <script src="/test/helpers/is-supported.js"></script>
 
-  <!--
-  <script src="/test/libs/stubs/base-stub.js"></script>
-  <script src="/test/libs/stubs/firefox-stub.js"></script>
-  <script src="/test/libs/stubs/full-stub.js"></script>
-  <script src="/test/libs/state-stub-singleton.js"></script>-->
-
   <script>
     mocha.setup({
       ui: 'bdd'
@@ -57,19 +51,7 @@
 
   <!-- This must be first as it adds the script to the page -->
   <script src="/test/browser-tests/push-client/leak-check.js"></script>
-  <script src="/test/browser-tests/push-client/supported.js"></script>
-  <script src="/test/browser-tests/push-client/initialize.js"></script>
-  <!--
-
-  <script src="/test/browser-tests/push-client/constructor.js"></script>
-  <script src="/test/browser-tests/push-client/get-registration.js"></script>
-  <script src="/test/browser-tests/push-client/get-permission-state.js"></script>
-  <script src="/test/browser-tests/push-client/get-subscription.js"></script>
-  <script src="/test/browser-tests/push-client/status-change-event.js"></script>
-  <script src="/test/browser-tests/push-client/request-permission.js"></script>
-  <script src="/test/browser-tests/push-client/subscribe.js"></script>
-  <script src="/test/browser-tests/push-client/unsubscribe.js"></script>
-  <script src="/test/browser-tests/push-worker/get-notifications/get-notifications.js"></script>-->
+  <script src="/test/browser-tests/notification-tests.js"></script>
 
   <script>
     (function() {

@@ -17,9 +17,6 @@
 // This is a test and we want descriptions to be useful, if this
 // breaks the max-length, it's ok.
 
-/* eslint-disable max-len, no-unused-expressions */
-/* eslint-env browser, mocha */
-
 'use strict';
 
 describe('Test for Leaks', function() {

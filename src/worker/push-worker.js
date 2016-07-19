@@ -19,6 +19,7 @@
 export default class PushWorker {
   constructor() {
     self.addEventListener('push', event => {
+      console.log('Received push event');
       // TODO: Check if window in clients is for this origin and focused
       event.waitUntil(
         Promise.resolve()
@@ -34,9 +35,22 @@ export default class PushWorker {
             throw new Error('No notification data with message');
           }
 
-          return self.registration.showNotification(data.notification.title, {
-            body: data.notification.body
-          });
+          const notificationData = {
+            body: data.notification.body,
+            icon: data.notification.icon,
+            badge: data.notification.bage,
+            tag: data.notification.tag,
+            vibrate: data.notification.vibrate
+          };
+
+          if (data.notification.click_action) {
+            notificationData.data = {
+              click_action: data.notification.click_action // eslint-disable-line camelcase
+            };
+          }
+
+          return self.registration.showNotification(data.notification.title,
+            notificationData);
         })
         .catch(err => {
           // TODO: Offer developer ability to handle this (i.e. onMessage)

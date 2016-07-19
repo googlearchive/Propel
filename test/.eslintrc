@@ -1,6 +1,7 @@
 {
   "env": {
-    "mocha": true
+    "mocha": true,
+    "browser": true
   },
   "globals": {
     "propel": true
@@ -9,6 +10,10 @@
     "max-len": 0,
     "no-console": 0,
     "padded-blocks": 0,
-    "no-multiple-empty-lines": 0
+    "no-multiple-empty-lines": 0,
+    "no-unused-expressions": 0,
+    "require-jsdoc": 0,
+    "camelcase": 0,
+    "max-nested-callbacks": 0
   }
 }
