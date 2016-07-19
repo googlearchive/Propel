@@ -17,17 +17,32 @@
  * site.
  */
 export default class PushWorker {
-  getNotifications(tagName) {
-    if (typeof tagName !== 'undefined' && typeof tagName !== 'string') {
-      throw new Error('The optional tagName argument must be a string if set');
-    }
+  constructor() {
+    self.addEventListener('push', event => {
+      // TODO: Check if window in clients is for this origin and focused
+      event.waitUntil(
+        Promise.resolve()
+        .then(() => {
+          if (!event.data) {
+            throw new Error('No data sent with message');
+          }
 
-    if (tagName && tagName.length === 0) {
-      throw new Error('The optional tagName cannot be an empty String');
-    }
+          return event.data.json();
+        })
+        .then(data => {
+          if (!data.notification) {
+            throw new Error('No notification data with message');
+          }
 
-    return self.registration.getNotifications({
-      tag: tagName
+          return self.registration.showNotification(data.notification.title, {
+            body: data.notification.body
+          });
+        })
+        .catch(err => {
+          // TODO: Offer developer ability to handle this (i.e. onMessage)
+          console.error(err);
+        })
+      );
     });
   }
 }

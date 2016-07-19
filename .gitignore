@@ -4,3 +4,4 @@ npm-debug.log
 docs/
 tagged-release/
 wires
+test/output/
