@@ -11,11 +11,8 @@
   limitations under the License.
 */
 
-/* eslint-env browser, serviceworker */
-
 import PushClient from './client/push-client';
 
-// Crude checks for window vs service worker environment
 window.propel = window.propel || {};
 window.propel.messaging = window.propel.messaging || (swPath => {
   return new PushClient(swPath);

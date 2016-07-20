@@ -37,22 +37,9 @@ const isClientFocused = function() {
 
 const attemptToMessageClient = function(client, msgData) {
   return new Promise(resolve => {
-    let messageReceived = false;
-    var messageChannel = new MessageChannel();
-    messageChannel.port1.onmessage = () => {
-      messageReceived = true;
-      resolve(messageReceived);
-    };
+    client.postMessage(msgData);
 
-    client.postMessage({
-      propelcmd: 'propel-on-message',
-      data: msgData
-    }, [messageChannel.port2]);
-
-    // Give 500ms for page to response
-    setTimeout(() => {
-      resolve(messageReceived);
-    }, 500);
+    resolve(true);
   });
 };
 
@@ -103,7 +90,7 @@ const onPushReceived = function(event) {
       }
 
       return attemptToMessageClient(focusedClient, {
-        propelcmd: 'propel-on-message',
+        propelcmd: 'propel-message',
         data: data
       });
     })

@@ -16,53 +16,54 @@
 
 'use strict';
 
-function sendMessage(serviceworker, command, message) {
-  // This wraps the message posting/response in a promise, which will resolve if the response doesn't
-  // contain an error, and reject with the error if it does. If you'd prefer, it's possible to call
-  // controller.postMessage() and set up the onmessage handler independently of a promise, but this is
-  // a convenient wrapper.
-  return new Promise(function(resolve, reject) {
-    var messageChannel = new MessageChannel();
-    messageChannel.port1.onmessage = function(event) {
-      if (event.data.error) {
-        reject(event.data.error);
-      } else {
-        resolve(event.data);
-      }
-    };
+describe('Test Notification', function() {
 
-    // This sends the message data as well as transferring messageChannel.port2 to the service worker.
-    // The service worker can then use the transferred port to reply via postMessage(), which
-    // will in turn trigger the onmessage handler on messageChannel.port1.
-    // See https://html.spec.whatwg.org/multipage/workers.html#dom-worker-postmessage
-    serviceworker.postMessage({
-      command: command,
-      data: message
-    }, [messageChannel.port2]);
-  });
-}
+  const sendMessage = function(serviceworker, command, message) {
+    // This wraps the message posting/response in a promise, which will resolve if the response doesn't
+    // contain an error, and reject with the error if it does. If you'd prefer, it's possible to call
+    // controller.postMessage() and set up the onmessage handler independently of a promise, but this is
+    // a convenient wrapper.
+    return new Promise(function(resolve, reject) {
+      var messageChannel = new MessageChannel();
+      messageChannel.port1.onmessage = function(event) {
+        if (event.data.error) {
+          reject(event.data.error);
+        } else {
+          resolve(event.data);
+        }
+      };
 
-function waitForNotification(registration, attemptNumber, maxAttempts) {
-  if (attemptNumber >= maxAttempts) {
-    return Promise.reject('Reached max number of attempts');
-  }
+      // This sends the message data as well as transferring messageChannel.port2 to the service worker.
+      // The service worker can then use the transferred port to reply via postMessage(), which
+      // will in turn trigger the onmessage handler on messageChannel.port1.
+      // See https://html.spec.whatwg.org/multipage/workers.html#dom-worker-postmessage
+      serviceworker.postMessage({
+        command: command,
+        data: message
+      }, [messageChannel.port2]);
+    });
+  };
 
-  return registration.getNotifications()
-  .then(notifications => {
-    if (notifications.length === 0) {
-      return new Promise(resolve => {
-        setTimeout(resolve, 500);
-      })
-      .then(() => {
-        return waitForNotification(registration, attemptNumber + 1, maxAttempts);
-      });
+  const waitForNotification = function(registration, attemptNumber, maxAttempts) {
+    if (attemptNumber >= maxAttempts) {
+      return Promise.reject('Reached max number of attempts');
     }
 
-    return notifications;
-  });
-}
+    return registration.getNotifications()
+    .then(notifications => {
+      if (notifications.length === 0) {
+        return new Promise(resolve => {
+          setTimeout(resolve, 500);
+        })
+        .then(() => {
+          return waitForNotification(registration, attemptNumber + 1, maxAttempts);
+        });
+      }
 
-describe('Test Notification', function() {
+      return notifications;
+    });
+  };
+
   beforeEach(() => {
     return window.goog.swUtils.cleanState();
   });
@@ -101,7 +102,7 @@ describe('Test Notification', function() {
       }
     ];
 
-    return window.goog.swUtils.activateSW('/test/data/demo/sw.js')
+    return window.goog.swUtils.activateSW('/test/data/demo/sw.js?force-notification=true')
     .then(() => {
       return navigator.serviceWorker.getRegistrations();
     })
@@ -165,7 +166,7 @@ describe('Test Notification', function() {
   });
 
   it('should register sw and display a default notification', function() {
-    return window.goog.swUtils.activateSW('/test/data/demo/sw.js')
+    return window.goog.swUtils.activateSW('/test/data/demo/sw.js?force-notification=true')
     .then(() => {
       return navigator.serviceWorker.getRegistrations();
     })

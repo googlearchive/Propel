@@ -7,7 +7,7 @@
     "build": "gulp default",
     "build-docs": "esdoc -c esdoc.json",
     "bundle": "./project/create-release-bundle.sh",
-    "lint": "eslint --ignore-path .gitignore '.'",
+    "lint": "eslint '.'",
     "test": "node ./test/helpers/browser-download.js && npm run lint && npm run build && mocha ./test/*.js"
   },
   "devDependencies": {

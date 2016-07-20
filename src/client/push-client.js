@@ -25,6 +25,8 @@ const dispatchRegistrationToken = function() {
 };
 
 const subscribeForPush = function() {
+  // TODO: What happens if the browser doesn't support the APIS
+  // required for this library
   if (!supported()) {
     return Promise.reject(new Error('Your browser does not meet the ' +
       'requirement for this library'));
@@ -34,9 +36,11 @@ const subscribeForPush = function() {
   .register(this._swPath, {
     scope: 'propel-v1.0.0'
   })
+  .catch(() => {
+    throw new Error('Unable to register service worker');
+  })
   .then(registration => {
     // TODO: What happens is user has blocked notifications?
-    // TODO What happens if there is already a registration id
     // TODO: Is this the correct place to request permission?
 
     return registration.pushManager.getSubscription()
@@ -44,6 +48,10 @@ const subscribeForPush = function() {
       if (!currentSubscription) {
         return registration.pushManager.subscribe({
           userVisibleOnly: true
+        })
+        .catch(err => {
+          throw new Error(`Unable to subscribe user for push messages.` +
+            ` [${err.message}]`);
         });
       }
 
@@ -58,34 +66,60 @@ const subscribeForPush = function() {
   });
 };
 
+const dispatchError = function(error) {
+  if (this._callbacks.onError) {
+    this._callbacks.onError(error);
+  }
+};
+
+const dispatchMessage = function(msg) {
+  if (this._callbacks.onMessage) {
+    this._callbacks.onMessage(msg);
+  }
+};
+
 export default class PushClient {
   constructor(swPath) {
     // TODO: If the service worker path is changed, should the SDK delete
     // the previous service worker registration?
 
     if (typeof swPath !== 'string' || swPath.length <= 0) {
-      return Promise.reject(new Error('propel.messaging() expects the ' +
-        'second parameter to be a string to the path of your service ' +
-        'worker file.'));
+      throw new Error('propel.messaging() expects the ' +
+        'first parameter to be a string to the path of your service ' +
+        'worker file.');
     }
 
     this._swPath = swPath;
     this._callbacks = {};
 
     navigator.serviceWorker.addEventListener('message', event => {
-      console.log('Received Message. <-------', event);
+      switch (event.data.propelcmd) {
+        case 'propel-message':
+          dispatchMessage.bind(this)(event.data.data);
+          break;
+        default:
+          // Noop.
+          console.warn('Unknown message received from service worker', event);
+          break;
+      }
     }, false);
 
     subscribeForPush.bind(this)()
     .catch(err => {
-      // TODO: What to do with errors?
-
-      console.error(err);
+      dispatchError.bind(this)(err);
     });
   }
 
   onRegistrationToken(cb) {
     this._callbacks.onRegistrationToken = cb;
     dispatchRegistrationToken.bind(this)();
+  }
+
+  onError(cb) {
+    this._callbacks.onError = cb;
+  }
+
+  onMessage(cb) {
+    this._callbacks.onMessage = cb;
   }
 }
