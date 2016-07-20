@@ -4,7 +4,15 @@
 
 importScripts('/dist/propel-sw.js');
 
-propel.messaging();
+const messaging = propel.messaging();
+messaging.onMessage(data => {
+  console.log('onMessage Data: ', data);
+
+  return self.registration.showNotification('Default Title', {
+    body: 'Default Body',
+    icon: 'http://dummyimage.com/600/000/ffffff.jpg&text=Default'
+  });
+});
 
 // Dispatch a fake push message when requested
 self.addEventListener('message', function(event) {

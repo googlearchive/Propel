@@ -96,16 +96,12 @@ describe('Test Notification', function() {
       }, {
         title: 'This is a Title as well',
         body: 'This is the body as well',
-        icon: '/test/data/demos/notification-icon.png',
-        badge: '/test/data/demos/badge.png'
+        icon: '/test/data/demo/notification-icon.png',
+        badge: '/test/data/demo/badge.png'
       }
     ];
-    console.log('Adding message listener');
-    navigator.serviceWorker.addEventListener('message', event => {
-      console.log('Received Message. <-------', event);
-    }, false);
 
-    return window.goog.swUtils.activateSW('/test/data/demos/sw.js')
+    return window.goog.swUtils.activateSW('/test/data/demo/sw.js')
     .then(() => {
       return navigator.serviceWorker.getRegistrations();
     })
@@ -165,6 +161,45 @@ describe('Test Notification', function() {
           });
         });
       }, Promise.resolve());
+    });
+  });
+
+  it('should register sw and display a default notification', function() {
+    return window.goog.swUtils.activateSW('/test/data/demo/sw.js')
+    .then(() => {
+      return navigator.serviceWorker.getRegistrations();
+    })
+    .then(registrations => {
+      return registrations[0];
+    })
+    .then(registration => {
+      return Promise.resolve()
+      .then(() => {
+        return sendMessage(registration.active, 'dummy-push', {});
+      })
+      .then(() => {
+        return waitForNotification(registration, 0, 5);
+      })
+      .then(notifications => {
+        notifications.length.should.equal(1);
+
+        notifications.forEach(notification => {
+          notification.title.should.equal('Default Title');
+          notification.body.should.equal('Default Body');
+          notification.icon.should.equal('http://dummyimage.com/600/000/ffffff.jpg&text=Default');
+
+          const badgeLocalPath = '/test/data/demo/badge.png';
+          if (notification.badge) {
+            if (notification.badge.indexOf('http') === 0) {
+              notification.badge.should.equal(window.location.origin + badgeLocalPath);
+            } else {
+              notification.badge.should.equal(badgeLocalPath);
+            }
+          }
+
+          notification.close();
+        });
+      });
     });
   });
 });

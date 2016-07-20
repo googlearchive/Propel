@@ -1,4 +1,7 @@
 {
   "parser": "babel-eslint",
-  "extends": "google"
+  "extends": "google",
+  "env": {
+    "browser": true
+  }
 }

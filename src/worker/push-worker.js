@@ -10,7 +10,127 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-/* eslint-env browser, serviceworker */
+
+/* eslint-env serviceworker */
+
+const isClientFocused = function() {
+  return clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true
+  })
+  .then(clientList => {
+    let focusedClient = null;
+    for (var i = 0; i < clientList.length; i++) {
+      const client = clientList[i];
+      if (client.focused) {
+        focusedClient = client;
+      }
+    }
+
+    if (focusedClient) {
+      return focusedClient;
+    }
+
+    return false;
+  });
+};
+
+const attemptToMessageClient = function(client, msgData) {
+  return new Promise(resolve => {
+    let messageReceived = false;
+    var messageChannel = new MessageChannel();
+    messageChannel.port1.onmessage = () => {
+      messageReceived = true;
+      resolve(messageReceived);
+    };
+
+    client.postMessage({
+      propelcmd: 'propel-on-message',
+      data: msgData
+    }, [messageChannel.port2]);
+
+    // Give 500ms for page to response
+    setTimeout(() => {
+      resolve(messageReceived);
+    }, 500);
+  });
+};
+
+const showNotification = function(data) {
+  if (!data) {
+    return Promise.reject(new Error('No data sent with message'));
+  }
+
+  return Promise.resolve()
+  .then(() => {
+    if (!data.notification) {
+      throw new Error('No notification data with message');
+    }
+
+    const notificationData = {
+      body: data.notification.body,
+      icon: data.notification.icon,
+      badge: data.notification.bage,
+      tag: data.notification.tag,
+      vibrate: data.notification.vibrate
+    };
+
+    if (data.notification.click_action) {
+      notificationData.data = {
+        click_action: data.notification.click_action // eslint-disable-line camelcase
+      };
+    }
+
+    return self.registration.showNotification(data.notification.title,
+      notificationData);
+  });
+};
+
+const onPushReceived = function(event) {
+  const notificationPromiseChain = Promise.resolve()
+  .then(() => {
+    if (!event.data) {
+      return null;
+    }
+
+    return event.data.json();
+  })
+  .then(data => {
+    return isClientFocused()
+    .then(focusedClient => {
+      if (focusedClient === false) {
+        return false;
+      }
+
+      return attemptToMessageClient(focusedClient, {
+        propelcmd: 'propel-on-message',
+        data: data
+      });
+    })
+    .then(pushMessageHandled => {
+      if (!pushMessageHandled) {
+        return showNotification(data);
+      }
+    })
+    .catch(err => {
+      if (this._callbacks.onMessage) {
+        this._callbacks.onMessage(data);
+      } else {
+        console.error('Propel was unable to handle the notification' +
+          'data. Define a onMessage callback in the service worker to ' +
+          'define a default notification.', err);
+      }
+    });
+  });
+
+  event.waitUntil(notificationPromiseChain);
+};
+
+const onSubscriptionChange = function() {
+  // TODO: Current behaviour mixed with upcoming behaviour changes.
+  // Manage resubscribing
+  // Manage Updating backend
+};
 
 /**
  * PushWorker is a front end library that simplifies adding push to your
@@ -18,90 +138,14 @@
  */
 export default class PushWorker {
   constructor() {
-    self.addEventListener('push', this._onPushReceived.bind(this));
+    this._callbacks = {};
+
+    self.addEventListener('push', onPushReceived.bind(this));
     self.addEventListener('pushsubscriptionchange',
-      this._onSubscriptionChange.bind(this));
-
-    // TODO: If subscriptionlost event is created should implement that as well
+      onSubscriptionChange.bind(this));
   }
 
-  _isClientFocused() {
-    return clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(clientList => {
-      let focusedClient = null;
-      for (var i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if (client.focused) {
-          focusedClient = client;
-        }
-      }
-
-      if (focusedClient) {
-        return focusedClient;
-      }
-
-      return false;
-    });
-  }
-
-  _onPushReceived(event) {
-    // TODO: Check if window in clients is for this origin and focused
-    const notificationPromiseChain = this._isClientFocused()
-    .then(focusedClient => {
-      if (focusedClient === false) {
-        return this._showNotification(event);
-      }
-
-      console.log('Sending message to client', focusedClient);
-      focusedClient.postMessage('test', []);
-    })
-    .catch(err => {
-      // TODO: Offer developer ability to handle this (i.e. onMessage)
-      console.error(err);
-    });
-
-    event.waitUntil(notificationPromiseChain);
-  }
-
-  _showNotification(event) {
-    return Promise.resolve()
-    .then(() => {
-      if (!event.data) {
-        throw new Error('No data sent with message');
-      }
-
-      return event.data.json();
-    })
-    .then(data => {
-      if (!data.notification) {
-        throw new Error('No notification data with message');
-      }
-
-      const notificationData = {
-        body: data.notification.body,
-        icon: data.notification.icon,
-        badge: data.notification.bage,
-        tag: data.notification.tag,
-        vibrate: data.notification.vibrate
-      };
-
-      if (data.notification.click_action) {
-        notificationData.data = {
-          click_action: data.notification.click_action // eslint-disable-line camelcase
-        };
-      }
-
-      return self.registration.showNotification(data.notification.title,
-        notificationData);
-    });
-  }
-
-  _onSubscriptionChange() {
-    // TODO: Current behaviour mixed with upcoming behaviour changes.
-    // Manage resubscribing
-    // Manage Updating backend
+  onMessage(cb) {
+    this._callbacks.onMessage = cb;
   }
 }

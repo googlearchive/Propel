@@ -11,94 +11,81 @@
   limitations under the License.
 */
 
-/* eslint-env browser */
-
-/* eslint-disable quote-props */
-const ERROR_MESSAGES = {
-  'bad_sw_path': 'propel.messaging() expects the second parameter to be a ' +
-    'string to the path of your service worker file.',
-  'bad_fcm_api_key': 'propel.messaging() requires an FCM API key as the ' +
-    'first parameter.'
+const supported = function() {
+  return 'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'showNotification' in ServiceWorkerRegistration.prototype;
 };
-/* eslint-enable quote-prop */
+
+const dispatchRegistrationToken = function() {
+  if (this._callbacks.onRegistrationToken && this._subscription) {
+    this._callbacks.onRegistrationToken(this._subscription);
+  }
+};
+
+const subscribeForPush = function() {
+  if (!supported()) {
+    return Promise.reject(new Error('Your browser does not meet the ' +
+      'requirement for this library'));
+  }
+
+  return navigator.serviceWorker
+  .register(this._swPath, {
+    scope: 'propel-v1.0.0'
+  })
+  .then(registration => {
+    // TODO: What happens is user has blocked notifications?
+    // TODO What happens if there is already a registration id
+    // TODO: Is this the correct place to request permission?
+
+    return registration.pushManager.getSubscription()
+    .then(currentSubscription => {
+      if (!currentSubscription) {
+        return registration.pushManager.subscribe({
+          userVisibleOnly: true
+        });
+      }
+
+      return currentSubscription;
+    });
+  })
+  .then(subscription => {
+    // TODO: What to do with subscription?
+
+    this._subscription = subscription;
+    dispatchRegistrationToken.bind(this)();
+  });
+};
 
 export default class PushClient {
   constructor(swPath) {
     // TODO: If the service worker path is changed, should the SDK delete
     // the previous service worker registration?
-    if (swPath) {
-      if (typeof swPath !== 'string' || swPath.length <= 0) {
-        return Promise.reject(new Error(ERROR_MESSAGES.bad_sw_path));
-      }
-    } else {
-      swPath = '/push-sw.js';
-    }
-    this._swPath = swPath;
 
-    this._subscribeForPush()
+    if (typeof swPath !== 'string' || swPath.length <= 0) {
+      return Promise.reject(new Error('propel.messaging() expects the ' +
+        'second parameter to be a string to the path of your service ' +
+        'worker file.'));
+    }
+
+    this._swPath = swPath;
+    this._callbacks = {};
+
+    navigator.serviceWorker.addEventListener('message', event => {
+      console.log('Received Message. <-------', event);
+    }, false);
+
+    subscribeForPush.bind(this)()
     .catch(err => {
       // TODO: What to do with errors?
+
       console.error(err);
     });
-
-    /** window.addEventListener('message', function() {
-      console.log('Received Message.');
-    });**/
-  }
-
-  _subscribeForPush() {
-    if (!this.supported) {
-      return Promise.reject(new Error('Your browser does not meet the ' +
-        'requirement for this library'));
-    }
-
-    return navigator.serviceWorker
-    .register(this._swPath, {
-      scope: 'propel-v1.0.0'
-    })
-    .then(registration => {
-      // TODO: Whaht happens is user has blocked notifications?
-      // TODO What happens if there is already a registration id
-      // TODO: Is this the correct place to request permission?
-      return registration.pushManager.getSubscription()
-      .then(currentSubscription => {
-        if (!currentSubscription) {
-          return registration.pushManager.subscribe({
-            userVisibleOnly: true
-          });
-        }
-
-        return currentSubscription;
-      });
-    })
-    .then(subscription => {
-      // TODO: What to do with subscription?
-      this._subscription = subscription;
-      this._dispatchRegistrationToken();
-    });
-  }
-
-  // Called when subscription is received
-  _dispatchRegistrationToken() {
-    if (this._onRegTokenCb && this._subscription) {
-      this._onRegTokenCb(this._subscription);
-    }
   }
 
   onRegistrationToken(cb) {
-    this._onRegTokenCb = cb;
-    this._dispatchRegistrationToken();
-  }
-  /**
-   * Before calling initialise, check that the current browser supports
-   * everything thats required by the library.
-   * @return {Boolean} Whether the current browser has everything needed
-   *  to use push messaging.
-   */
-  get supported() {
-    return 'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window &&
-      'showNotification' in ServiceWorkerRegistration.prototype;
+    this._callbacks.onRegistrationToken = cb;
+    dispatchRegistrationToken.bind(this)();
   }
 }

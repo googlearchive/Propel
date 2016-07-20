@@ -14,9 +14,20 @@
 <head>
   <meta charset="utf-8">
   <title>Propel Demo</title>
-  <link rel="manifest" href="/test/data/demos/manifest.json">
+  <link rel="manifest" href="/test/data/demo/manifest.json">
 </head>
 <body>
+  <h1>Propel Demo</h1>
+
+  <p>Basic Demo is in this page, please see the script in this page
+  to view how it's used. Also take a look at:
+  <a href="/test/data/demo/sw.js">the service worker file here</a></p>
+
+  <h2>Subscription</h2>
+  <pre style="overflow-x: auto;">
+    <code class="js-subscription"></code>
+  </pre>
+
   <script src="/dist/propel.js"></script>
   <script>
     var messaging = window.propel.messaging('sw.js');
@@ -24,6 +35,8 @@
     // messaging.deleteToken();
     messaging.onRegistrationToken(subscription => {
       console.log('onRegistrationToken: ', subscription);
+      const subCodeElement = document.querySelector('.js-subscription');
+      subCodeElement.textContent = JSON.stringify(subscription);
     });
   </script>
 </body>
