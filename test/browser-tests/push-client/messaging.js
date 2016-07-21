@@ -91,12 +91,9 @@ describe('Test Messaging Function', function() {
     });
   });
 
-  it('should throw an error on no input', function() {
-    expect(() => {
-      window.propel.messaging();
-    }).to.throw('propel.messaging() expects the ' +
-      'first parameter to be a string to the path of your service ' +
-      'worker file.');
+  it('should use default sw path on no input', function() {
+    const messaging = window.propel.messaging();
+    messaging._swPath.should.equal('/fcm-sw.js');
   });
 
   it('should throw an error on a non-existant service worker file', function() {

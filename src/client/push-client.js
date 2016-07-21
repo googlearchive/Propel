@@ -116,7 +116,9 @@ export default class PushClient {
     // TODO: If the service worker path is changed, should the SDK delete
     // the previous service worker registration?
 
-    if (typeof swPath !== 'string' || swPath.length <= 0) {
+    if (typeof swPath === 'undefined') {
+      swPath = '/fcm-sw.js';
+    } else if (typeof swPath !== 'string' || swPath.length <= 0) {
       throw new Error('propel.messaging() expects the ' +
         'first parameter to be a string to the path of your service ' +
         'worker file.');
@@ -125,19 +127,20 @@ export default class PushClient {
     this._swPath = swPath;
     this._callbacks = {};
 
-    navigator.serviceWorker.addEventListener('message', event => {
-      switch (event.data.propelcmd) {
-        case 'propel-message':
-          dispatchMessage.bind(this)(event.data.data);
-          break;
-        default:
-          // Noop.
-          console.warn('Unknown message received from service worker', event);
-          break;
-      }
-    }, false);
-
     subscribeForPush.bind(this)()
+    .then(() => {
+      navigator.serviceWorker.addEventListener('message', event => {
+        switch (event.data.propelcmd) {
+          case 'propel-message':
+            dispatchMessage.bind(this)(event.data.data);
+            break;
+          default:
+            // Noop.
+            console.warn('Unknown message received from service worker', event);
+            break;
+        }
+      }, false);
+    })
     .catch(err => {
       dispatchError.bind(this)(err);
     });
