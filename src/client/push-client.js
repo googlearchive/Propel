@@ -24,6 +24,35 @@ const dispatchRegistrationToken = function() {
   }
 };
 
+const registrationReady = function(registration) {
+  if (registration.active) {
+    return Promise.resolve(registration);
+  }
+
+  let serviceWorker = registration.installing || registration.waiting;
+
+  return new Promise(function(resolve, reject) {
+    // Because the Promise function is called on next tick there is a
+    // small chance that the worker became active already.
+    if (serviceWorker.state === 'activated') {
+      resolve(registration);
+      return;
+    }
+
+    let stateChangeListener = function() {
+      if (serviceWorker.state === 'activated') {
+        resolve(registration);
+      } else if (serviceWorker.state === 'redundant') {
+        reject(new Error('Registration has a redundant service worker.'));
+      } else {
+        return;
+      }
+      serviceWorker.removeEventListener('statechange', stateChangeListener);
+    };
+    serviceWorker.addEventListener('statechange', stateChangeListener);
+  });
+};
+
 const subscribeForPush = function() {
   // TODO: What happens if the browser doesn't support the APIS
   // required for this library
@@ -38,6 +67,9 @@ const subscribeForPush = function() {
   })
   .catch(() => {
     throw new Error('Unable to register service worker');
+  })
+  .then(registration => {
+    return registrationReady(registration);
   })
   .then(registration => {
     // TODO: What happens is user has blocked notifications?

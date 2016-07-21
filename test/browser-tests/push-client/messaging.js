@@ -28,10 +28,6 @@ describe('Test Messaging Function', function() {
         }
       };
 
-      // This sends the message data as well as transferring messageChannel.port2 to the service worker.
-      // The service worker can then use the transferred port to reply via postMessage(), which
-      // will in turn trigger the onmessage handler on messageChannel.port1.
-      // See https://html.spec.whatwg.org/multipage/workers.html#dom-worker-postmessage
       serviceworker.postMessage({
         command: command,
         data: message
@@ -61,6 +57,20 @@ describe('Test Messaging Function', function() {
     }
 
     return window.goog.swUtils.cleanState();
+  });
+
+  it('should have permission to show notifications', function() {
+    this.timeout(10000);
+
+    return new Promise((resolve, reject) => {
+      Notification.requestPermission(() => {
+        if (Notification.permission === 'granted') {
+          return resolve();
+        }
+
+        reject('Notification permission not granted');
+      });
+    });
   });
 
   it('should throw an error on bad input', function() {
@@ -99,12 +109,25 @@ describe('Test Messaging Function', function() {
     });
   });
 
-  it('should throw an error on subscribe failing', function() {
+  it('should throw an error on subscribe failing on Chrome', function() {
     // Currently fails due to no web app manifest
-    return new Promise(resolve => {
+    if (window.navigator.vendor === 'Google Inc.') {
+      return new Promise(resolve => {
+        const messaging = window.propel.messaging('/test/data/demo/sw.js');
+        messaging.onError(err => {
+          (err.message.indexOf('Unable to subscribe user for push messages.')).should.not.equal(-1);
+          resolve();
+        });
+      });
+    }
+
+    return new Promise((resolve, reject) => {
       const messaging = window.propel.messaging('/test/data/demo/sw.js');
       messaging.onError(err => {
-        (err.message.indexOf('Unable to subscribe user for push messages.')).should.not.equal(-1);
+        reject(err);
+      });
+
+      messaging.onRegistrationToken(() => {
         resolve();
       });
     });
@@ -127,9 +150,7 @@ describe('Test Messaging Function', function() {
   });
 
   it('should receive a message while the page is focused', function() {
-    this.timeout(5000);
-
-    window.focus();
+    this.timeout(60000);
 
     const pushData = {
       test: 'Hello, World'
@@ -149,8 +170,7 @@ describe('Test Messaging Function', function() {
         navigator.serviceWorker.getRegistrations()
         .then(registrations => {
           registrations.forEach(registration => {
-            const serviceWorker = registration.installing ||
-              registration.active;
+            const serviceWorker = registration.active;
             if (serviceWorker.scriptURL === window.location.origin + '/test/data/demo/sw.js' &&
               registration.scope.indexOf('propel-v1.0.0') !== -1) {
               sendMessage(serviceWorker, 'dummy-push', pushData);

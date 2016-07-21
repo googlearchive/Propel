@@ -19,16 +19,16 @@ const isClientFocused = function() {
     includeUncontrolled: true
   })
   .then(clientList => {
-    let focusedClient = null;
+    const focusedClients = [];
     for (var i = 0; i < clientList.length; i++) {
       const client = clientList[i];
-      if (client.focused) {
-        focusedClient = client;
+      if (client.visibilityState === 'visible') {
+        focusedClients.push(client);
       }
     }
 
-    if (focusedClient) {
-      return focusedClient;
+    if (focusedClients.length > 0) {
+      return focusedClients;
     }
 
     return false;
@@ -84,15 +84,19 @@ const onPushReceived = function(event) {
   })
   .then(data => {
     return isClientFocused()
-    .then(focusedClient => {
-      if (focusedClient === false) {
+    .then(focusedClients => {
+      if (focusedClients === false) {
         return false;
       }
 
-      return attemptToMessageClient(focusedClient, {
-        propelcmd: 'propel-message',
-        data: data
-      });
+      return Promise.all(
+        focusedClients.map(focusedClient => {
+          return attemptToMessageClient(focusedClient, {
+            propelcmd: 'propel-message',
+            data: data
+          });
+        })
+      );
     })
     .then(pushMessageHandled => {
       if (!pushMessageHandled) {
