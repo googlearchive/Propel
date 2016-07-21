@@ -24,6 +24,7 @@ const dispatchRegistrationToken = function() {
   }
 };
 
+// Service worker must be active before a user can be subscribed
 const registrationReady = function(registration) {
   if (registration.active) {
     return Promise.resolve(registration);
