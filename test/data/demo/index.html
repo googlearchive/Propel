@@ -29,16 +29,35 @@
 
   <p>Registration Token (Not Final): <span style="color: grey;" class="js-reg-token"></span></p>
 
-  <h2>Curl Command</h2>
+  <h2>Node Command</h2>
 
-  <button class="js-get-curl">Copy CURL Command to Clipboard</button>
+  <p>To trigger a push message, there project has a node script. Perform the
+  following steps:</p>
+
+  <h5>1. Set up your payload here</h5>
+
+  <textarea style="width: 100%" rows="15" class="js-payload-data">{
+  "notification": {
+    "title": "Hello",
+    "body": "This is a test"
+  },
+  "data": {
+    "example": "I'm example data"
+  }
+}</textarea>
+
+  <h5>2. Get Node Command By Clicking This Button</h5>
+
+  <button class="js-get-curl">Copy Node Command to Clipboard</button>
+
+  <h5>3. Open Terminal and Paste the Command in the Root of This Project</h5>
 
   <h2>Messages Received In Page</h2>
   <ul class="js-message-list">
   </ul>
 
 
-  <script src="/test/data/demo/curlcommand.js"></script>
+  <script src="/test/data/demo/nodecommand.js"></script>
 
   <script src="/dist/propel.js"></script>
   <script src="/test/data/demo/main.js"></script>

@@ -22,7 +22,9 @@ messaging.onRegistrationToken(subscription => {
 
   const curlButton = document.querySelector('.js-get-curl');
   curlButton.addEventListener('click', () => {
-    const curlCommand = window.generateCurlCommand(subscription);
-    window.copyToClipboard(curlCommand);
+    let pushPayload = document.querySelector('.js-payload-data').textContent;
+    pushPayload = pushPayload.replace(/\\n/g, "");
+    const nodeCommand = window.generateNodeCommand(subscription, pushPayload);
+    window.copyToClipboard(nodeCommand);
   });
 });

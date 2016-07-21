@@ -74,6 +74,7 @@ const showNotification = function(data) {
 };
 
 const onPushReceived = function(event) {
+  console.log('HJELLO <---------------------');
   const notificationPromiseChain = Promise.resolve()
   .then(() => {
     if (!event.data) {
