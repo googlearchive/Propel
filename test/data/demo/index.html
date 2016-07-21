@@ -19,25 +19,28 @@
 <body>
   <h1>Propel Demo</h1>
 
-  <p>Basic Demo is in this page, please see the script in this page
-  to view how it's used. Also take a look at:
-  <a href="/test/data/demo/sw.js">the service worker file here</a></p>
+  <p>Basic Demo is in this page, please see the scripts used in this page
+  to view the API. Also take a look at:</p>
 
-  <h2>Subscription</h2>
-  <pre style="overflow-x: auto;">
-    <code class="js-subscription"></code>
-  </pre>
+  <ul>
+    <li><a href="/test/data/demo/main.js">Page Javascript</a></li>
+    <li><a href="/test/data/demo/sw.js">Service Worker</a></li>
+  </ul>
+
+  <p>Registration Token (Not Final): <span style="color: grey;" class="js-reg-token"></span></p>
+
+  <h2>Curl Command</h2>
+
+  <button class="js-get-curl">Copy CURL Command to Clipboard</button>
+
+  <h2>Messages Received In Page</h2>
+  <ul class="js-message-list">
+  </ul>
+
+
+  <script src="/test/data/demo/curlcommand.js"></script>
 
   <script src="/dist/propel.js"></script>
-  <script>
-    var messaging = window.propel.messaging('sw.js');
-    // messaging.onMessage();
-    // messaging.deleteToken();
-    messaging.onRegistrationToken(subscription => {
-      console.log('onRegistrationToken: ', subscription);
-      const subCodeElement = document.querySelector('.js-subscription');
-      subCodeElement.textContent = JSON.stringify(subscription);
-    });
-  </script>
+  <script src="/test/data/demo/main.js"></script>
 </body>
 </html>
