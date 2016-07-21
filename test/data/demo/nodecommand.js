@@ -12,7 +12,7 @@ window.generateNodeCommand = (subscription, payload) => {
 window.copyToClipboard = function(text) {
   let clipboardElement = document.querySelector('.js-hidden-clipboard');
   if (!clipboardElement) {
-    clipboardElement = document.createElement('div');
+    clipboardElement = document.createElement('textarea');
     clipboardElement.classList.add('js-hidden-clipboard');
     clipboardElement.style.width = '1px';
     clipboardElement.style.height = '1px';
@@ -21,7 +21,7 @@ window.copyToClipboard = function(text) {
     document.body.appendChild(clipboardElement);
   }
 
-  clipboardElement.textContent = text;
+  clipboardElement.value = text;
 
   var range = document.createRange();
   range.selectNode(clipboardElement);

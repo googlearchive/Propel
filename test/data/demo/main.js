@@ -8,7 +8,6 @@ messaging.onError(err => {
 });
 
 messaging.onMessage(msg => {
-  console.log('onMessage?');
   const listElement = document.querySelector('.js-message-list');
   const listItemElement = document.createElement('li');
   listItemElement.textContent = JSON.stringify(msg);
@@ -22,7 +21,7 @@ messaging.onRegistrationToken(subscription => {
 
   const curlButton = document.querySelector('.js-get-curl');
   curlButton.addEventListener('click', () => {
-    let pushPayload = document.querySelector('.js-payload-data').textContent;
+    let pushPayload = document.querySelector('.js-payload-data').value;
     pushPayload = pushPayload.replace(/\\n/g, "");
     const nodeCommand = window.generateNodeCommand(subscription, pushPayload);
     window.copyToClipboard(nodeCommand);

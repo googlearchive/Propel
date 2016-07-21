@@ -4,18 +4,13 @@ const webPush = require('web-push');
 
 const args = require('minimist')(process.argv.slice(2));
 
-console.log('');
-console.log('');
-console.log(args.subscription);
-console.log('');
-console.log('');
-console.log(args.payload);
-console.log('');
-console.log('');
-
 if (!args.subscription || !args.payload) {
   throw new Error('Bad Input - Sorry. Include --subscription and --payload');
 }
+
+// Just makes final output a little cleaner
+console.log('');
+console.log('');
 
 const subscription = JSON.parse(args.subscription);
 const payload = args.payload;
@@ -32,4 +27,9 @@ return webPush.sendNotification(subscription.endpoint, {
 })
 .catch(err => {
   console.log(err);
+})
+.then(() => {
+  // Just makes final output a little cleaner
+  console.log('');
+  console.log('');
 });
