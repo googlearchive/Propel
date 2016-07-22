@@ -141,7 +141,7 @@ describe('Test Notification', function() {
               notification.tag.should.equal(notificationValue.tag);
             }
             if (notificationValue.click_action) {
-              notification.data.click_action.should.equal(notificationValue.click_action);
+              notification.data.notification.click_action.should.equal(notificationValue.click_action);
             }
 
             if (notification.vibrate && notification.vibrate.length > 0) {
