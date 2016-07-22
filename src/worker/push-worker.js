@@ -63,9 +63,7 @@ const showNotification = function(data) {
     };
 
     if (data.notification.click_action) {
-      notificationData.data = {
-        click_action: data.notification.click_action // eslint-disable-line camelcase
-      };
+      notificationData.data = data;
     }
 
     return self.registration.showNotification(data.notification.title,
@@ -117,6 +115,58 @@ const onPushReceived = function(event) {
   event.waitUntil(notificationPromiseChain);
 };
 
+const onNotificationClick = function(event) {
+  event.notification.close();
+
+  if (!event.notification.data) {
+    return;
+  }
+
+  const data = event.notification.data;
+
+  event.waitUntil(
+    Promise.resolve()
+    .then(() => {
+      if (!data.notification.click_action) {
+        return;
+      }
+
+      return clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true
+      })
+      .then(clientList => {
+        const desiredURL = data.notification.click_action;
+        let suitableClient;
+        for (let i = 0; i < clientList.length; i++) {
+          if (clientList[i].url === desiredURL) {
+            suitableClient = clientList[i];
+            break;
+          }
+        }
+
+        if (suitableClient) {
+          suitableClient.focus();
+          return suitableClient;
+        }
+
+        return clients.openWindow(data.notification.click_action);
+      });
+    })
+    .then(windowClient => {
+      if (windowClient &&
+        new URL(windowClient.url).origin === self.location.origin) {
+        // Attempt to send a message to the client to handle the data
+        // Is affected by: https://github.com/slightlyoff/ServiceWorker/issues/728
+        return attemptToMessageClient(windowClient, {
+          propelcmd: 'propel-notificationclick',
+          data: data
+        });
+      }
+    })
+  );
+};
+
 const onSubscriptionChange = function() {
   // TODO: Current behaviour mixed with upcoming behaviour changes.
   // Manage resubscribing
@@ -132,6 +182,7 @@ export default class PushWorker {
     this._callbacks = {};
 
     self.addEventListener('push', onPushReceived.bind(this));
+    self.addEventListener('notificationclick', onNotificationClick.bind(this));
     self.addEventListener('pushsubscriptionchange',
       onSubscriptionChange.bind(this));
   }

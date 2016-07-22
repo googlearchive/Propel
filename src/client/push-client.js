@@ -55,13 +55,6 @@ const registrationReady = function(registration) {
 };
 
 const subscribeForPush = function() {
-  // TODO: What happens if the browser doesn't support the APIS
-  // required for this library
-  if (!supported()) {
-    return Promise.reject(new Error('Your browser does not meet the ' +
-      'requirement for this library'));
-  }
-
   return navigator.serviceWorker
   .register(this._swPath, {
     scope: 'propel-v1.0.0'
@@ -113,6 +106,11 @@ const dispatchMessage = function(msg) {
 
 export default class PushClient {
   constructor(swPath) {
+    if (!supported()) {
+      throw new Error('Your browser does not meet the ' +
+        'requirement for this library');
+    }
+
     // TODO: If the service worker path is changed, should the SDK delete
     // the previous service worker registration?
 
@@ -127,20 +125,22 @@ export default class PushClient {
     this._swPath = swPath;
     this._callbacks = {};
 
+    navigator.serviceWorker.addEventListener('message', event => {
+      switch (event.data.propelcmd) {
+        case 'propel-message':
+          dispatchMessage.bind(this)(event.data.data);
+          break;
+        case 'propel-notificationclick':
+          dispatchMessage.bind(this)(event.data.data);
+          break;
+        default:
+          // Noop.
+          console.warn('Unknown message received from service worker', event);
+          break;
+      }
+    }, false);
+
     subscribeForPush.bind(this)()
-    .then(() => {
-      navigator.serviceWorker.addEventListener('message', event => {
-        switch (event.data.propelcmd) {
-          case 'propel-message':
-            dispatchMessage.bind(this)(event.data.data);
-            break;
-          default:
-            // Noop.
-            console.warn('Unknown message received from service worker', event);
-            break;
-        }
-      }, false);
-    })
     .catch(err => {
       dispatchError.bind(this)(err);
     });
